@@ -105,12 +105,12 @@ const SalarySlip = sequelize.define('SalarySlip', {
   },
   workingDays: {
     type: DataTypes.INTEGER,
-    defaultValue: 22,
+    defaultValue: 26,
     field: 'working_days'
   },
   daysWorked: {
     type: DataTypes.INTEGER,
-    defaultValue: 22,
+    defaultValue: 26,
     field: 'days_worked'
   },
   status: {

@@ -49,20 +49,20 @@ const AISalesAssistant = () => {
     const company = selectedLead.company || 'your organization';
 
     if (tone === 'Persuasive') {
-      return `Subject: Transform ${company}'s Workflow with Astra CRM
+      return `Subject: Transform ${company}'s Workflow with Sanna CRM
 
 Hi ${leadName},
 
 I noticed ${company} is currently evaluating modern customer relationship platforms to accelerate sales pipeline velocity.
 
-With Astra CRM's enterprise multi-tenant architecture, clients in your industry have seen a 38% increase in deal conversion rates within 60 days.
+With Sanna CRM's enterprise multi-tenant architecture, clients in your industry have seen a 38% increase in deal conversion rates within 60 days.
 
 I would love to arrange a quick 15-minute demo to show you how our omnichannel lead scoring and automated pipeline workflows can benefit ${company}.
 
 Are you available this Thursday at 2:00 PM EST?
 
 Best regards,
-Astra Enterprise Sales Team`;
+Sanna Enterprise Sales Team`;
     }
 
     if (tone === 'Urgent') {
@@ -77,21 +77,21 @@ We have reserved 25 complimentary seats and full Razorpay/Stripe billing gateway
 Let me know if we can finalize the proposal today to lock in your dedicated SLA tier.
 
 Best regards,
-Astra Enterprise Sales Team`;
+Sanna Enterprise Sales Team`;
     }
 
-    return `Subject: Introduction to Astra CRM Platform - ${company}
+    return `Subject: Introduction to Sanna CRM Platform - ${company}
 
 Dear ${leadName},
 
-Thank you for your interest in Astra CRM. Based on your team's requirements, our enterprise platform offers end-to-end sales pipeline tracking, custom quotation engine, and zero-trust security audit logs.
+Thank you for your interest in Sanna CRM. Based on your team's requirements, our enterprise platform offers end-to-end sales pipeline tracking, custom quotation engine, and zero-trust security audit logs.
 
 Attached is our product matrix and technical overview for ${company}.
 
 Please let me know if you have any questions or if you would like to schedule a product walk-through.
 
 Kind regards,
-Astra Enterprise Sales Team`;
+Sanna Enterprise Sales Team`;
   };
 
   const emailDraft = generateEmailDraft();

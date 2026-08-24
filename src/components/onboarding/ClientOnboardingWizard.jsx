@@ -102,7 +102,7 @@ const ClientOnboardingWizard = () => {
         key: process.env.REACT_APP_RAZORPAY_KEY_ID || '',
         amount: order.amount,
         currency: order.currency,
-        name: 'Astra CRM Enterprise',
+        name: 'Sanna CRM Enterprise',
         description: `Upgrade Plan to ${selectedPlan}`,
         order_id: order.id,
         handler: async (response) => {

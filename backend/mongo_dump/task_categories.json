@@ -1,0 +1,308 @@
+[
+  {
+    "_id": {
+      "$oid": "6a5222e7fd731f5454cbe75b"
+    },
+    "name": "Backend Development"
+  },
+  {
+    "_id": {
+      "$oid": "6a5222e7fd731f5454cbe75c"
+    },
+    "name": "Database Setup"
+  },
+  {
+    "_id": {
+      "$oid": "6a522db123538a7e2f725573"
+    },
+    "name": "Seo"
+  },
+  {
+    "_id": {
+      "$oid": "6a522e9023538a7e2f725575"
+    },
+    "name": "Follow Ups"
+  },
+  {
+    "_id": {
+      "$oid": "6a522ea523538a7e2f725576"
+    },
+    "name": "Technical Support"
+  },
+  {
+    "_id": {
+      "$oid": "6a5238fd23538a7e2f725578"
+    },
+    "name": "Brochure design"
+  },
+  {
+    "_id": {
+      "$oid": "6a52397d23538a7e2f72557a"
+    },
+    "name": "Image modification"
+  },
+  {
+    "_id": {
+      "$oid": "6a52398a23538a7e2f72557b"
+    },
+    "name": "Logo design"
+  },
+  {
+    "_id": {
+      "$oid": "6a52399123538a7e2f72557c"
+    },
+    "name": "Poster design"
+  },
+  {
+    "_id": {
+      "$oid": "6a523b2423538a7e2f72557f"
+    },
+    "name": "Developer"
+  },
+  {
+    "_id": {
+      "$oid": "6a523cc123538a7e2f725581"
+    },
+    "name": "Place of Action"
+  },
+  {
+    "_id": {
+      "$oid": "6a523e3523538a7e2f725584"
+    },
+    "name": "Website development"
+  },
+  {
+    "_id": {
+      "$oid": "6a523e6923538a7e2f725585"
+    },
+    "name": "Website analysis"
+  },
+  {
+    "_id": {
+      "$oid": "6a52522723538a7e2f72558d"
+    },
+    "name": "other"
+  },
+  {
+    "_id": {
+      "$oid": "6a5268cb23538a7e2f725593"
+    },
+    "name": "Digital Marketing"
+  },
+  {
+    "_id": {
+      "$oid": "6a54563c201ded264c54405a"
+    },
+    "name": "Report"
+  },
+  {
+    "_id": {
+      "$oid": "6a545646201ded264c54405b"
+    },
+    "name": "Sales"
+  },
+  {
+    "_id": {
+      "$oid": "6a54564c201ded264c54405c"
+    },
+    "name": "Client Meet"
+  },
+  {
+    "_id": {
+      "$oid": "6a545671201ded264c54405d"
+    },
+    "name": "internal meeting"
+  },
+  {
+    "_id": {
+      "$oid": "6a54d7fb71ea4f09dc34e744"
+    },
+    "name": "Print file"
+  },
+  {
+    "_id": {
+      "$oid": "6a54dd0d71ea4f09dc34e748"
+    },
+    "name": "shares"
+  },
+  {
+    "_id": {
+      "$oid": "6a54ec1571ea4f09dc34e759"
+    },
+    "name": "Web development"
+  },
+  {
+    "_id": {
+      "$oid": "6a54ee3f71ea4f09dc34e75c"
+    },
+    "name": "Development"
+  },
+  {
+    "_id": {
+      "$oid": "6a56285556289e5e69261fac"
+    },
+    "name": "Social media profile"
+  },
+  {
+    "_id": {
+      "$oid": "6a5628a256289e5e69261fad"
+    },
+    "name": "Meeting"
+  },
+  {
+    "_id": {
+      "$oid": "6a562a9a56289e5e69261fae"
+    },
+    "name": "Design elements"
+  },
+  {
+    "_id": {
+      "$oid": "6a562b1a56289e5e69261faf"
+    },
+    "name": "Profile design"
+  },
+  {
+    "_id": {
+      "$oid": "6a578618ab954362db9e6e00"
+    },
+    "name": "meta ad"
+  },
+  {
+    "_id": {
+      "$oid": "6a578685ab954362db9e6e03"
+    },
+    "name": "Google Ads"
+  },
+  {
+    "_id": {
+      "$oid": "6a58ce0ad26fbb1c2f3c0a4a"
+    },
+    "name": "Cover and thumbnail"
+  },
+  {
+    "_id": {
+      "$oid": "6a58d3e4d26fbb1c2f3c0a4f"
+    },
+    "name": "Backend"
+  },
+  {
+    "_id": {
+      "$oid": "6a5b894567f4fb50f6f897e8"
+    },
+    "name": "Research"
+  },
+  {
+    "_id": {
+      "$oid": "6a5cc0142eecb299aebfbca8"
+    },
+    "name": "Certificate and Greetings"
+  },
+  {
+    "_id": {
+      "$oid": "6a5cca722eecb299aebfbcab"
+    },
+    "name": "GMB"
+  },
+  {
+    "_id": {
+      "$oid": "6a5ccab62eecb299aebfbcac"
+    },
+    "name": "Blog"
+  },
+  {
+    "_id": {
+      "$oid": "6a5e17dc967e0d573bb9c89f"
+    },
+    "name": "break"
+  },
+  {
+    "_id": {
+      "$oid": "6a5e1907967e0d573bb9c8a2"
+    },
+    "name": "Google ads Campaign"
+  },
+  {
+    "_id": {
+      "$oid": "6a5f691b7333fb9bd9a3a7f3"
+    },
+    "name": "Google ads Campaign and Social media boosting"
+  },
+  {
+    "_id": {
+      "$oid": "6a60bd24e1b47dca6741cbc5"
+    },
+    "name": "Catalogue Design"
+  },
+  {
+    "_id": {
+      "$oid": "6a62d90a1644aed5261d2aae"
+    },
+    "name": "Good morning text to client"
+  },
+  {
+    "_id": {
+      "$oid": "6a64aa82ff2366ab6abe946d"
+    },
+    "name": "Designing Changes"
+  },
+  {
+    "_id": {
+      "$oid": "6a64ab78ff2366ab6abe946f"
+    },
+    "name": "Letterhead design"
+  },
+  {
+    "_id": {
+      "$oid": "6a689ef34b43fc9d044aed24"
+    },
+    "name": "GIF design"
+  },
+  {
+    "_id": {
+      "$oid": "6a68a10d4b43fc9d044aed25"
+    },
+    "name": "Banner design"
+  },
+  {
+    "_id": {
+      "$oid": "6a68e14515c7584bcb666246"
+    },
+    "name": "Reports"
+  },
+  {
+    "_id": {
+      "$oid": "6a69f20ebc724df79ef840f9"
+    },
+    "name": "Design Corrections"
+  },
+  {
+    "_id": {
+      "$oid": "6a6c957e2d5870f36ffe3dc7"
+    },
+    "name": "Pamphlet Design"
+  },
+  {
+    "_id": {
+      "$oid": "6a6c95e02d5870f36ffe3dc8"
+    },
+    "name": "Standee design"
+  },
+  {
+    "_id": {
+      "$oid": "6a6df2a0bee603a9085b232f"
+    },
+    "name": "SMM"
+  },
+  {
+    "_id": {
+      "$oid": "6a708e1e1b88668fa27ce13f"
+    },
+    "name": "PDF EDITING"
+  },
+  {
+    "_id": {
+      "$oid": "6a71dce5a1fcd1c9a6425d31"
+    },
+    "name": "reel"
+  }
+]

@@ -1,0 +1,49 @@
+const { Client } = require('ssh2');
+
+const passBuffer = Buffer.from([
+  0x4B, 0x42, 0x36, 0x56, 0x6E, 0x37, 0x32, 0x70, 0x32, 0x67, 0x53, 0x60, 0x28, 0x5C, 0x46
+]).toString('utf8');
+
+function runSSH(cmd) {
+  return new Promise((resolve, reject) => {
+    const conn = new Client();
+    let stdout = '';
+    let stderr = '';
+    conn.on('ready', () => {
+      conn.exec(cmd, (err, stream) => {
+        if (err) return reject(err);
+        stream.on('close', (code) => {
+          conn.end();
+          resolve({ code, stdout, stderr });
+        }).on('data', (d) => {
+          stdout += d.toString();
+        }).stderr.on('data', (d) => {
+          stderr += d.toString();
+        });
+      });
+    }).on('error', (err) => reject(err)).connect({
+      host: '103.160.144.225',
+      port: 22,
+      username: 'root',
+      password: passBuffer,
+      tryKeyboard: true,
+      readyTimeout: 20000
+    });
+  });
+}
+
+async function checkSannacrm() {
+  console.log('=== cat /etc/nginx/sites-available/sannacrm ===');
+  const r1 = await runSSH('cat /etc/nginx/sites-available/sannacrm');
+  console.log(r1.stdout);
+
+  console.log('=== openssl s_client to port 443 with SNI sannacrm.sannainnovations.com ===');
+  const r2 = await runSSH('echo | openssl s_client -connect 127.0.0.1:443 -servername sannacrm.sannainnovations.com 2>/dev/null | openssl x509 -noout -text | grep -E "Subject:|DNS:|Issuer:"');
+  console.log(r2.stdout);
+
+  console.log('=== openssl s_client from external / public IP with SNI ===');
+  const r3 = await runSSH('echo | openssl s_client -connect 103.160.144.225:443 -servername sannacrm.sannainnovations.com 2>/dev/null | openssl x509 -noout -text | grep -E "Subject:|DNS:|Issuer:"');
+  console.log(r3.stdout);
+}
+
+checkSannacrm().catch(console.error);

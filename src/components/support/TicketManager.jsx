@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useCRM } from '../../context/CRMContext';
+import exportToCSV from '../../utils/csvExporter';
 import {
   Headphones,
   Plus,
@@ -10,11 +11,12 @@ import {
   User,
   CheckCircle2,
   Mail,
-  Building
+  Building,
+  FileSpreadsheet
 } from 'lucide-react';
 
 const TicketManager = () => {
-  const { tickets, createTicket } = useCRM();
+  const { tickets = [], createTicket } = useCRM();
   const [activeTicketId, setActiveTicketId] = useState(tickets[0]?.id || null);
   const [replyText, setReplyText] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
@@ -28,6 +30,15 @@ const TicketManager = () => {
   const [description, setDescription] = useState('');
 
   const activeTicket = tickets.find(t => t.id === activeTicketId) || tickets[0];
+
+  const handleExportCSV = () => {
+    let csv = `Ticket ID,Subject,Customer Name,Contact Email,Product,Priority,Status,Created Date\n`;
+    tickets.forEach(t => {
+      csv += `"${t.id}","${(t.subject || t.title || '').replace(/"/g, '""')}","${t.customerName || ''}","${t.contactEmail || ''}","${t.productName || ''}","${t.priority || 'Medium'}","${t.status || 'Open'}","${t.createdAt || ''}"\n`;
+    });
+
+    exportToCSV(csv, `AstraCRM_Support_Tickets_${new Date().toISOString().split('T')[0]}.csv`);
+  };
 
   const handleSendReply = (e) => {
     e.preventDefault();
@@ -74,7 +85,7 @@ const TicketManager = () => {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       
       {/* Header Banner */}
-      <div className="glass-panel" style={{ padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className="glass-panel" style={{ padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
         <div>
           <div style={{ fontSize: '0.8rem', color: '#34d399', fontWeight: '700', textTransform: 'uppercase' }}>
             Post-Sales Support & Warranty Management
@@ -87,14 +98,24 @@ const TicketManager = () => {
           </p>
         </div>
 
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="btn gradient-btn-primary"
-          style={{ padding: '10px 18px', borderRadius: '10px' }}
-        >
-          <Plus style={{ width: '18px', height: '18px' }} />
-          <span>New Support Ticket</span>
-        </button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button
+            onClick={handleExportCSV}
+            className="btn btn-secondary"
+            style={{ padding: '10px 16px', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}
+          >
+            <FileSpreadsheet style={{ width: '16px', height: '16px' }} />
+            <span>Export Tickets CSV</span>
+          </button>
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="btn gradient-btn-primary"
+            style={{ padding: '10px 18px', borderRadius: '10px' }}
+          >
+            <Plus style={{ width: '18px', height: '18px' }} />
+            <span>New Support Ticket</span>
+          </button>
+        </div>
       </div>
 
       {/* Ticket Inbox Grid */}

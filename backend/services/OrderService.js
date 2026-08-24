@@ -69,7 +69,7 @@ class OrderService {
       taxTotal: parseFloat(taxTotal) || 0,
       shipping: parseFloat(shipping) || 0,
       grandTotal: parseFloat(grandTotal) || 0,
-      sellerName: sellerName || 'Vertex Innovations',
+      sellerName: sellerName || 'Sanna Innovations',
       sellerLogo,
       sellerAddress,
       sellerWebsite,

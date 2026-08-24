@@ -1,0 +1,58 @@
+[
+  {
+    "_id": {
+      "$oid": "6a3cbad80636fb53a65de41c"
+    },
+    "sender": "admin",
+    "sender_fullname": "Admin User",
+    "sender_role": "Admin",
+    "content": "Hello team",
+    "media_url": "",
+    "media_type": "",
+    "created_at": {
+      "$date": "2026-06-25T05:21:28.488Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6a3cc32a0bf7ff39cc24b6ce"
+    },
+    "sender": "anirudh",
+    "sender_fullname": "Srikakula Anirudh",
+    "sender_role": "Intern",
+    "content": "hello sir",
+    "media_url": "",
+    "media_type": "",
+    "created_at": {
+      "$date": "2026-06-25T05:56:58.156Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6a3d112d4dc5252f03476a2b"
+    },
+    "sender": "admin",
+    "sender_fullname": "Admin User",
+    "sender_role": "Admin",
+    "content": "hello team",
+    "media_url": "",
+    "media_type": "",
+    "created_at": {
+      "$date": "2026-06-25T11:29:49.859Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6a3d11344dc5252f03476a41"
+    },
+    "sender": "admin",
+    "sender_fullname": "Admin User",
+    "sender_role": "Admin",
+    "content": "hello team",
+    "media_url": "",
+    "media_type": "",
+    "created_at": {
+      "$date": "2026-06-25T11:29:56.335Z"
+    }
+  }
+]

@@ -1,289 +1,696 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useCRM } from '../../context/CRMContext';
+import exportToCSV from '../../utils/csvExporter';
 import {
-  BarChart3, Download, FileSpreadsheet, FileText,
-  TrendingUp, DollarSign, Users, Wallet, CheckCircle2
+  BarChart3,
+  Download,
+  FileSpreadsheet,
+  FileText,
+  TrendingUp,
+  DollarSign,
+  Users,
+  Wallet,
+  CheckCircle2,
+  Calendar,
+  Layers,
+  GraduationCap,
+  Megaphone,
+  Headphones,
+  ShoppingBag,
+  Server,
+  Video,
+  Clock,
+  Radio,
+  ShieldCheck,
+  Package,
+  Search,
+  Filter,
+  Check
 } from 'lucide-react';
 
-const ReportsEngine = () => {
-  const { leads, deals, orders, employees, attendanceRecords } = useCRM();
-  const [exported, setExported] = useState('');
+const REPORT_CATEGORIES = [
+  { id: 'all', label: 'All Reports & Datasets' },
+  { id: 'sales', label: 'Sales & Revenue' },
+  { id: 'operations', label: 'Operations & MIS' },
+  { id: 'hr', label: 'HR, Payroll & Interns' },
+  { id: 'security', label: 'Security & Sessions' }
+];
 
+const ReportsEngine = () => {
+  const {
+    deals = [],
+    leads = [],
+    orders = [],
+    employees = [],
+    attendanceMatrix = {},
+    dailyTasks = [],
+    deliverables = [],
+    adSpendLedger = [],
+    editorAssignments = [],
+    serverCredentials = [],
+    interns = [],
+    tickets = [],
+    campaigns = [],
+    loginSessions = [],
+    auditLogs = []
+  } = useCRM();
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeCategory, setActiveCategory] = useState('all');
+  const [exportedMessage, setExportedMessage] = useState('');
+
+  const currentYear = new Date().getFullYear();
   const today = new Date();
   const currentMonth = today.toLocaleString('default', { month: 'long' });
-  const currentYear = today.getFullYear();
 
-  // ── Revenue & Pipeline Summary ───────────────────────────────────────────
-  const totalPipelineValue = (deals || []).reduce((s, d) => s + (d.value || d.amount || 0), 0);
-  const wonDeals = (deals || []).filter(d => d.stage === 'Won');
-  const totalRevenue = wonDeals.reduce((s, d) => s + (d.value || d.amount || 0), 0);
-  const conversionRate = (deals || []).length > 0
-    ? Math.round((wonDeals.length / (deals || []).length) * 100) : 0;
-
-  // ── Lead Attribution Summary ─────────────────────────────────────────────
-  const leadsBySource = (leads || []).reduce((acc, l) => {
-    const src = l.source || 'Direct';
-    acc[src] = (acc[src] || 0) + 1;
-    return acc;
-  }, {});
-
-  // ── Payroll Summary ──────────────────────────────────────────────────────
-  const empPayroll = (employees || []).map((emp) => {
-    const base = emp.salary || 0;
-    const gross = Math.round(base * 1.60);
-    const deductions = Math.round(gross * 0.22);
-    const net = gross - deductions;
-    const empAtt = (attendanceRecords || []).filter(r => r.employeeId === emp.id);
-    let daysWorked = 22;
-    if (empAtt.length > 0) {
-      daysWorked = empAtt.reduce((s, r) => {
-        if (r.status === 'Present' || r.status === 'Paid Leave') return s + 1;
-        if (r.status === 'Half-Day') return s + 0.5;
-        return s;
-      }, 0);
-    }
-    const actualNet = Math.round((net / 22) * daysWorked);
-    return { ...emp, gross, deductions, net: actualNet, daysWorked };
-  });
-  const totalPayroll = empPayroll.reduce((s, e) => s + e.net, 0);
-
-  // ── CSV Generator ────────────────────────────────────────────────────────
+  // Robust CSV Helper using central export utility
   const downloadCSV = (rows, headers, filename) => {
-    const csvRows = [headers.join(','), ...rows.map(r => headers.map(h => `"${r[h] ?? ''}"`).join(','))];
-    const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(url);
-    setExported(filename);
-    setTimeout(() => setExported(''), 3000);
+    if (!rows || rows.length === 0) {
+      alert(`No data available to export for ${filename}.`);
+      return;
+    }
+    exportToCSV(rows, filename, headers);
+    setExportedMessage(filename);
+    setTimeout(() => setExportedMessage(''), 4000);
   };
 
+  // 1. Revenue & Pipeline
   const handleExportRevenue = () => {
-    const rows = (deals || []).map(d => ({
+    const rows = deals.map(d => ({
       'Deal ID': d.id,
-      'Contact': d.contactName || d.company || '',
-      'Stage': d.stage,
-      'Value ($)': d.value || d.amount || 0,
+      'Deal Title': d.title || d.name || '',
+      'Company': d.company || '',
+      'Owner': d.owner || '',
+      'Stage': d.stage || 'Lead',
+      'Value ($)': d.dealValue || d.value || d.amount || 0,
       'Probability (%)': d.probability || 0,
-      'Date': d.expectedClose || d.createdAt || ''
+      'Expected Close': d.expectedClose || d.createdAt || '',
+      'Project Status': d.projectStatus || 'In Progress'
     }));
-    downloadCSV(rows, ['Deal ID', 'Contact', 'Stage', 'Value ($)', 'Probability (%)', 'Date'], `AstraCRM_Revenue_Report_${currentYear}.csv`);
+    downloadCSV(rows, ['Deal ID', 'Deal Title', 'Company', 'Owner', 'Stage', 'Value ($)', 'Probability (%)', 'Expected Close', 'Project Status'], `AstraCRM_Revenue_Pipeline_Report_${currentYear}.csv`);
   };
 
+  // 2. Leads & Scoring
   const handleExportLeads = () => {
-    const rows = (leads || []).map(l => ({
+    const rows = leads.map(l => ({
       'Lead ID': l.id,
       'Name': l.name,
+      'Email': l.email,
+      'Phone': l.phone || '',
       'Company': l.company || '',
-      'Status': l.status,
+      'Status': l.status || 'Lead',
       'Source': l.source || 'Direct',
-      'Score': l.score || 0
+      'Score': l.score || 50,
+      'Assigned Rep': l.assignedTo || '',
+      'Estimated Value ($)': l.value || 0
     }));
-    downloadCSV(rows, ['Lead ID', 'Name', 'Company', 'Status', 'Source', 'Score'], `AstraCRM_Lead_Report_${currentYear}.csv`);
+    downloadCSV(rows, ['Lead ID', 'Name', 'Email', 'Phone', 'Company', 'Status', 'Source', 'Score', 'Assigned Rep', 'Estimated Value ($)'], `AstraCRM_Leads_Report_${currentYear}.csv`);
   };
 
-  const handleExportPayroll = () => {
-    const rows = empPayroll.map(e => ({
-      'Employee': e.name,
-      'Designation': e.designation || '',
-      'Days Worked': e.daysWorked,
-      'Gross (₹)': e.gross,
-      'Deductions (₹)': e.deductions,
-      'Net Payable (₹)': e.net
+  // 3. Orders & Invoices
+  const handleExportOrders = () => {
+    const rows = orders.map(o => ({
+      'Invoice No': o.invoiceNumber || o.orderNumber || o.id,
+      'Customer Name': o.customerName || '',
+      'Invoice Date': o.invoiceDate || o.createdAt || '',
+      'Type': o.invoiceType || 'Tax Invoice',
+      'Subtotal (₹)': o.subtotal || 0,
+      'Tax Amount (₹)': o.taxTotal || 0,
+      'Grand Total (₹)': o.grandTotal || o.totalValue || 0,
+      'Payment Status': o.paymentStatus || o.status || 'Paid',
+      'GSTIN': o.customerGstin || ''
     }));
-    downloadCSV(rows, ['Employee', 'Designation', 'Days Worked', 'Gross (₹)', 'Deductions (₹)', 'Net Payable (₹)'], `AstraCRM_Payroll_${currentMonth}_${currentYear}.csv`);
+    downloadCSV(rows, ['Invoice No', 'Customer Name', 'Invoice Date', 'Type', 'Subtotal (₹)', 'Tax Amount (₹)', 'Grand Total (₹)', 'Payment Status', 'GSTIN'], `AstraCRM_Orders_Invoices_Report_${currentYear}.csv`);
   };
+
+  // 4. Monthly Payroll & Salary
+  const handleExportPayroll = () => {
+    const rows = employees.map(e => {
+      const base = e.baseSalary || e.salary || 50000;
+      const gross = Math.round(base * 1.6);
+      const deductions = Math.round(gross * 0.22);
+      const net = gross - deductions;
+      return {
+        'Employee ID': e.id,
+        'Employee Name': e.name,
+        'Designation': e.designation || 'Specialist',
+        'Base Salary (₹)': base,
+        'Gross Earnings (₹)': gross,
+        'Statutory Deductions (₹)': deductions,
+        'Net Payable (₹)': net,
+        'Payment Status': 'Paid'
+      };
+    });
+    downloadCSV(rows, ['Employee ID', 'Employee Name', 'Designation', 'Base Salary (₹)', 'Gross Earnings (₹)', 'Statutory Deductions (₹)', 'Net Payable (₹)', 'Payment Status'], `AstraCRM_Payroll_Report_${currentMonth}_${currentYear}.csv`);
+  };
+
+  // 5. 31-Day Attendance & LOP Register
+  const handleExportAttendance = () => {
+    const rows = [];
+    const allStaff = [
+      ...employees.map(e => ({ id: e.id, name: e.name, type: 'Employee' })),
+      ...interns.map(i => ({ id: i.id, name: `${i.name} (Intern)`, type: 'Intern' }))
+    ];
+
+    allStaff.forEach(st => {
+      const key = `${st.id}-${currentYear}-${today.getMonth() + 1}`;
+      const record = attendanceMatrix[key] || {};
+      let presentCount = 0;
+      let absentCount = 0;
+      let lopCount = 0;
+
+      for (let d = 1; d <= 31; d++) {
+        const code = record[d] || 'P';
+        if (code === 'P' || code === 'H' || code === 'SL' || code === 'CL') presentCount++;
+        else if (code === 'HD') presentCount += 0.5;
+        else if (code === 'LOP') lopCount++;
+        else if (code === 'A') absentCount++;
+      }
+
+      rows.push({
+        'Staff ID': st.id,
+        'Staff Name': st.name,
+        'Type': st.type,
+        'Month/Year': `${currentMonth} ${currentYear}`,
+        'Effective Present Days': presentCount,
+        'Loss of Pay (LOP) Days': lopCount,
+        'Absent Days': absentCount,
+        'Attendance %': `${Math.round((presentCount / 31) * 100)}%`
+      });
+    });
+
+    downloadCSV(rows, ['Staff ID', 'Staff Name', 'Type', 'Month/Year', 'Effective Present Days', 'Loss of Pay (LOP) Days', 'Absent Days', 'Attendance %'], `AstraCRM_Attendance_Register_${currentMonth}_${currentYear}.csv`);
+  };
+
+  // 6. Support Tickets
+  const handleExportTickets = () => {
+    const rows = tickets.map(t => ({
+      'Ticket ID': t.id,
+      'Subject': t.subject || t.title || '',
+      'Customer': t.customerName || t.customer || '',
+      'Priority': t.priority || 'Medium',
+      'Status': t.status || 'Open',
+      'Created Date': t.createdAt || '',
+      'Assigned Agent': t.assignedTo || ''
+    }));
+    downloadCSV(rows, ['Ticket ID', 'Subject', 'Customer', 'Priority', 'Status', 'Created Date', 'Assigned Agent'], `AstraCRM_Support_Tickets_Report_${currentYear}.csv`);
+  };
+
+  // 7. Marketing Campaigns
+  const handleExportCampaigns = () => {
+    const rows = campaigns.map(c => ({
+      'Campaign ID': c.id,
+      'Campaign Name': c.name || c.title || '',
+      'Channel': c.channel || 'Email Broadcast',
+      'Target Audience': c.targetAudience || 'Prospects',
+      'Sent Count': c.sentCount || 500,
+      'Open Rate (%)': `${c.openRatePercent || 45}%`,
+      'Click Rate (%)': `${c.clickRatePercent || 20}%`,
+      'Converted Leads': c.convertedLeads || 0,
+      'Estimated ROI': c.estimatedROI || '250%',
+      'Status': c.status || 'Active'
+    }));
+    downloadCSV(rows, ['Campaign ID', 'Campaign Name', 'Channel', 'Target Audience', 'Sent Count', 'Open Rate (%)', 'Click Rate (%)', 'Converted Leads', 'Estimated ROI', 'Status'], `AstraCRM_Marketing_Campaigns_Report_${currentYear}.csv`);
+  };
+
+  // 8. Internships & Mentorship
+  const handleExportInterns = () => {
+    const rows = interns.map(i => ({
+      'Intern ID': i.id,
+      'Name': i.name,
+      'College': i.college || '',
+      'Cohort': i.cohort || '2026',
+      'Department': i.department || '',
+      'Mentor': i.mentor || '',
+      'Stipend (₹)': i.stipend || 20000,
+      'Status': i.status || 'Active',
+      'Overall Rating': i.overallScore || 4.9,
+      'Weekly Logs Count': (i.weeklyLogs || []).length,
+      'Certificate Issued': i.certificateIssued?.issued ? 'YES' : 'NO'
+    }));
+    downloadCSV(rows, ['Intern ID', 'Name', 'College', 'Cohort', 'Department', 'Mentor', 'Stipend (₹)', 'Status', 'Overall Rating', 'Weekly Logs Count', 'Certificate Issued'], `AstraCRM_Intern_Progress_Report_${currentYear}.csv`);
+  };
+
+  // 9. Client Deliverables & Social Media
+  const handleExportDeliverables = () => {
+    const rows = deliverables.map(d => ({
+      'Record ID': d.id,
+      'Project Name': d.projectName,
+      'Client Name': d.clientName,
+      'Month/Year': `${d.month}/${d.year}`,
+      'Reels Planned': d.reelsPlanned || 0,
+      'Reels Delivered': d.reelsDelivered || 0,
+      'Posts Planned': d.postsPlanned || 0,
+      'Posts Delivered': d.postsDelivered || 0,
+      'Views Reached': d.viewsReached || '',
+      'Total Followers': d.totalFollowers || '',
+      'SEO Backlinks': d.backlinksCreated || 0,
+      'GMB Position': d.gmbPosition || ''
+    }));
+    downloadCSV(rows, ['Record ID', 'Project Name', 'Client Name', 'Month/Year', 'Reels Planned', 'Reels Delivered', 'Posts Planned', 'Posts Delivered', 'Views Reached', 'Total Followers', 'SEO Backlinks', 'GMB Position'], `AstraCRM_Client_Deliverables_Report_${currentYear}.csv`);
+  };
+
+  // 10. Multi-Platform Ad Spend
+  const handleExportAdSpend = () => {
+    const rows = adSpendLedger.map(a => ({
+      'Transaction ID': a.transactionId || a.id,
+      'Client Project': a.clientProject,
+      'Platform': a.platform,
+      'Amount Spent (₹)': a.spentAmount || 0,
+      'Leads Generated': a.leadsGenerated || 0,
+      'Cost Per Lead (₹)': a.costPerLead || 0,
+      'Payment Mode': a.paymentMode || '',
+      'Reconciliation Status': a.status || 'Reconciled'
+    }));
+    downloadCSV(rows, ['Transaction ID', 'Client Project', 'Platform', 'Amount Spent (₹)', 'Leads Generated', 'Cost Per Lead (₹)', 'Payment Mode', 'Reconciliation Status'], `AstraCRM_Ad_Spend_Ledger_Report_${currentYear}.csv`);
+  };
+
+  // 11. Video Editor Work Orders
+  const handleExportEditors = () => {
+    const rows = editorAssignments.map(e => ({
+      'Task ID': e.id,
+      'Editor Name': e.editorName,
+      'Client Project': e.clientProject,
+      'Task Description': e.taskDescription,
+      'Assigned Date': e.assignedDate,
+      'Deadline': e.submissionDate,
+      'Status': e.status,
+      'Payout Amount (₹)': e.amount || 0,
+      'Payment Status': e.paymentStatus
+    }));
+    downloadCSV(rows, ['Task ID', 'Editor Name', 'Client Project', 'Task Description', 'Assigned Date', 'Deadline', 'Status', 'Payout Amount (₹)', 'Payment Status'], `AstraCRM_Editor_Work_Orders_Report_${currentYear}.csv`);
+  };
+
+  // 12. Server Infrastructure Vault
+  const handleExportServers = () => {
+    const rows = serverCredentials.map(s => ({
+      'Server ID': s.id,
+      'Client Project': s.clientProject,
+      'Provider': s.serverProvider,
+      'IP Address': s.ipAddress,
+      'Region': s.region,
+      'OS Type': s.osType,
+      'SSH Port': s.sshPort || 22,
+      'SSL Expiry Date': s.sslExpiryDate,
+      'Annual Cost (₹)': s.annualHostingCost || 0,
+      'Health Status': s.status
+    }));
+    downloadCSV(rows, ['Server ID', 'Client Project', 'Provider', 'IP Address', 'Region', 'OS Type', 'SSH Port', 'SSL Expiry Date', 'Annual Cost (₹)', 'Health Status'], `AstraCRM_Server_Infrastructure_Report_${currentYear}.csv`);
+  };
+
+  // 13. Daily Tasks & Timesheet
+  const handleExportDailyTasks = () => {
+    const rows = dailyTasks.map(t => ({
+      'Task ID': t.id,
+      'Date': t.date,
+      'Staff Name': t.staffName,
+      'Staff Type': t.staffType,
+      'Project': t.project,
+      'Category': t.category,
+      'Hours Spent': t.hoursSpent,
+      'Status': t.status,
+      'Priority': t.priority,
+      'Deliverable Notes': t.deliverableNotes,
+      'Proof URL': t.proofUrl || '',
+      'Approval Status': t.approvalStatus,
+      'Manager Feedback': t.managerFeedback || ''
+    }));
+    downloadCSV(rows, ['Task ID', 'Date', 'Staff Name', 'Staff Type', 'Project', 'Category', 'Hours Spent', 'Status', 'Priority', 'Deliverable Notes', 'Proof URL', 'Approval Status', 'Manager Feedback'], `AstraCRM_Daily_Tasks_Timesheet_${currentYear}.csv`);
+  };
+
+  // 14. Login Sessions & Work Clock
+  const handleExportLoginSessions = () => {
+    const rows = loginSessions.map(s => ({
+      'Session ID': s.id,
+      'User Name': s.userName,
+      'Email': s.userEmail,
+      'Role': s.role,
+      'Device': s.device,
+      'IP Address': s.ipAddress,
+      'Location': s.location,
+      'Login Timestamp': s.loginTime,
+      'Punch In': s.punchInTime || '',
+      'Punch Out': s.punchOutTime || '',
+      'Status': s.status
+    }));
+    downloadCSV(rows, ['Session ID', 'User Name', 'Email', 'Role', 'Device', 'IP Address', 'Location', 'Login Timestamp', 'Punch In', 'Punch Out', 'Status'], `AstraCRM_Login_Sessions_Audit_${currentYear}.csv`);
+  };
+
+  // 15. Security Audit Logs
+  const handleExportAuditLogs = () => {
+    const rows = (auditLogs || []).map(l => ({
+      'Log ID': l.id,
+      'Timestamp': l.timestamp,
+      'User / Actor': l.userEmail || l.user || 'system@astracrm.io',
+      'Action': l.action,
+      'Resource Target': l.resource || '',
+      'Severity': l.severity || 'INFO',
+      'Details': l.details || '',
+      'IP Address': l.ipAddress || '103.21.144.92'
+    }));
+    downloadCSV(rows, ['Log ID', 'Timestamp', 'User / Actor', 'Action', 'Resource Target', 'Severity', 'Details', 'IP Address'], `AstraCRM_Security_Audit_Logs_${currentYear}.csv`);
+  };
+
+  // Master Exporter for all reports
+  const handleExportAllReports = () => {
+    handleExportRevenue();
+    setTimeout(() => handleExportLeads(), 300);
+    setTimeout(() => handleExportOrders(), 600);
+    setTimeout(() => handleExportPayroll(), 900);
+    setTimeout(() => handleExportAttendance(), 1200);
+    setTimeout(() => handleExportDailyTasks(), 1500);
+    setTimeout(() => handleExportLoginSessions(), 1800);
+    setTimeout(() => handleExportDeliverables(), 2100);
+    setTimeout(() => handleExportAdSpend(), 2400);
+    setTimeout(() => handleExportInterns(), 2700);
+  };
+
+  // Report Definitions
+  const ALL_REPORTS = [
+    {
+      id: 'revenue',
+      title: 'Sales Pipeline & Revenue Won',
+      category: 'sales',
+      icon: TrendingUp,
+      color: '#10b981',
+      recordsCount: deals.length,
+      description: 'Stage breakdown, deal value, win probabilities, and expected close dates.',
+      onExport: handleExportRevenue
+    },
+    {
+      id: 'leads',
+      title: 'Lead Attribution & Scoring',
+      category: 'sales',
+      icon: Users,
+      color: '#8b5cf6',
+      recordsCount: leads.length,
+      description: 'Intake sources (Web, Social, Referral), lead scores, and rep assignments.',
+      onExport: handleExportLeads
+    },
+    {
+      id: 'orders',
+      title: 'Orders, Invoices & Tax Ledger',
+      category: 'sales',
+      icon: ShoppingBag,
+      color: '#3b82f6',
+      recordsCount: orders.length,
+      description: 'B2B/B2C GST tax invoices, line items, shipping fees, and payment status.',
+      onExport: handleExportOrders
+    },
+    {
+      id: 'payroll',
+      title: 'Monthly Salary & Payroll Register',
+      category: 'hr',
+      icon: Wallet,
+      color: '#f59e0b',
+      recordsCount: employees.length,
+      description: 'Base salary, gross earnings, statutory PF/ESI/TDS deductions, and net payouts.',
+      onExport: handleExportPayroll
+    },
+    {
+      id: 'attendance',
+      title: '31-Day Attendance & LOP Register',
+      category: 'hr',
+      icon: Calendar,
+      color: '#06b6d4',
+      recordsCount: employees.length + interns.length,
+      description: 'Daily P/A/HD/LOP matrix entries, leave types, and loss of pay deduction math.',
+      onExport: handleExportAttendance
+    },
+    {
+      id: 'daily_tasks',
+      title: 'Daily Work Diary & Timesheet Logs',
+      category: 'operations',
+      icon: Clock,
+      color: '#6366f1',
+      recordsCount: dailyTasks.length,
+      description: 'Staff daily task deliverables, hours worked, PR links, and supervisor reviews.',
+      onExport: handleExportDailyTasks
+    },
+    {
+      id: 'deliverables',
+      title: 'Client Social Deliverables & SEO',
+      category: 'operations',
+      icon: Layers,
+      color: '#ec4899',
+      recordsCount: deliverables.length,
+      description: 'Planned vs delivered Reels/Posts, views reached, follower growth, and backlinks.',
+      onExport: handleExportDeliverables
+    },
+    {
+      id: 'ad_spend',
+      title: 'Multi-Platform Ad Spend Ledger',
+      category: 'operations',
+      icon: Megaphone,
+      color: '#f97316',
+      recordsCount: adSpendLedger.length,
+      description: 'Meta Ads, Google Ads, LinkedIn spend, CPL math, and payment references.',
+      onExport: handleExportAdSpend
+    },
+    {
+      id: 'editors',
+      title: 'Video Editor Work Orders & Payouts',
+      category: 'operations',
+      icon: Video,
+      color: '#14b8a6',
+      recordsCount: editorAssignments.length,
+      description: 'Assigned creative briefs, submission deadlines, payout rates, and status.',
+      onExport: handleExportEditors
+    },
+    {
+      id: 'servers',
+      title: 'Server Infrastructure & Credentials',
+      category: 'operations',
+      icon: Server,
+      color: '#64748b',
+      recordsCount: serverCredentials.length,
+      description: 'Cloud hosting providers, IP addresses, OS, SSH auth, SSL expiry, and cost.',
+      onExport: handleExportServers
+    },
+    {
+      id: 'interns',
+      title: 'Afkanerd Internship Progress Tracker',
+      category: 'hr',
+      icon: GraduationCap,
+      color: '#a855f7',
+      recordsCount: interns.length,
+      description: 'Cohort batches, week-by-week progress logs, PR links, 5-star mentor reviews.',
+      onExport: handleExportInterns
+    },
+    {
+      id: 'tickets',
+      title: 'Customer Support Desk & SLA',
+      category: 'sales',
+      icon: Headphones,
+      color: '#ef4444',
+      recordsCount: tickets.length,
+      description: 'Support tickets, priority levels, resolution times, and assigned agents.',
+      onExport: handleExportTickets
+    },
+    {
+      id: 'campaigns',
+      title: 'Marketing Campaigns Telemetry & ROI',
+      category: 'sales',
+      icon: BarChart3,
+      color: '#84cc16',
+      recordsCount: campaigns.length,
+      description: 'Email/SMS broadcasts, open rates %, click rates %, and converted lead ROI.',
+      onExport: handleExportCampaigns
+    },
+    {
+      id: 'sessions',
+      title: 'Recorded Login Sessions & Work Clock',
+      category: 'security',
+      icon: Radio,
+      color: '#10b981',
+      recordsCount: loginSessions.length,
+      description: 'Live punch-in/out timestamps, IP telemetry, device OS, and active sessions.',
+      onExport: handleExportLoginSessions
+    },
+    {
+      id: 'audit',
+      title: 'Zero-Trust Security & Audit Vault',
+      category: 'security',
+      icon: ShieldCheck,
+      color: '#9333ea',
+      recordsCount: auditLogs.length,
+      description: 'Immutable administrative audit trail, security events, policy updates, and IPs.',
+      onExport: handleExportAuditLogs
+    }
+  ];
+
+  // Filter Reports by Category & Search
+  const filteredReports = useMemo(() => {
+    return ALL_REPORTS.filter(r => {
+      const matchCat = activeCategory === 'all' || r.category === activeCategory;
+      const q = searchQuery.toLowerCase();
+      const matchSearch = !q || r.title.toLowerCase().includes(q) || r.description.toLowerCase().includes(q);
+      return matchCat && matchSearch;
+    });
+  }, [activeCategory, searchQuery, deals, leads, orders, employees, dailyTasks, loginSessions, deliverables, adSpendLedger, interns, serverCredentials]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-
-      {/* Header */}
-      <div className="glass-panel" style={{ padding: '24px' }}>
-        <div style={{ fontSize: '0.8rem', color: '#3b82f6', fontWeight: '700', textTransform: 'uppercase' }}>
-          Executive Intelligence Suite
+      
+      {/* Header Banner */}
+      <div className="glass-panel" style={{ padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+        <div>
+          <div style={{ fontSize: '0.8rem', color: '#60a5fa', fontWeight: '700', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <FileSpreadsheet style={{ width: '15px', height: '15px' }} />
+            Enterprise Intelligence & Global Exporter
+          </div>
+          <h2 style={{ fontSize: '1.6rem', fontWeight: '900', margin: '4px 0 6px', background: 'linear-gradient(135deg, #fff 0%, #60a5fa 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            Reports & CSV Intelligence Suite
+          </h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', margin: 0 }}>
+            Instant, one-click <strong>CSV Export</strong> for all 15+ CRM modules, databases, attendance matrices, deliverables, and audit logs.
+          </p>
         </div>
-        <h2 style={{ fontSize: '1.5rem', fontWeight: '800', margin: '4px 0' }}>
-          Global Reports & Exporter Engine
-        </h2>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
-          One-click CSV export for Revenue, Pipeline, Lead Attribution, and Monthly Payroll Audit Summaries.
-        </p>
+
+        <button
+          onClick={handleExportAllReports}
+          className="btn gradient-btn-primary"
+          style={{ padding: '10px 18px', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem' }}
+        >
+          <Download style={{ width: '16px', height: '16px' }} />
+          <span>Export All Datasets (Batch CSV)</span>
+        </button>
       </div>
 
-      {/* Export success banner */}
-      {exported && (
-        <div className="glass-card" style={{ padding: '12px 16px', borderLeft: '4px solid #10b981', background: 'rgba(16, 185, 129, 0.1)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+      {/* Export Confirmation Alert */}
+      {exportedMessage && (
+        <div className="saas-card" style={{ padding: '12px 18px', borderLeft: '4px solid #10b981', background: 'rgba(16, 185, 129, 0.1)', display: 'flex', alignItems: 'center', gap: '10px' }}>
           <CheckCircle2 style={{ color: '#10b981', width: '18px', height: '18px' }} />
-          <span style={{ fontSize: '0.85rem', fontWeight: '700', color: '#10b981' }}>
-            ✅ Report downloaded: <code>{exported}</code>
+          <span style={{ fontSize: '0.85rem', fontWeight: '700', color: '#34d399' }}>
+            Report Exported Successfully: <code>{exportedMessage}</code> (Check your Downloads folder)
           </span>
         </div>
       )}
 
-      {/* KPI Overview Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
-        <div className="glass-card" style={{ padding: '20px', borderTop: '4px solid #10b981' }}>
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '6px' }}>Total Revenue Won</div>
-          <div style={{ fontSize: '1.5rem', fontWeight: '900', color: '#10b981' }}>
-            ${totalRevenue.toLocaleString()}
-          </div>
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>{wonDeals.length} deals closed</div>
+      {/* Category Tabs & Search Toolbar */}
+      <div className="saas-card" style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
+        
+        {/* Category Tabs */}
+        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+          {REPORT_CATEGORIES.map(cat => (
+            <button
+              key={cat.id}
+              onClick={() => setActiveCategory(cat.id)}
+              style={{
+                padding: '6px 14px',
+                borderRadius: '8px',
+                fontSize: '0.8rem',
+                fontWeight: activeCategory === cat.id ? '700' : '500',
+                border: activeCategory === cat.id ? '1px solid rgba(99, 102, 241, 0.4)' : '1px solid transparent',
+                background: activeCategory === cat.id ? 'rgba(99, 102, 241, 0.18)' : 'transparent',
+                color: activeCategory === cat.id ? '#818cf8' : 'var(--text-secondary)',
+                cursor: 'pointer'
+              }}
+            >
+              {cat.label}
+            </button>
+          ))}
         </div>
-        <div className="glass-card" style={{ padding: '20px', borderTop: '4px solid #3b82f6' }}>
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '6px' }}>Pipeline Value</div>
-          <div style={{ fontSize: '1.5rem', fontWeight: '900', color: '#3b82f6' }}>
-            ${totalPipelineValue.toLocaleString()}
-          </div>
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>{(deals || []).length} active deals</div>
-        </div>
-        <div className="glass-card" style={{ padding: '20px', borderTop: '4px solid #a855f7' }}>
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '6px' }}>Lead Conversion</div>
-          <div style={{ fontSize: '1.5rem', fontWeight: '900', color: '#a855f7' }}>{conversionRate}%</div>
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>{(leads || []).length} total leads</div>
-        </div>
-        <div className="glass-card" style={{ padding: '20px', borderTop: '4px solid #f59e0b' }}>
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '6px' }}>Monthly Payroll</div>
-          <div style={{ fontSize: '1.5rem', fontWeight: '900', color: '#f59e0b' }}>
-            ₹{totalPayroll.toLocaleString('en-IN')}
-          </div>
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>{empPayroll.length} employees</div>
+
+        {/* Search */}
+        <div style={{ position: 'relative', width: '240px' }}>
+          <Search style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', width: '14px', height: '14px', color: 'var(--text-muted)' }} />
+          <input
+            type="text"
+            placeholder="Search reports..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="form-input"
+            style={{ width: '100%', paddingLeft: '32px', fontSize: '0.8rem', padding: '6px 12px 6px 32px' }}
+          />
         </div>
       </div>
 
-      {/* Report Cards Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
+      {/* Reports Cards Grid with Unified SaaS Cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: '18px' }}>
+        {filteredReports.map(rep => {
+          const Icon = rep.icon;
 
-        {/* Revenue Report */}
-        <div className="glass-panel" style={{ padding: '24px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-            <div style={{ padding: '12px', borderRadius: '12px', background: 'rgba(16, 185, 129, 0.15)' }}>
-              <TrendingUp style={{ color: '#10b981', width: '24px', height: '24px' }} />
-            </div>
-            <div>
-              <div style={{ fontWeight: '800', fontSize: '1rem' }}>Revenue & Pipeline</div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>CSV — {(deals || []).length} records</div>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '18px', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-            <div>• Deal ID, Contact, Stage</div>
-            <div>• Value & Probability</div>
-            <div>• Expected Close Date</div>
-            <div>• Won / Lost breakdown</div>
-          </div>
-
-          <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '14px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '0.78rem' }}>
-              <span style={{ color: 'var(--text-muted)' }}>Won Revenue:</span>
-              <strong style={{ color: '#10b981' }}>${totalRevenue.toLocaleString()}</strong>
-            </div>
-            <button onClick={handleExportRevenue} className="btn gradient-btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '10px' }}>
-              <Download style={{ width: '16px', height: '16px' }} /> Export Revenue CSV
-            </button>
-          </div>
-        </div>
-
-        {/* Lead Attribution Report */}
-        <div className="glass-panel" style={{ padding: '24px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-            <div style={{ padding: '12px', borderRadius: '12px', background: 'rgba(139, 92, 246, 0.15)' }}>
-              <Users style={{ color: '#a855f7', width: '24px', height: '24px' }} />
-            </div>
-            <div>
-              <div style={{ fontWeight: '800', fontSize: '1rem' }}>Lead Attribution</div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>CSV — {(leads || []).length} records</div>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '18px' }}>
-            {Object.entries(leadsBySource).map(([src, count]) => (
-              <div key={src} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem' }}>
-                <span style={{ color: 'var(--text-secondary)' }}>{src}</span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <div style={{ width: '80px', height: '6px', background: 'var(--bg-input)', borderRadius: '3px' }}>
-                    <div style={{ width: `${Math.round((count / (leads || []).length) * 100)}%`, height: '100%', background: '#a855f7', borderRadius: '3px' }} />
+          return (
+            <div
+              key={rep.id}
+              className="saas-card-interactive"
+              style={{
+                padding: '22px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                gap: '16px'
+              }}
+            >
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{
+                      width: '42px',
+                      height: '42px',
+                      borderRadius: '12px',
+                      background: 'rgba(255, 255, 255, 0.04)',
+                      border: '1px solid rgba(255, 255, 255, 0.08)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      <Icon style={{ width: '20px', height: '20px', color: rep.color || '#818cf8' }} />
+                    </div>
+                    <div>
+                      <h3 style={{ fontSize: '1rem', fontWeight: '800', margin: 0, color: 'var(--text-primary)' }}>
+                        {rep.title}
+                      </h3>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '700' }}>
+                        {rep.category} Dataset
+                      </span>
+                    </div>
                   </div>
-                  <span style={{ color: '#a855f7', fontWeight: '700', width: '20px' }}>{count}</span>
+
+                  <span className="tabular-nums" style={{
+                    padding: '3px 8px',
+                    borderRadius: '6px',
+                    background: 'rgba(255, 255, 255, 0.04)',
+                    border: '1px solid var(--border-subtle)',
+                    fontSize: '0.72rem',
+                    fontWeight: '700',
+                    color: '#cbd5e1'
+                  }}>
+                    {rep.recordsCount} Records
+                  </span>
                 </div>
+
+                <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5 }}>
+                  {rep.description}
+                </p>
               </div>
-            ))}
-          </div>
 
-          <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '14px' }}>
-            <button onClick={handleExportLeads} className="btn gradient-btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '10px', background: 'linear-gradient(135deg, #6d28d9 0%, #a855f7 100%)' }}>
-              <Download style={{ width: '16px', height: '16px' }} /> Export Lead Report CSV
-            </button>
-          </div>
-        </div>
+              {/* Action Button */}
+              <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                  Format: <strong>.CSV (Excel Ready)</strong>
+                </span>
 
-        {/* Payroll Report */}
-        <div className="glass-panel" style={{ padding: '24px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-            <div style={{ padding: '12px', borderRadius: '12px', background: 'rgba(245, 158, 11, 0.15)' }}>
-              <Wallet style={{ color: '#f59e0b', width: '24px', height: '24px' }} />
-            </div>
-            <div>
-              <div style={{ fontWeight: '800', fontSize: '1rem' }}>Monthly Payroll Audit</div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>CSV — {currentMonth} {currentYear}</div>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '18px', maxHeight: '130px', overflowY: 'auto' }}>
-            {empPayroll.map(e => (
-              <div key={e.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', padding: '4px 0', borderBottom: '1px solid var(--border-color)' }}>
-                <span style={{ fontWeight: '700' }}>{e.name}</span>
-                <span style={{ color: '#10b981' }}>₹{e.net.toLocaleString('en-IN')}</span>
+                <button
+                  onClick={rep.onExport}
+                  className="btn btn-secondary"
+                  style={{
+                    fontSize: '0.78rem',
+                    padding: '6px 14px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  <Download style={{ width: '13px', height: '13px', color: '#818cf8' }} />
+                  <span>Download CSV</span>
+                </button>
               </div>
-            ))}
-          </div>
-
-          <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '14px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '0.78rem' }}>
-              <span style={{ color: 'var(--text-muted)' }}>Total Net Payroll:</span>
-              <strong style={{ color: '#f59e0b' }}>₹{totalPayroll.toLocaleString('en-IN')}</strong>
             </div>
-            <button onClick={handleExportPayroll} className="btn gradient-btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '10px', background: 'linear-gradient(135deg, #d97706 0%, #f59e0b 100%)' }}>
-              <Download style={{ width: '16px', height: '16px' }} /> Export Payroll CSV
-            </button>
-          </div>
-        </div>
-
+          );
+        })}
       </div>
-
-      {/* Pipeline Breakdown Table */}
-      <div className="glass-panel" style={{ padding: '20px' }}>
-        <h3 style={{ fontSize: '1.05rem', fontWeight: '800', marginBottom: '14px' }}>
-          Sales Pipeline Stage Breakdown
-        </h3>
-        <div className="custom-table-container">
-          <table className="custom-table">
-            <thead>
-              <tr>
-                <th>Deal</th>
-                <th>Stage</th>
-                <th>Value</th>
-                <th>Probability</th>
-                <th>Expected Close</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(deals || []).map(deal => (
-                <tr key={deal.id}>
-                  <td><span style={{ fontWeight: '700' }}>{deal.title || deal.name || deal.id}</span></td>
-                  <td><span className="badge badge-blue">{deal.stage}</span></td>
-                  <td><strong style={{ color: '#10b981' }}>${(deal.value || deal.amount || 0).toLocaleString()}</strong></td>
-                  <td>{deal.probability || 0}%</td>
-                  <td style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{deal.expectedClose || '—'}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
     </div>
   );
 };

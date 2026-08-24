@@ -1,0 +1,58 @@
+[
+  {
+    "_id": {
+      "$oid": "6a4b7a0fe966a194bc69c448"
+    },
+    "task_name": "Bank Details",
+    "description": "Please provide your bank account details. You can write your Bank Name, Account Number, and IFSC Code in the notes, and optionally upload a PDF or JPG copy of your Cancelled Cheque or Passbook.",
+    "required_docs": [
+      "Bank Details Document"
+    ],
+    "required": true,
+    "created_at": {
+      "$date": "2026-07-06T09:49:03.081Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6a4b7a0fe966a194bc69c449"
+    },
+    "task_name": "Aadhar Card",
+    "description": "Please upload a clear copy of your Aadhar Card (PDF or JPG).",
+    "required_docs": [
+      "Aadhar Card"
+    ],
+    "required": true,
+    "created_at": {
+      "$date": "2026-07-06T09:49:03.081Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6a4b7a0fe966a194bc69c44a"
+    },
+    "task_name": "Pan Card",
+    "description": "Please upload a clear copy of your PAN Card (PDF or JPG).",
+    "required_docs": [
+      "Pan Card"
+    ],
+    "required": true,
+    "created_at": {
+      "$date": "2026-07-06T09:49:03.081Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6a4b7a0fe966a194bc69c44b"
+    },
+    "task_name": "Experience Certificate",
+    "description": "Optional: If you have prior experience, please upload your Experience Certificate (PDF or JPG).",
+    "required_docs": [
+      "Experience Certificate"
+    ],
+    "required": false,
+    "created_at": {
+      "$date": "2026-07-06T09:49:03.081Z"
+    }
+  }
+]

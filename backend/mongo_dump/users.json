@@ -1,0 +1,601 @@
+[
+  {
+    "_id": {
+      "$oid": "6a3a6e94906aa2810c8a085b"
+    },
+    "username": "admin",
+    "password_hash": "scrypt:32768:8:1$8CJXCGvdTWyALfIO$7abf2d98de0d39fb76c5ee2ab36016a9bfd0a8478c4386c077efacc0d47c889aa6bfcc0ad0241bbf021277153e04da5308e5437b6092b99113f67e55736eb7c9",
+    "full_name": "Admin User",
+    "role": "Admin",
+    "email": "admin@sannainnovations.com",
+    "title": "System Administrator",
+    "approved": true,
+    "restricted": false,
+    "public_key": {
+      "alg": "RSA-OAEP-256",
+      "e": "AQAB",
+      "ext": true,
+      "key_ops": [
+        "encrypt"
+      ],
+      "kty": "RSA",
+      "n": "0k4t7sq-BnYfXThR8yf7H7ePZUP26bW4uaIKq8gt3wemuqv0RbgqS-7U3ycPOGyjFp-9jvLi_kGGTIbif_87yPUPEFthd2H_-h9zdwUSQu8OflNfGEM-D6ENLRInlRU8mASs0AOnfXakdgmur9p_GEfR-zfnXw3vnB9u-oxasiAUTOhNpRarzVAHQ1s2rFWXjP2AGKM3Vf1Xjk7wyJqYYLlJ-WJ_nk70j1iDrUwUHjLB3vpvGVmSz6-lapxNw5CZ0mXxXr2KgQwTg1T9GEa_VbPh6elo-xKOFhHD7y0Zws2reqAklO5xP7PzoHDv0P_2NROQyslx9eqwgmnJ7pJSZw"
+    },
+    "employee_type": "Full-Time"
+  },
+  {
+    "_id": {
+      "$oid": "6a3f5bcda404d599890e98cf"
+    },
+    "username": "manager",
+    "password_hash": "scrypt:32768:8:1$laHK5TMDlPfZK7MO$2f59efcb3930ee2c1e6cdc5e8221180961059f34a33ab1f08033f6a8e7533245ba4d296c208cbe9221ee4c9ed0aec25c193534cf5b4d28c475b9aff898c3c025",
+    "full_name": "manager123",
+    "role": "Manager",
+    "email": "manager123@gamil.com",
+    "title": "manager",
+    "approved": true,
+    "restricted": false,
+    "created_at": {
+      "$date": "2026-06-27T05:12:45.748Z"
+    },
+    "public_key": {
+      "alg": "RSA-OAEP-256",
+      "e": "AQAB",
+      "ext": true,
+      "key_ops": [
+        "encrypt"
+      ],
+      "kty": "RSA",
+      "n": "zVAwOHNKRO-yAdqb5HyfYTdPc-J-tMcygDPqszziWNGo_kOFVNeRP3aRG31SMmhlZ3YoLo5xne7hENS8x49qAlkTVSKXZViPtKT-wsQCZJMolPypeJZtMZioGyn6z6GazdfMpqXMMSS5wLvgC01_coDXz5auvH4WgyGMyqSIEDpAW-cjvfZD-OjVQQIrE70hURHpPMcIaf0ail1TDHSLNjJ17ZbCVtdrlKHv8uLb-l63o5L3wrkiMIZfyr1XU6C_TYTuPy751NJxLbYDc0RYYnxfqSwW-IwHPlf_GNUDwoZBzQqSOJFpR9M8PyWhSpMidTpyhiKn17K5ZgJurWtQRQ"
+    },
+    "employee_type": "Full-Time"
+  },
+  {
+    "_id": {
+      "$oid": "6a3fd253873e3e6756b93c43"
+    },
+    "username": "empsi01",
+    "full_name": "Srinivas",
+    "role": "Admin",
+    "password_hash": "scrypt:32768:8:1$wzvHugFe1sf2f0zQ$905b8e7bc292efc55881b25a1087c381f602ab49a298c8177918d2eb72611c056a8ba3c14374a41b1c2f87b5f0831379a1b32c5b18fbab0cfa44895915236f48",
+    "title": "CEO",
+    "salary": 100000,
+    "date_of_joining": "2017-06-21",
+    "is_active": true,
+    "approved": true,
+    "restricted": false,
+    "active": true,
+    "is_employee_profile": true,
+    "employee_type": "Full-Time"
+  },
+  {
+    "_id": {
+      "$oid": "6a3fd253873e3e6756b93c44"
+    },
+    "username": "empsi02",
+    "full_name": "Jyothi",
+    "role": "Manager",
+    "password_hash": "scrypt:32768:8:1$EmxOvIUJsOCZrqIl$1b5fcd08eeb49a815041b2e8e6f019e009114099ceb31e1a2353c0d88aa6ab9f31aeed3838be6166f8ae6045aa9f7a5ef14b02a2df2b3c45b16a1532bae47911",
+    "title": "CCO",
+    "salary": 15000,
+    "date_of_joining": "2023-05-05",
+    "is_active": true,
+    "approved": true,
+    "restricted": false,
+    "active": true,
+    "is_employee_profile": true,
+    "public_key": {
+      "alg": "RSA-OAEP-256",
+      "e": "AQAB",
+      "ext": true,
+      "key_ops": [
+        "encrypt"
+      ],
+      "kty": "RSA",
+      "n": "xQ4q0alD_rLH6SHd5RgD48MDHCtz4jPgH2mv9mjn31cUAuAy_YlKqocCwYxAHFglsGmFl8kqbnYi-ByDdDSMekA2xOjbqu2vZDT7HdxayppiQn5vEJONCQYeFxORVNQfGu9t7m4961w4BJEoNID2gwCdqdCxkT1Byh2myUmQL1dk6doPL_NV_CyzmNAL8_rwJ8NJSvW6p-j0tYDytIqhsslIuJRZUvaJvS-xL7IKSmPQNznrmSP-jCQJ99Nmh33wnwKycSAhVVbzToMdx93ZhAVsoSkSrESDj9Gzv3Gki7UcBzgJm_CVwwr1AyiTRfJdqNvnL_M1z9svu7JV6n4TSw"
+    },
+    "employee_type": "Full-Time"
+  },
+  {
+    "_id": {
+      "$oid": "6a3fd253873e3e6756b93c45"
+    },
+    "username": "empsi03",
+    "full_name": "Sowmya",
+    "role": "Employee",
+    "password_hash": "scrypt:32768:8:1$8hbWRPue5bkt6ESC$93fc0416a8711a37584b1529610dd1916a3b42ad6a4b9663cdfb16db2b0b3f597bbdc375a66b11cb0c96a88c5e3fde478ae8be324b59e26145c8d536f9439927",
+    "title": "Lead Frontend Engineer",
+    "salary": 30000,
+    "date_of_joining": "2024-03-15",
+    "is_active": true,
+    "approved": true,
+    "restricted": false,
+    "active": true,
+    "is_employee_profile": true,
+    "public_key": {
+      "alg": "RSA-OAEP-256",
+      "e": "AQAB",
+      "ext": true,
+      "key_ops": [
+        "encrypt"
+      ],
+      "kty": "RSA",
+      "n": "vNa2hYPXOTgFL64dH4kNdAvqQT0FegxGbKUV0m9UX331XXGQ9zRXU-ATBRSnYipf5XrQZ5eN0fSuWWhbORZyujKNJ1wFLXDdGG5cgNfiFjDfloCX6eqsa9hHRQNbaZKTVrAApCxySqfKxQ1vbpXvVTOpGWPTId-8UOjIbf-H0ASWFfE9JXvoaqv-_AmwroP-xNDO7yatPnAOxgoPS1wH73043eS5AIrdCie6WMTY_FKOU1KGv7Y9agGY0z2Arnz3O1JlT1jqlTQTNr2tlSguucNHuX85UtV3efRjPH_1rM7vIF1DLhY0rhWTdB8yXYleYnyqBBNRTXaWeufc9smlhw"
+    },
+    "employee_type": "Full-Time"
+  },
+  {
+    "_id": {
+      "$oid": "6a3fd253873e3e6756b93c46"
+    },
+    "username": "empsi04",
+    "full_name": "Naveen Kumar",
+    "role": "Manager",
+    "password_hash": "scrypt:32768:8:1$7U9gKtzoJCinharF$c66c9654b1817b9c92f5683914baeda5a2e97ce56d70771ffcfdb8043cd473767d62d1e00bdb7c1edeefb17f4dfc8a10b0fc4ea1ca039b0a494d8a863b7a2acd",
+    "title": "Head Of Operations",
+    "salary": 55000,
+    "date_of_joining": "2025-01-01",
+    "is_active": true,
+    "approved": true,
+    "restricted": false,
+    "active": true,
+    "is_employee_profile": true,
+    "public_key": {
+      "alg": "RSA-OAEP-256",
+      "e": "AQAB",
+      "ext": true,
+      "key_ops": [
+        "encrypt"
+      ],
+      "kty": "RSA",
+      "n": "-iOrnnA_er2oXXDmLrw5c0S5rhOlAS743zav72-cJ202M-O7cxdtfHDOnWaBR9it0eiBqlSm1-TMO9_nky37rjoTMQd_O06oX-6X5KmwjSxJjpn4FZr2zlbgnZ4YP64-Y8w-xkK_qqKJgOmxOST3evjvMEysB5i28w3dRAvB8xRAVStc92DsZEkmlCNE8uVU_DcRvRsr4J3qjvX5Dgqrf-UegU4uYVnW1Y2qWJVruGWPTirHlBE8od1MsYJW2jYGlggk3dbPVtUvM1ieVFiaidXUQrPN74wwbarlf_lH33b_6JKYz5iyT4oYB1KzJIrfjPJqReqiMaHxULmOi-nLDQ"
+    },
+    "email": "naveen@sannainnovations.com",
+    "employee_id": "empsi04",
+    "employee_type": "Full-Time"
+  },
+  {
+    "_id": {
+      "$oid": "6a3fd253873e3e6756b93c47"
+    },
+    "username": "empsi05",
+    "full_name": "Nikki",
+    "role": "Employee",
+    "password_hash": "scrypt:32768:8:1$xPnbr7pLpyfJeXzx$04e8dd1faceda30908e8950eab9cd396a8e1f9a29a8c72374995c7d84ca6b4672e0ec28da7f8436eea0a7f23fb643d56a1d08100550f2e64f22d8ee75fa98887",
+    "title": "Digital Marketing Lead",
+    "salary": 40000,
+    "date_of_joining": "2025-12-03",
+    "is_active": true,
+    "approved": true,
+    "restricted": false,
+    "active": true,
+    "is_employee_profile": true,
+    "public_key": {
+      "alg": "RSA-OAEP-256",
+      "e": "AQAB",
+      "ext": true,
+      "key_ops": [
+        "encrypt"
+      ],
+      "kty": "RSA",
+      "n": "txOjxRM5oyBjUVlYOxVJn3LuG_rkWMzdout6YrABdpQZXi3LKn-yM9bknvYF5Jbmi8LWmjpAhZdo-GjEQwL0F99aiSMJAvdYuXYC9Ileg566v6wEu47gJUo_GQXf0PY_ocK5MJg7fOuQSicp0tQAKH-7pgzK97cEjEb2zu3UtKUbYj71FzIF4WCpNTQ5zZOHVVJGU5JfwIDAuVmqTBW5IBJ55xbRqvIfdSetEJm7aKqNmxTn0aIyK3zLaSQZR9bYkIirhHDACtbhEBzZrojzTPc9ekQCr6JA66f9vd5hnN9vO0kOyBeFVq8asRD6OgoaISVNv52wf3-CGiNl9dEp9Q"
+    },
+    "employee_type": "Full-Time"
+  },
+  {
+    "_id": {
+      "$oid": "6a3fd253873e3e6756b93c48"
+    },
+    "username": "empsi06",
+    "full_name": "Mavuri Anand Kumar",
+    "role": "Employee",
+    "password_hash": "scrypt:32768:8:1$zozmvf6fXDUEDi5N$60c2447c6291f6bd1d79c7ddd6dcf5fd636312ec0941817dbfff8a41399c629aef8fbdc169ede75cadc4f5c6a1d1330784fdcab660e95c3ffac3bd7cf8f3514c",
+    "title": "Video Editor",
+    "salary": 15000,
+    "date_of_joining": "2025-12-09",
+    "is_active": true,
+    "approved": true,
+    "restricted": false,
+    "active": true,
+    "is_employee_profile": true,
+    "employee_type": "Full-Time"
+  },
+  {
+    "_id": {
+      "$oid": "6a3fd253873e3e6756b93c49"
+    },
+    "username": "empsi07",
+    "full_name": "Riya Biswas Dasgupta",
+    "role": "Employee",
+    "password_hash": "scrypt:32768:8:1$4cdvFXam3gKoMiYC$15f0069f80df59b3e4394fb0f4374e0c9b2c6ad54bb2d2725dea58f63d0e8e316ecc300d38e613e380dede51b4d5167183517a44ff3efa833999bcc8e5c34c98",
+    "title": "Sr.Graphic Designer",
+    "salary": 40000,
+    "date_of_joining": "2025-06-10",
+    "is_active": true,
+    "approved": true,
+    "restricted": false,
+    "active": true,
+    "is_employee_profile": true,
+    "public_key": {
+      "alg": "RSA-OAEP-256",
+      "e": "AQAB",
+      "ext": true,
+      "key_ops": [
+        "encrypt"
+      ],
+      "kty": "RSA",
+      "n": "wR3ph1Yby2lsQPbsK3oXwmqm_FZDRMt7eqMOY5HHO1znyQFuXj55XC8nNyS6PW30dWDejY5kFw9sZUD3wS-M-R0-pFQlFfwFCb7t2u8-ZdPP5AneI0vdfMuEkpr8hVIP3Eb4LRxVUYVqQrov6PJp84wr9oX9uCuPcNrixANv7tqNUMLOaBnQO-cg3KI2s6asHhy3oey9K-JJ1O65WMZZ4I46rXZ_QDMGXdEFIjOJRTNHnaavarC7NA21tAN-m4LX7ZIChbH-O-kxsNwaQFtlCAlPB0GlOf6mwSZkmCfrApkKCDq450k_0VzTI9XJhuQq-3s7u8lndpLLCaFl9RIAcw"
+    },
+    "employee_type": "Full-Time"
+  },
+  {
+    "_id": {
+      "$oid": "6a3fd253873e3e6756b93c4a"
+    },
+    "username": "empsi08",
+    "full_name": "Adarsh",
+    "role": "Employee",
+    "password_hash": "scrypt:32768:8:1$qBHRRbDnwmrqgBts$6b0f8d89674bbac0cd1d50d83479c962329bacab9561363912881ce1be4976d0d9f6ad73a1c9e4135a23d2bbff43708a9f54d3f87f9d011d40c9506c1745bf56",
+    "title": "SEO",
+    "salary": 20000,
+    "date_of_joining": "2025-08-12",
+    "is_active": true,
+    "approved": true,
+    "restricted": true,
+    "active": true,
+    "is_employee_profile": true,
+    "employee_type": "Full-Time"
+  },
+  {
+    "_id": {
+      "$oid": "6a3fd253873e3e6756b93c4b"
+    },
+    "username": "empsi09",
+    "full_name": "Jakka Balaji Mahendra",
+    "role": "Employee",
+    "password_hash": "scrypt:32768:8:1$EhgZHPEUAdUYD2Qd$76f0dc9230ba098986d814aa4eb4338d5fe78cb6ef823d4ec21904b9989d9d39cb861b61e6b8591e9489c0130edac86cbd683e9f076a10059c54c8c4ce0d9d3f",
+    "title": "Data Analyst Intern",
+    "salary": 12000,
+    "date_of_joining": "2026-06-22",
+    "is_active": true,
+    "approved": false,
+    "restricted": true,
+    "active": false,
+    "is_employee_profile": true,
+    "alias_username": "balaji",
+    "public_key": {
+      "alg": "RSA-OAEP-256",
+      "e": "AQAB",
+      "ext": true,
+      "key_ops": [
+        "encrypt"
+      ],
+      "kty": "RSA",
+      "n": "z-NQ8LtJTIU6RW53EZkkLdaPtXz1dGfoXZk56VzVq_Z6zAR31z8q5DZKOQpG-md1qyG652urptVU--k0LvAC_yu0ZJl0Mk8v0KkvbG9raQon6lFKrUEVA3C95qRr39w2sBk0R9AaAVwNYHleLWcG3OzXQnarcOwFHSf2TLMi3LMWDNmMjh88SFTRyoRytmLBtxLAXQzPIkSAr3OuNr3lDuysGE3A5K3GpwLM7LY3MweCUUOkBBP2hDRtFkI_ExRwqDek11OK6T1RuoHlIP8kGIDxARWY41x92_aOii4idrZqXF2ZOMApysfEIVQF9JUoRJb7M3vgmLCiL2WJy75tTQ"
+    },
+    "employee_type": "Intern",
+    "dob": "2026-07-02",
+    "email": "balaji@gamil.com"
+  },
+  {
+    "_id": {
+      "$oid": "6a3fd253873e3e6756b93c4c"
+    },
+    "username": "empsi10",
+    "full_name": "Bhuvan Sai Adithya",
+    "role": "Intern",
+    "password_hash": "scrypt:32768:8:1$gd1tpQkbsPso0DtJ$2be69cd348ac4c67bbdd1a9971ae31d67bc4dc975819488e35d6b88e335390d09927a798a865668b737853ea2e5f2bb5a4651a7253594f3d3644dfe8df384cde",
+    "title": "Data Analyst Intern",
+    "salary": 12000,
+    "date_of_joining": "2026-06-22",
+    "is_active": true,
+    "approved": true,
+    "restricted": false,
+    "active": true,
+    "is_employee_profile": true,
+    "alias_username": "bhuvan",
+    "public_key": {
+      "alg": "RSA-OAEP-256",
+      "e": "AQAB",
+      "ext": true,
+      "key_ops": [
+        "encrypt"
+      ],
+      "kty": "RSA",
+      "n": "vVS4a6fG7B34zX_BoQEr6vnqdfNUkE-ddfA9QWrEFSYk--mYnPfOl2-OC52A6VuYt05eX5tjn7SIn27hF-_eAVttpc_hYH1Nj3WzjZ1kIWENZcQ6S7SLd5YHfQEF8hlYGEje4Ge5m4pv70z1g1fgxnerTfZOW1JUOuTIHZ0aJcLM0bXOCog_4m0lMmvjvS6uRgb2a5PBgzlCmMe30DlknIVCRXUFa-lVpvWPV0b8AZo0gmrIKKzvEt7vfMnLVBOy2UO1bUfdIN3ilrXJYh0MLv1MgScqRdkT_gC23s4LA52Iw8o7Yq5scJVbGw1hFberq2gBfmz4lBTRd69D3Ban8w"
+    },
+    "email": "btia23001@joyuniversity.edu.in",
+    "employee_id": "empsi10",
+    "employee_type": "Intern"
+  },
+  {
+    "_id": {
+      "$oid": "6a3fd253873e3e6756b93c4d"
+    },
+    "username": "empsi11",
+    "full_name": "M.Shalini Sree",
+    "role": "Intern",
+    "password_hash": "scrypt:32768:8:1$XkRfUS832pRaUgnb$b7494b0ed1c36895ec39a354fe5fa1a6477ad8d5e164c701417fd2f943f57d1086f91be4484e3034dc95262aaad012fe32c2dcd547337be62676f214903d5ded",
+    "title": "Data Analyst Intern",
+    "salary": 12000,
+    "date_of_joining": "2026-06-22",
+    "is_active": true,
+    "approved": true,
+    "restricted": false,
+    "active": true,
+    "is_employee_profile": true,
+    "alias_username": "shalinisree",
+    "public_key": {
+      "alg": "RSA-OAEP-256",
+      "e": "AQAB",
+      "ext": true,
+      "key_ops": [
+        "encrypt"
+      ],
+      "kty": "RSA",
+      "n": "rMCjwFIcYxANw7D1Q_P9Je1VXSpi_8B6AilwWGcOyH7eLkPrElXwdHjwNCTUeptpk8HH5BPEiyXApOL44NLKz0FJfzUBYDcuQwblYlVesDjyi6moDEg-94sXYjZN3AMTKQfN2DxVuOhY-A5N7wv-LBOoTieyk2IoGkU3InRwr2AcJcbSg-PsJVx6TEltuTLVJscOwIRFMc5g1w3elMqOD4g1gjKDXmRYqcem7H6lMib4JEinMZd7PAI9iYk94-RfWogwBaaFFDqE5Eix_zYzBdsCYxD4qAKgcYAfzQYiRWpKG6JnzqFSBVcEbmIoUZw48_-T9ptngQfrW3qS7JIlsw"
+    },
+    "email": "shalinisree17@gmail.com",
+    "employee_id": "EMP- 11",
+    "employee_type": "Intern"
+  },
+  {
+    "_id": {
+      "$oid": "6a3fd253873e3e6756b93c4e"
+    },
+    "username": "empsi12",
+    "full_name": "Vansh Goyal",
+    "role": "Intern",
+    "password_hash": "scrypt:32768:8:1$iVIR3nRcLO8H4ZAR$b2966c9f9bf01f1f79f6df0d8c3dc33778da3a639a97c886a9f144cdc9ee558ae911bc697006188a610c3f5cdb2b19318a52f05e5b7aa6d55e7fc7da4fc60edd",
+    "title": "Data Analyst Intern",
+    "salary": 12000,
+    "date_of_joining": "2026-06-22",
+    "is_active": true,
+    "approved": true,
+    "restricted": false,
+    "active": true,
+    "is_employee_profile": true,
+    "alias_username": "vansh",
+    "public_key": {
+      "alg": "RSA-OAEP-256",
+      "e": "AQAB",
+      "ext": true,
+      "key_ops": [
+        "encrypt"
+      ],
+      "kty": "RSA",
+      "n": "s_lG4lr13DzY2LF3ssNQ5UWHAZUfLjmYf123KU-df_tm2idjzQ4-_FsXdne0L3TXVTsH8bQqZO5O-TePvbbf25cyR3jkIiG5adrxR-jD3iLMYTtWazxr06yCa_pPIuWPqEhAagxZn5aJJvKkSxR3_3K_8bNHZ6JW__SuUUKTA4zkY0ga8lZxQbaLvx1lIXPDqS5KDWFaBg9STt5PXRYXgQdKFAihdf60FHV3HqU-fyLqSB_u2-QrBJgNDQbuQ4pYSU24PqboiaIw4NYtQhnD8WS_uhSVQwv_P_94hvgCuWHIFrRbTfdfnu19CkkVI9MJnlTnUAlm3mOF-wuzkviS6Q"
+    },
+    "email": "vanshgoyal.cc12345@gmail.com",
+    "employee_id": "EMPSI12",
+    "employee_type": "Intern"
+  },
+  {
+    "_id": {
+      "$oid": "6a4214b8890c762ec32ba17c"
+    },
+    "username": "empsi13",
+    "password_hash": "scrypt:32768:8:1$D4nWJPhJTLu5VkVC$31be619655588c34072523a107afaf354ca29e4f48a0d1b83d48631c9d5f455c1ec1f994b2e0cde79fcb6ea6ef7e1ba08460821aae727c99f16a0a42de31b8db",
+    "role": "Intern",
+    "email": "btai23026@joyuniversity.edu.in",
+    "created_at": {
+      "$date": "2026-06-29T06:46:16.464Z"
+    },
+    "full_name": "Srikakula Anirudh",
+    "title": "Data Analyst Intern",
+    "salary": 12000,
+    "date_of_joining": "2026-06-22",
+    "active": true,
+    "approved": true,
+    "restricted": false,
+    "is_employee_profile": true,
+    "alias_username": "anirudh",
+    "public_key": {
+      "alg": "RSA-OAEP-256",
+      "e": "AQAB",
+      "ext": true,
+      "key_ops": [
+        "encrypt"
+      ],
+      "kty": "RSA",
+      "n": "oVluSN4xKYZkXik4UQdE2HqYiChmfpaDdNu6a2VmFDoq261dk7IsRPrWCk9s1o5Ssp4e5CRRYVEBjPlC0vurCiGVkQYvASMOc9hB9Ki3B0UpEGKdduN--eBtPrK7bgFJnaLmPru_iwNJZp9Pq10CbMQV8pEoIN4FkqqB2Pq9Iql0TGl1A5jo4J3ZNTeZpVyvBLnW6oNfp1yfDsC-cde4Y_mSkwU0Sm_xAis-dhWKZGpk43GQU_jdTwzvtRDQkTU-kHsdFdrXoRCiJZX8RDp3xM2mnZ5vIa4wy7X_KrmukJQc-5tlmnix_afgMh9ameRj28kOjfPSj8424M1eexUUbQ"
+    },
+    "employee_id": "empsi13",
+    "employee_type": "Intern"
+  },
+  {
+    "_id": {
+      "$oid": "6a4654ac46b7c23d659fb31e"
+    },
+    "username": "empsi14",
+    "password_hash": "scrypt:32768:8:1$VNEX87kkFGXMx46G$26474feea9bf91d6c1e8855fcbb844722625bc45684c7c0e12355b54bf90c66cb4c974ace85448b36c6560273eb62d87989742e9cf7c98b07965bd5c78b02ec4",
+    "role": "Employee",
+    "email": "empsi14@sannainnovations.com",
+    "created_at": {
+      "$date": "2026-07-02T12:08:12.535Z"
+    },
+    "full_name": "Karthik",
+    "title": "Performance marketer",
+    "salary": 15000,
+    "date_of_joining": "2026-07-02",
+    "active": true,
+    "approved": true,
+    "restricted": false,
+    "is_employee_profile": true,
+    "public_key": {
+      "alg": "RSA-OAEP-256",
+      "e": "AQAB",
+      "ext": true,
+      "key_ops": [
+        "encrypt"
+      ],
+      "kty": "RSA",
+      "n": "49anD5H-1StoE2iMm34amclJjH_aowG5WfiK_6XqrAdAu9Kaoh9OUC3p8ynR3B5GE-GcBQ3yRcZdpWG-ah9dqYOJ2GAZqTDnqVvW3OCB-1F9eF5_n1VLoZ2g2BK7sWyYnCCctyOeZkJqPNWz0JleBQCwVO-0vdteQXbUnh-VpDb0O-5Wd6OiFPjDsMhHe620p70lixD5x2OONrMs-EqXh3XGqNBg_H8fjusDH78-oYrFX159Cgzq0SXY0NF-oVLxFkrbnbC7a6KeC0mY0BeuFcV5l_900WyznX_kA2EAjdweDci_nWVCDBDlOSldzeksYVtz3hgUdgMj1UNydZ6muw"
+    },
+    "employee_type": "Full-Time"
+  },
+  {
+    "_id": {
+      "$oid": "6a5dd030967e0d573bb9c885"
+    },
+    "username": "empsi15",
+    "password_hash": "scrypt:32768:8:1$GEbEMmXM0sOIsUq5$7fec7049815d36f4d9bc69ae18cb590b82427a61683890e0831e90f1191b35b7698d73a7961b1953d13860cca84a0fe4cc4f9a0dbf74e604b988a5c71ab9bfa8",
+    "role": "Employee",
+    "email": "Priyadigitaldm@gmail.com",
+    "employee_type": "Full-Time",
+    "created_at": {
+      "$date": "2026-07-20T07:37:20.909Z"
+    },
+    "full_name": "Mohana Priya Sakthivel",
+    "title": "Performance Marketer",
+    "salary": 37000,
+    "date_of_joining": "2026-07-20",
+    "dob": "1997-05-16",
+    "active": true,
+    "approved": true,
+    "restricted": false,
+    "is_employee_profile": true,
+    "public_key": {
+      "alg": "RSA-OAEP-256",
+      "e": "AQAB",
+      "ext": true,
+      "key_ops": [
+        "encrypt"
+      ],
+      "kty": "RSA",
+      "n": "wGNrT2QH0AEECM1dthE1ewLOvaYlZDYah3681c8cct3fs9crXmIN9S2lfaLyt8dmv57fc6Bn4WBvds_NNwyJKjep3bvjKeZt4XNBLxFPzY6-NLiEU6D0ezSq7dgHkJVVRsh89HET4Dve_1a5T1w68OkUVZNSbpmkWOJ6tEaeTPkxEszvgjee_VlXW4DMIZ1Z19VlBMmM-mtaTGBQF3wxyP6tYBlKU2ze3sc2WvyyxM_CnA722qfwcyrDYVPwt60nY9BDYyo9LIrJqJhPjxV0zBzJCSuw-6LNQqS-CtspCJ1TMIrXWucOPuvsJKFmUaq3W3ea5eWmSlmjRIE1QxBbow"
+    },
+    "employee_id": "empsi15"
+  },
+  {
+    "_id": {
+      "$oid": "6a5dd0c0967e0d573bb9c886"
+    },
+    "username": "empsi16",
+    "password_hash": "scrypt:32768:8:1$zNLickuhal8NMJE1$fe74adbf57ada7030ae00c79994f14a3ea00aa5f8711ff81e77fdd20eddde347ce560d4b05788a29445bd60ab4a4d949894b60165ac6449fedc13ef79875a161",
+    "role": "Employee",
+    "email": "koushikshet2401@gmail.com",
+    "employee_type": "Full-Time",
+    "created_at": {
+      "$date": "2026-07-20T07:39:44.44Z"
+    },
+    "full_name": "Koushik D Shet",
+    "title": "Full-Stack Developer",
+    "salary": 15000,
+    "date_of_joining": "2026-07-20",
+    "dob": "2006-01-24",
+    "active": false,
+    "approved": false,
+    "restricted": true,
+    "is_employee_profile": true,
+    "public_key": {
+      "alg": "RSA-OAEP-256",
+      "e": "AQAB",
+      "ext": true,
+      "key_ops": [
+        "encrypt"
+      ],
+      "kty": "RSA",
+      "n": "86_5Q_hJzNKniFv32Z1lHuhqMZ2_3eD14iQK-Mk97S0joNW90rAPSgPtxslEU5GQ7b0vyp298YARonfpcJbD0TeG-C1lB_dLPcpUDXDg0ZOFfdpcn6SoL0_Bg-XGCkRt_5r9Zz_v2XsSMLY8r29GFxXyrDPzNPmpnsE5yFphR0IyUIt7WJXHn37ElAG-cpg0U61ZkGJTkKJzBnCI6WbHiGihv0xWJ2pgYs31PaBPC6sxU5fzEfL19RVZnbGOT_1_irUYrvSwRVR3PLfIKgCHy13KgovB1D4e1hF2jvHqZ7s6Suo--23HlhhXGO4PQ5ptXnaYKX-tuYY4L4uWdqHf_w"
+    },
+    "employee_id": "empsi16"
+  },
+  {
+    "_id": {
+      "$oid": "6a63094c1644aed5261d2abd"
+    },
+    "username": "empsi17",
+    "password_hash": "scrypt:32768:8:1$6XLIaWDxDTfyILgp$166cc2b0e91fd5bd1390216135dbe52f8db310a1c8cda96cd608c4379819bef1191810a19f44136cb1e1dddd93a627f86517597b7d267335226b3fd6a4e246b8",
+    "role": "Intern",
+    "email": "vidhu4102004@gmail.com",
+    "employee_type": "Intern",
+    "created_at": {
+      "$date": "2026-07-24T06:42:20.159Z"
+    },
+    "full_name": "Vidhorssan K",
+    "title": "Full Stack Developer",
+    "salary": 0,
+    "date_of_joining": "2026-07-24",
+    "dob": "2004-10-04",
+    "active": true,
+    "approved": true,
+    "restricted": false,
+    "is_employee_profile": true,
+    "public_key": {
+      "alg": "RSA-OAEP-256",
+      "e": "AQAB",
+      "ext": true,
+      "key_ops": [
+        "encrypt"
+      ],
+      "kty": "RSA",
+      "n": "xCTaPdjmGdZYOnGpcCdzBQ66jBJ3wzEtURm3Ijwcwau5htcwiopKI5PWY5HHzWpvolzJWPDpaxiFbmP1bfW0pT4LVFsWSI03AuVmX67FmCfXl_OsWetquxnZpFT2TKnGCk3c0Du1dWulwDngg6l81xNpXItUCXu03J2kqDUTBbJ_7i_Ipluz5gQek1KmqVJhlHRs4XSlgd47r5D2Yff_KyHJ6QBSX0ekGwUL9o3wpNdzjRMQVUEADIqgNr29DGJ-4ydnSsJi-Ii2HXtFlD14OM-X2D2GO-ZFhRPT17-snOWodLnN2GPMdn5QuQ6VXvD208iEoi_RNZH5od7Yeojq4w"
+    },
+    "employee_id": "empsi17"
+  },
+  {
+    "_id": {
+      "$oid": "6a6c7277ce09d0935da803d4"
+    },
+    "username": "empsi18",
+    "password_hash": "scrypt:32768:8:1$M5XtcoxD2AaJfGHf$d01c9929175b9a33d45634f75afeba90457bed31eb1ba01fb0e3e2b99719f464cd45e2eee89521c851d1a02455fdaceb68364cd2bb57f712d6c76f734a431530",
+    "role": "Intern",
+    "email": "smitesh.pokharkar28@gmail.com",
+    "employee_type": "Intern",
+    "created_at": {
+      "$date": "2026-07-31T10:01:27.774Z"
+    },
+    "full_name": "Smitesh Pokharkar",
+    "title": "FullStack Developer",
+    "salary": 12000,
+    "date_of_joining": "2026-08-03",
+    "dob": "2005-08-28",
+    "active": true,
+    "approved": true,
+    "restricted": false,
+    "is_employee_profile": true,
+    "public_key": {
+      "alg": "RSA-OAEP-256",
+      "e": "AQAB",
+      "ext": true,
+      "key_ops": [
+        "encrypt"
+      ],
+      "kty": "RSA",
+      "n": "vOQwp6Rd-yT4OIP9J6X-_xCJt18KrWR-jm-KHhOs8qd2psQnLD9MuCQnpG0cDLRinQI3XdS4FmRnIEroFTOwIGXKNBHpjs0UECqbQM7lQlGgRGKNwuH0FYxjdOHBjxHmMz1zZOepWwLr0pcI8ZdnmyoEhKLg-nqTFTdYAuVqay0lxgsE06MoDVykfR9Lj0xBNSWq1T-WXlPUvR-wUXXlpeX2bVpWfJSjaQOvAAPiofp3LFtpN77PMxU-7fp5AO72DgZyB5k0crORkg-Lk8igAgwGpuvdk9MBDwjv4ILnGNX6G-gx7r-O8pV6TQVYlNjQcTmZ1OYJoaKATCOoVNBtyQ"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6a716e85a1fcd1c9a6425d27"
+    },
+    "username": "empsi19",
+    "password_hash": "scrypt:32768:8:1$hPylirE14oDJovC5$5aa37c2d1610d40d1e22615c80b1b385359c4142191c9963f7b1f8dd95ffc49ca2bc0db13f807b6e1133d1c8eb40fccdf8ec8abb7fd263f6d77a31006445b06d",
+    "role": "Intern",
+    "email": "yashdesh191@gmail.com",
+    "employee_type": "Intern",
+    "created_at": {
+      "$date": "2026-08-04T04:45:57.791Z"
+    },
+    "full_name": "YASH DESHMUKH",
+    "title": "Full Stack Developer",
+    "salary": 0,
+    "date_of_joining": "2026-08-06",
+    "dob": "2005-09-11",
+    "active": true,
+    "approved": true,
+    "restricted": false,
+    "is_employee_profile": true,
+    "public_key": {
+      "alg": "RSA-OAEP-256",
+      "e": "AQAB",
+      "ext": true,
+      "key_ops": [
+        "encrypt"
+      ],
+      "kty": "RSA",
+      "n": "nzJmcs2zuRzJMipn2deBy3cy932ZEJw_zAuuMRODIwKxOdwVry31hYiylfFdJOQnerzyuK_Eh_XiYZjmubLs7FuOUrSmLCR5KoAduj6d5H_fgS3V8zUlgebgDSP5pxdbYe87tp5j1aVoGdKLxbx7S-v6UkIM0SAbH58hSuGlm2MSnNI4QH6u3_YQLdvcyIeNSzB_MUpM-KBkN3HpUE0sO7_Ag3ek2ej6Pki56haT_JtJ4huMV7h_ljDALOft-_nTAdi4De3zDCSB1mbVneMury4NbkqiYPG9cXr5bRbkMLkD4atkYTNpm9tEraKpy-4Y-b5uk8xuabpeeY2AA9VM9Q"
+    },
+    "employee_id": "empsi19"
+  }
+]

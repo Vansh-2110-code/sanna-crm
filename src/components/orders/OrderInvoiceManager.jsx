@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useCRM } from '../../context/CRMContext';
-import { ShoppingBag, Truck, Printer, Plus, Trash2, X, Eye } from 'lucide-react';
+import { isSannaCRM, getAppConfig } from '../../utils/appMode';
+import { ShoppingBag, Truck, Printer, Plus, Trash2, X, Eye, RefreshCw, Building2, Edit2, Edit } from 'lucide-react';
+import { DEFAULT_SELLER_INFO, DEFAULT_BANK_DETAILS } from '../finance/GSTInvoiceManager';
 
 // Indian Number System Converter (Lakhs/Crores)
 const numberToWords = (num) => {
@@ -10,7 +12,7 @@ const numberToWords = (num) => {
     'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'
   ];
   const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
-  
+
   const firstWord = (n) => {
     if (n < 20) return a[n];
     let ten = Math.floor(n / 10);
@@ -20,36 +22,36 @@ const numberToWords = (num) => {
 
   const convert = (n) => {
     let str = '';
-    
+
     let crore = Math.floor(n / 10000000);
     n %= 10000000;
     if (crore > 0) {
       str += convert(crore) + ' Crore ';
     }
-    
+
     let lakh = Math.floor(n / 100000);
     n %= 100000;
     if (lakh > 0) {
       str += firstWord(lakh) + ' Lakh ';
     }
-    
+
     let thousand = Math.floor(n / 1000);
     n %= 1000;
     if (thousand > 0) {
       str += firstWord(thousand) + ' Thousand ';
     }
-    
+
     let hundred = Math.floor(n / 100);
     n %= 100;
     if (hundred > 0) {
       str += a[hundred] + ' Hundred ';
     }
-    
+
     if (n > 0) {
       if (str !== '') str += 'and ';
       str += firstWord(n);
     }
-    
+
     return str.trim();
   };
 
@@ -58,9 +60,10 @@ const numberToWords = (num) => {
 };
 
 const OrderInvoiceManager = () => {
-  const { orders, createOrder } = useCRM();
+  const { orders, createOrder, updateOrder, deleteOrder } = useCRM();
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [editingInvoice, setEditingInvoice] = useState(null);
 
   // Template & Theme Customization State
   const [selectedTemplate, setSelectedTemplate] = useState('modern'); // 'modern' | 'creative' | 'classic' | 'compact'
@@ -71,11 +74,13 @@ const OrderInvoiceManager = () => {
   // Form State
   const [invoiceType, setInvoiceType] = useState('Tax Invoice');
   const [invoiceNumber, setInvoiceNumber] = useState(() => {
+    const isSanna = isSannaCRM();
+    const prefix = isSanna ? 'SI' : 'INV';
     const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
     const currentMonth = monthNames[new Date().getMonth()];
     const currentYear = new Date().getFullYear();
     const randomNum = Math.floor(100 + Math.random() * 900);
-    return `SI/${currentYear}/${currentMonth}/${randomNum}`;
+    return `${prefix}/${currentYear}/${currentMonth}/${randomNum}`;
   });
   const [invoiceDate, setInvoiceDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [customerName, setCustomerName] = useState('');
@@ -88,18 +93,120 @@ const OrderInvoiceManager = () => {
     { description: '', hsnCode: '', unitPrice: 0, qty: 1 }
   ]);
 
-  // Seller & Bank Account Custom Details (Default Empty)
-  const [sellerName, setSellerName] = useState('');
+  // Seller & Bank Account Custom Details (Pre-fed with Company Defaults)
+  const [sellerName, setSellerName] = useState(DEFAULT_SELLER_INFO.companyName);
   const [sellerLogo, setSellerLogo] = useState('');
-  const [sellerAddress, setSellerAddress] = useState('');
-  const [sellerWebsite, setSellerWebsite] = useState('');
-  const [sellerGstin, setSellerGstin] = useState('');
-  const [bankName, setBankName] = useState('');
-  const [bankAccountName, setBankAccountName] = useState('');
-  const [bankAccountType, setBankAccountType] = useState('');
-  const [bankAccountNumber, setBankAccountNumber] = useState('');
-  const [bankIfscCode, setBankIfscCode] = useState('');
-  const [bankBranch, setBankBranch] = useState('');
+  const [sellerAddress, setSellerAddress] = useState(DEFAULT_SELLER_INFO.address);
+  const [sellerWebsite, setSellerWebsite] = useState(DEFAULT_SELLER_INFO.website);
+  const [sellerGstin, setSellerGstin] = useState(DEFAULT_SELLER_INFO.gstin);
+  const [bankName, setBankName] = useState(DEFAULT_BANK_DETAILS.bankName);
+  const [bankAccountName, setBankAccountName] = useState(DEFAULT_BANK_DETAILS.accountName);
+  const [bankAccountType, setBankAccountType] = useState('Current Account');
+  const [bankAccountNumber, setBankAccountNumber] = useState(DEFAULT_BANK_DETAILS.accountNumber);
+  const [bankIfscCode, setBankIfscCode] = useState(DEFAULT_BANK_DETAILS.ifscCode);
+  const [bankBranch, setBankBranch] = useState(DEFAULT_BANK_DETAILS.branch);
+
+  const populateDefaults = () => {
+    setSellerName(DEFAULT_SELLER_INFO.companyName);
+    setSellerAddress(DEFAULT_SELLER_INFO.address);
+    setSellerWebsite(DEFAULT_SELLER_INFO.website);
+    setSellerGstin(DEFAULT_SELLER_INFO.gstin);
+    setBankName(DEFAULT_BANK_DETAILS.bankName);
+    setBankAccountName(DEFAULT_BANK_DETAILS.accountName);
+    setBankAccountType('Current Account');
+    setBankAccountNumber(DEFAULT_BANK_DETAILS.accountNumber);
+    setBankIfscCode(DEFAULT_BANK_DETAILS.ifscCode);
+    setBankBranch(DEFAULT_BANK_DETAILS.branch);
+  };
+
+  // Auto pre-load defaults whenever the create modal is shown
+  useEffect(() => {
+    if (showCreateModal) {
+      if (!sellerName) setSellerName(DEFAULT_SELLER_INFO.companyName);
+      if (!sellerAddress) setSellerAddress(DEFAULT_SELLER_INFO.address);
+      if (!sellerWebsite) setSellerWebsite(DEFAULT_SELLER_INFO.website);
+      if (!sellerGstin) setSellerGstin(DEFAULT_SELLER_INFO.gstin);
+      if (!bankName) setBankName(DEFAULT_BANK_DETAILS.bankName);
+      if (!bankAccountName) setBankAccountName(DEFAULT_BANK_DETAILS.accountName);
+      if (!bankAccountType) setBankAccountType('Current Account');
+      if (!bankAccountNumber) setBankAccountNumber(DEFAULT_BANK_DETAILS.accountNumber);
+      if (!bankIfscCode) setBankIfscCode(DEFAULT_BANK_DETAILS.ifscCode);
+      if (!bankBranch) setBankBranch(DEFAULT_BANK_DETAILS.branch);
+    }
+  }, [showCreateModal]);
+
+  const handleOpenCreateModal = () => {
+    setEditingInvoice(null);
+    populateDefaults();
+    const isSanna = isSannaCRM();
+    const prefix = isSanna ? 'SI' : 'INV';
+    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const currentMonth = monthNames[new Date().getMonth()];
+    const currentYear = new Date().getFullYear();
+    const randomNum = Math.floor(100 + Math.random() * 900);
+    setInvoiceNumber(`${prefix}/${currentYear}/${currentMonth}/${randomNum}`);
+    setInvoiceDate(new Date().toISOString().split('T')[0]);
+    setCustomerName('');
+    setCustomerAddress('');
+    setCustomerGstin('');
+    setReverseCharge('N');
+    setShipping(0);
+    setItems([{ description: '', hsnCode: '99831', unitPrice: 0, qty: 1 }]);
+    setCreatorTab('edit');
+    setShowCreateModal(true);
+  };
+
+  const handleEditInvoice = (order) => {
+    setEditingInvoice(order);
+    setInvoiceType(order.invoiceType || 'Tax Invoice');
+    setInvoiceNumber(order.invoiceNumber || '');
+    setInvoiceDate(order.invoiceDate || order.createdDate || new Date().toISOString().split('T')[0]);
+    setCustomerName(order.customerName || '');
+    setCustomerAddress(order.customerAddress || '');
+    setCustomerState(order.customerState || 'Karnataka');
+    setCustomerGstin(order.customerGstin || '');
+    setReverseCharge(order.reverseCharge || 'N');
+    setShipping(order.shipping || 0);
+    setItems(order.items && order.items.length > 0 ? order.items.map(it => ({
+      description: it.description || it.productName || '',
+      hsnCode: it.hsnCode || '99831',
+      unitPrice: it.unitPrice || 0,
+      qty: it.qty || 1
+    })) : [{ description: '', hsnCode: '99831', unitPrice: 0, qty: 1 }]);
+    setSellerName(order.sellerName || DEFAULT_SELLER_INFO.companyName);
+    setSellerLogo(order.sellerLogo || '');
+    setSellerAddress(order.sellerAddress || DEFAULT_SELLER_INFO.address);
+    setSellerWebsite(order.sellerWebsite || DEFAULT_SELLER_INFO.website);
+    setSellerGstin(order.sellerGstin || DEFAULT_SELLER_INFO.gstin);
+    setBankName(order.bankName || DEFAULT_BANK_DETAILS.bankName);
+    setBankAccountName(order.bankAccountName || DEFAULT_BANK_DETAILS.accountName);
+    setBankAccountType(order.bankAccountType || 'Current Account');
+    setBankAccountNumber(order.bankAccountNumber || DEFAULT_BANK_DETAILS.accountNumber);
+    setBankIfscCode(order.bankIfscCode || DEFAULT_BANK_DETAILS.ifscCode);
+    setBankBranch(order.bankBranch || DEFAULT_BANK_DETAILS.branch);
+    if (order.template) setSelectedTemplate(order.template);
+    if (order.primaryColor) setPrimaryColor(order.primaryColor);
+    setCreatorTab('edit');
+    setShowCreateModal(true);
+  };
+
+  const handleDeleteInvoice = async (order) => {
+    const invNo = order.invoiceNumber || order.id;
+    if (!window.confirm(`Are you sure you want to permanently delete invoice "${invNo}"?`)) {
+      return;
+    }
+    try {
+      if (deleteOrder) {
+        await deleteOrder(order.id);
+      }
+      if (selectedInvoice && selectedInvoice.id === order.id) {
+        setSelectedInvoice(null);
+      }
+    } catch (err) {
+      console.error("Error deleting invoice:", err);
+      alert("Error deleting invoice: " + (err.message || 'Failed to delete'));
+    }
+  };
 
   const handleLogoUpload = (e) => {
     const file = e.target.files[0];
@@ -154,20 +261,20 @@ const OrderInvoiceManager = () => {
   };
 
   const handleLoadSampleData = () => {
-    setSellerName('Vertex Systems & Innovations');
-    setSellerAddress('#402 Apex Tech Park, Indiranagar, Bangalore - 560038');
-    setSellerWebsite('www.vertexsystems.io');
-    setSellerGstin('29ABCDE1234F1Z5');
-    setBankName('HDFC Bank');
-    setBankAccountName('Vertex Systems & Innovations');
+    setSellerName(DEFAULT_SELLER_INFO.companyName);
+    setSellerAddress(DEFAULT_SELLER_INFO.address);
+    setSellerWebsite(DEFAULT_SELLER_INFO.website);
+    setSellerGstin(DEFAULT_SELLER_INFO.gstin);
+    setBankName(DEFAULT_BANK_DETAILS.bankName);
+    setBankAccountName(DEFAULT_BANK_DETAILS.accountName);
     setBankAccountType('Current Account');
-    setBankAccountNumber('987654321012');
-    setBankIfscCode('HDFC0001234');
-    setBankBranch('Indiranagar Branch, Bangalore');
-    setCustomerName('Acumen Global Solutions');
-    setCustomerAddress('78 Cyber Heights, Outer Ring Road, Bangalore');
+    setBankAccountNumber(DEFAULT_BANK_DETAILS.accountNumber);
+    setBankIfscCode(DEFAULT_BANK_DETAILS.ifscCode);
+    setBankBranch(DEFAULT_BANK_DETAILS.branch);
+    setCustomerName('Sahara Transformers Pvt Ltd');
+    setCustomerAddress('60/2 Seegehalli Gate Magadi Main Road, Bangalore - 560091');
     setCustomerState('Karnataka');
-    setCustomerGstin('29XYZAB5678C1Z2');
+    setCustomerGstin('29BNJPS7776J1ZW');
     setItems([{ description: 'Cloud Infrastructure & Enterprise SaaS License', hsnCode: '99831', unitPrice: 75000, qty: 1 }]);
   };
 
@@ -176,7 +283,7 @@ const OrderInvoiceManager = () => {
     let subtotal = 0;
     let totalCgst = 0;
     let totalSgst = 0;
-    
+
     const calculatedItems = items.map(item => {
       const netAmount = (parseFloat(item.unitPrice) || 0) * (parseInt(item.qty) || 0);
       const cgstRate = invoiceType === 'Tax Invoice' ? 9 : 0;
@@ -260,23 +367,30 @@ const OrderInvoiceManager = () => {
     };
 
     try {
-      await createOrder(payload);
+      if (editingInvoice) {
+        await updateOrder(editingInvoice.id, payload);
+      } else {
+        await createOrder(payload);
+      }
       setShowCreateModal(false);
+      setEditingInvoice(null);
       // Reset customer specific form fields only
       setCustomerName('');
       setCustomerAddress('');
       setCustomerGstin('');
       setReverseCharge('N');
       setShipping(0);
-      setItems([{ description: '', hsnCode: '99831', unitPrice: 0, qty: 1 }]);
+      setItems([{ description: '', hsnCode: '', unitPrice: 0, qty: 1 }]);
       // Generate new invoice number
+      const isSanna = isSannaCRM();
+      const prefix = isSanna ? 'SI' : 'INV';
       const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
       const currentMonth = monthNames[new Date().getMonth()];
       const currentYear = new Date().getFullYear();
       const randomNum = Math.floor(100 + Math.random() * 900);
-      setInvoiceNumber(`SI/${currentYear}/${currentMonth}/${randomNum}`);
+      setInvoiceNumber(`${prefix}/${currentYear}/${currentMonth}/${randomNum}`);
     } catch (err) {
-      console.error("Error generating invoice:", err);
+      console.error("Error saving invoice:", err);
       alert("Error saving invoice: " + err.message);
     }
   };
@@ -303,7 +417,7 @@ const OrderInvoiceManager = () => {
       primaryColor: order.primaryColor || primaryColor || '#2563eb',
       items: (order.items && order.items.length > 0) ? order.items : [
         {
-          description: 'Astra CRM Enterprise SaaS Software License Suite',
+          description: 'Sanna CRM Enterprise SaaS Software License Suite',
           hsnCode: '99831',
           unitPrice: subtotal,
           qty: 1,
@@ -322,17 +436,17 @@ const OrderInvoiceManager = () => {
       taxTotal: taxTotal,
       shipping: order.shipping || 0,
       grandTotal: totalVal,
-      sellerName: order.sellerName !== undefined ? order.sellerName : sellerName,
+      sellerName: order.sellerName || sellerName || DEFAULT_SELLER_INFO.companyName,
       sellerLogo: order.sellerLogo !== undefined ? order.sellerLogo : sellerLogo,
-      sellerAddress: order.sellerAddress !== undefined ? order.sellerAddress : sellerAddress,
-      sellerWebsite: order.sellerWebsite !== undefined ? order.sellerWebsite : sellerWebsite,
-      sellerGstin: order.sellerGstin !== undefined ? order.sellerGstin : sellerGstin,
-      bankName: order.bankName !== undefined ? order.bankName : bankName,
-      bankAccountName: order.bankAccountName !== undefined ? order.bankAccountName : bankAccountName,
-      bankAccountType: order.bankAccountType !== undefined ? order.bankAccountType : bankAccountType,
-      bankAccountNumber: order.bankAccountNumber !== undefined ? order.bankAccountNumber : bankAccountNumber,
-      bankIfscCode: order.bankIfscCode !== undefined ? order.bankIfscCode : bankIfscCode,
-      bankBranch: order.bankBranch !== undefined ? order.bankBranch : bankBranch
+      sellerAddress: order.sellerAddress || sellerAddress || DEFAULT_SELLER_INFO.address,
+      sellerWebsite: order.sellerWebsite || sellerWebsite || DEFAULT_SELLER_INFO.website,
+      sellerGstin: order.sellerGstin || sellerGstin || DEFAULT_SELLER_INFO.gstin,
+      bankName: order.bankName || bankName || DEFAULT_BANK_DETAILS.bankName,
+      bankAccountName: order.bankAccountName || bankAccountName || DEFAULT_BANK_DETAILS.accountName,
+      bankAccountType: order.bankAccountType || bankAccountType || 'Current Account',
+      bankAccountNumber: order.bankAccountNumber || bankAccountNumber || DEFAULT_BANK_DETAILS.accountNumber,
+      bankIfscCode: order.bankIfscCode || bankIfscCode || DEFAULT_BANK_DETAILS.ifscCode,
+      bankBranch: order.bankBranch || bankBranch || DEFAULT_BANK_DETAILS.branch
     };
   };
 
@@ -371,7 +485,7 @@ const OrderInvoiceManager = () => {
       gap: '12px'
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-        
+
         {/* Template Selector Tabs */}
         <div>
           <div style={{ fontSize: '0.75rem', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', marginBottom: '6px' }}>
@@ -950,9 +1064,10 @@ const OrderInvoiceManager = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      
+
       {/* CSS style injected to support print layouts cleanly */}
-      <style dangerouslySetInnerHTML={{__html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         @media print {
           body * {
             visibility: hidden !important;
@@ -991,8 +1106,8 @@ const OrderInvoiceManager = () => {
             Track order status, generate customizable Cash or Tax invoices with custom logos & accounts, and print compliant bills.
           </p>
         </div>
-        <button 
-          onClick={() => setShowCreateModal(true)} 
+        <button
+          onClick={handleOpenCreateModal}
           className="btn gradient-btn-primary"
           style={{ gap: '8px' }}
         >
@@ -1070,14 +1185,35 @@ const OrderInvoiceManager = () => {
                         </div>
                       </td>
                       <td>
-                        <button
-                          onClick={() => setSelectedInvoice(order)}
-                          className="btn btn-secondary"
-                          style={{ padding: '4px 8px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '4px' }}
-                        >
-                          <Eye style={{ width: '12px', height: '12px' }} />
-                          <span>View Bill</span>
-                        </button>
+                        <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                          <button
+                            onClick={() => setSelectedInvoice(order)}
+                            className="btn btn-secondary"
+                            title="View Bill"
+                            style={{ padding: '4px 8px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '4px', color: '#60a5fa' }}
+                          >
+                            <Eye style={{ width: '12px', height: '12px' }} />
+                            <span>View</span>
+                          </button>
+                          <button
+                            onClick={() => handleEditInvoice(order)}
+                            className="btn btn-secondary"
+                            title="Edit Invoice"
+                            style={{ padding: '4px 8px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '4px', color: '#fbbf24', borderColor: 'rgba(251, 191, 36, 0.4)' }}
+                          >
+                            <Edit2 style={{ width: '12px', height: '12px' }} />
+                            <span>Edit</span>
+                          </button>
+                          <button
+                            onClick={() => handleDeleteInvoice(order)}
+                            className="btn btn-secondary"
+                            title="Delete Invoice"
+                            style={{ padding: '4px 8px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '4px', color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.4)' }}
+                          >
+                            <Trash2 style={{ width: '12px', height: '12px' }} />
+                            <span>Delete</span>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -1093,7 +1229,9 @@ const OrderInvoiceManager = () => {
         <div className="modal-overlay">
           <div className="modal-content" style={{ padding: '24px', maxWidth: '780px', width: '90%', maxHeight: '90vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: '800' }}>Generate New Invoice & Order</h3>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: '800' }}>
+                {editingInvoice ? `✏️ Edit Invoice (${editingInvoice.invoiceNumber || editingInvoice.id})` : 'Generate New Invoice & Order'}
+              </h3>
               <button onClick={() => setShowCreateModal(false)} className="btn-close" style={{ background: 'none', border: 'none', color: 'var(--text-primary)', cursor: 'pointer' }}>
                 <X style={{ width: '20px', height: '20px' }} />
               </button>
@@ -1149,7 +1287,15 @@ const OrderInvoiceManager = () => {
               <div style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-secondary)' }}>
                 Form Fill Controls:
               </div>
-              <div style={{ display: 'flex', gap: '8px' }}>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  onClick={populateDefaults}
+                  className="btn btn-secondary"
+                  style={{ padding: '4px 10px', fontSize: '0.75rem', color: '#c084fc', borderColor: 'rgba(192, 132, 252, 0.4)', display: 'flex', alignItems: 'center', gap: '4px' }}
+                >
+                  <Building2 style={{ width: '12px', height: '12px' }} /> Pre-fill Seller & Bank
+                </button>
                 <button
                   type="button"
                   onClick={handleClearAllFields}
@@ -1178,17 +1324,17 @@ const OrderInvoiceManager = () => {
                   </span>
                 </div>
                 {renderTemplateContent({
-                  sellerName: sellerName.trim() || 'Vertex Systems & Innovations',
+                  sellerName: sellerName.trim() || DEFAULT_SELLER_INFO.companyName,
                   sellerLogo: sellerLogo || null,
-                  sellerAddress: sellerAddress.trim() || '#402 Apex Tech Park, Indiranagar, Bangalore - 560038',
-                  sellerWebsite: sellerWebsite.trim() || 'www.vertexsystems.io',
-                  sellerGstin: sellerGstin.trim() || '29ABCDE1234F1Z5',
-                  bankName: bankName.trim() || 'HDFC Bank',
-                  bankAccountName: bankAccountName.trim() || 'Vertex Systems & Innovations',
+                  sellerAddress: sellerAddress.trim() || DEFAULT_SELLER_INFO.address,
+                  sellerWebsite: sellerWebsite.trim() || DEFAULT_SELLER_INFO.website,
+                  sellerGstin: sellerGstin.trim() || DEFAULT_SELLER_INFO.gstin,
+                  bankName: bankName.trim() || DEFAULT_BANK_DETAILS.bankName,
+                  bankAccountName: bankAccountName.trim() || DEFAULT_BANK_DETAILS.accountName,
                   bankAccountType: bankAccountType.trim() || 'Current Account',
-                  bankAccountNumber: bankAccountNumber.trim() || '987654321012',
-                  bankIfscCode: bankIfscCode.trim() || 'HDFC0001234',
-                  bankBranch: bankBranch.trim() || 'Indiranagar Branch, Bangalore',
+                  bankAccountNumber: bankAccountNumber.trim() || DEFAULT_BANK_DETAILS.accountNumber,
+                  bankIfscCode: bankIfscCode.trim() || DEFAULT_BANK_DETAILS.ifscCode,
+                  bankBranch: bankBranch.trim() || DEFAULT_BANK_DETAILS.branch,
                   customerName: customerName.trim() || 'Acumen Global Solutions Ltd',
                   customerAddress: customerAddress.trim() || '78 Cyber Heights, Outer Ring Road, Bangalore',
                   customerState: customerState.trim() || 'Karnataka',
@@ -1216,380 +1362,382 @@ const OrderInvoiceManager = () => {
               </div>
             ) : (
               <form onSubmit={handleCreateInvoice} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                
+
                 {/* Seller & Bank Details (Fully visible by default) */}
                 <div style={{ border: '1px solid var(--border-color)', borderRadius: '8px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px', background: 'rgba(255, 255, 255, 0.02)' }}>
                   <h4 style={{ fontSize: '0.9rem', fontWeight: '800', color: '#c084fc', margin: '0 0 4px 0' }}>🏢 Seller Company Details</h4>
-                  
+
                   {/* Company info row */}
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                       <label style={{ fontSize: '0.75rem', fontWeight: '600', color: 'var(--text-secondary)' }}>Company Name (Seller)</label>
-                      <input 
-                        type="text" 
-                        placeholder="e.g. Vertex Systems Ltd"
-                        value={sellerName} 
+                      <input
+                        type="text"
+                        placeholder="e.g. Sanna Innovations"
+                        value={sellerName}
                         onChange={(e) => setSellerName(e.target.value)}
-                        className="form-input" 
+                        className="form-input"
                       />
                     </div>
 
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <label style={{ fontSize: '0.75rem', fontWeight: '600', color: 'var(--text-secondary)' }}>Company GSTIN/PAN</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. 29BNJPS7776J1ZW"
+                        value={sellerGstin}
+                        onChange={(e) => setSellerGstin(e.target.value)}
+                        className="form-input"
+                      />
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <label style={{ fontSize: '0.75rem', fontWeight: '600', color: 'var(--text-secondary)' }}>Website URL</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. www.sannainnovations.com"
+                        value={sellerWebsite}
+                        onChange={(e) => setSellerWebsite(e.target.value)}
+                        className="form-input"
+                      />
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <label style={{ fontSize: '0.75rem', fontWeight: '600', color: 'var(--text-secondary)' }}>Company Logo</label>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleLogoUpload}
+                          style={{ fontSize: '0.7rem', color: 'var(--text-primary)', width: '150px' }}
+                        />
+                        {sellerLogo && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <img src={sellerLogo} style={{ height: '24px', maxWidth: '40px', objectFit: 'contain', border: '1px solid var(--border-color)', borderRadius: '3px' }} alt="Preview" />
+                            <button type="button" onClick={() => setSellerLogo('')} style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '0.65rem', cursor: 'pointer' }}>Clear</button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <label style={{ fontSize: '0.75rem', fontWeight: '600', color: 'var(--text-secondary)' }}>Company GSTIN/PAN</label>
-                    <input 
-                      type="text" 
-                      placeholder="e.g. 29ABCDE1234F1Z5"
-                      value={sellerGstin} 
-                      onChange={(e) => setSellerGstin(e.target.value)}
-                      className="form-input" 
+                    <label style={{ fontSize: '0.75rem', fontWeight: '600', color: 'var(--text-secondary)' }}>Company Full Address</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. #1203, 1st Main, M.C. Layout, Vijayanagar, Bangalore - 560040"
+                      value={sellerAddress}
+                      onChange={(e) => setSellerAddress(e.target.value)}
+                      className="form-input"
+                    />
+                  </div>
+
+                  {/* Bank Details block */}
+                  <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '12px', marginTop: '4px' }}>
+                    <h4 style={{ fontSize: '0.85rem', fontWeight: '800', marginBottom: '8px', color: '#c084fc' }}>🏦 Bank Account Details</h4>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px' }}>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <label style={{ fontSize: '0.7rem', fontWeight: '600', color: 'var(--text-secondary)' }}>Bank Name</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. Kotak Mahindra Bank"
+                          value={bankName}
+                          onChange={(e) => setBankName(e.target.value)}
+                          className="form-input"
+                          style={{ padding: '6px', fontSize: '0.8rem' }}
+                        />
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <label style={{ fontSize: '0.7rem', fontWeight: '600', color: 'var(--text-secondary)' }}>Account Holder Name</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. Sanna Innovations"
+                          value={bankAccountName}
+                          onChange={(e) => setBankAccountName(e.target.value)}
+                          className="form-input"
+                          style={{ padding: '6px', fontSize: '0.8rem' }}
+                        />
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <label style={{ fontSize: '0.7rem', fontWeight: '600', color: 'var(--text-secondary)' }}>Account Type</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. Current Account"
+                          value={bankAccountType}
+                          onChange={(e) => setBankAccountType(e.target.value)}
+                          className="form-input"
+                          style={{ padding: '6px', fontSize: '0.8rem' }}
+                        />
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <label style={{ fontSize: '0.7rem', fontWeight: '600', color: 'var(--text-secondary)' }}>Account Number</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. 6450725722"
+                          value={bankAccountNumber}
+                          onChange={(e) => setBankAccountNumber(e.target.value)}
+                          className="form-input"
+                          style={{ padding: '6px', fontSize: '0.8rem' }}
+                        />
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <label style={{ fontSize: '0.7rem', fontWeight: '600', color: 'var(--text-secondary)' }}>IFSC Code</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. KKBK0008035"
+                          value={bankIfscCode}
+                          onChange={(e) => setBankIfscCode(e.target.value)}
+                          className="form-input"
+                          style={{ padding: '6px', fontSize: '0.8rem' }}
+                        />
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <label style={{ fontSize: '0.7rem', fontWeight: '600', color: 'var(--text-secondary)' }}>Branch Name</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. Basaveshwaranagar"
+                          value={bankBranch}
+                          onChange={(e) => setBankBranch(e.target.value)}
+                          className="form-input"
+                          style={{ padding: '6px', fontSize: '0.8rem' }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Form Grid */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <label style={{ fontSize: '0.75rem', fontWeight: '600', color: 'var(--text-secondary)' }}>Invoice Type</label>
+                    <select
+                      value={invoiceType}
+                      onChange={(e) => setInvoiceType(e.target.value)}
+                      className="form-input"
+                      style={{ background: 'var(--card-bg-light)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', borderRadius: '6px', padding: '8px' }}
+                    >
+                      <option value="Tax Invoice">Tax Invoice</option>
+                      <option value="Cash Bill">Cash Bill</option>
+                    </select>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <label style={{ fontSize: '0.75rem', fontWeight: '600', color: 'var(--text-secondary)' }}>Invoice Number</label>
+                    <input
+                      type="text"
+                      value={invoiceNumber}
+                      onChange={(e) => setInvoiceNumber(e.target.value)}
+                      className="form-input"
+                      required
                     />
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <label style={{ fontSize: '0.75rem', fontWeight: '600', color: 'var(--text-secondary)' }}>Website URL</label>
-                    <input 
-                      type="text" 
-                      placeholder="e.g. www.vertexsystems.io"
-                      value={sellerWebsite} 
-                      onChange={(e) => setSellerWebsite(e.target.value)}
-                      className="form-input" 
+                    <label style={{ fontSize: '0.75rem', fontWeight: '600', color: 'var(--text-secondary)' }}>Invoice Date</label>
+                    <input
+                      type="date"
+                      value={invoiceDate}
+                      onChange={(e) => setInvoiceDate(e.target.value)}
+                      className="form-input"
+                      required
                     />
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <label style={{ fontSize: '0.75rem', fontWeight: '600', color: 'var(--text-secondary)' }}>Company Logo</label>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <input 
-                        type="file" 
-                        accept="image/*" 
-                        onChange={handleLogoUpload} 
-                        style={{ fontSize: '0.7rem', color: 'var(--text-primary)', width: '150px' }} 
-                      />
-                      {sellerLogo && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <img src={sellerLogo} style={{ height: '24px', maxWidth: '40px', objectFit: 'contain', border: '1px solid var(--border-color)', borderRadius: '3px' }} alt="Preview" />
-                          <button type="button" onClick={() => setSellerLogo('')} style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '0.65rem', cursor: 'pointer' }}>Clear</button>
-                        </div>
-                      )}
-                    </div>
+                    <label style={{ fontSize: '0.75rem', fontWeight: '600', color: 'var(--text-secondary)' }}>Customer Name</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Acumen Global Solutions"
+                      value={customerName}
+                      onChange={(e) => setCustomerName(e.target.value)}
+                      className="form-input"
+                      required
+                    />
                   </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <label style={{ fontSize: '0.75rem', fontWeight: '600', color: 'var(--text-secondary)' }}>Customer State</label>
+                    <input
+                      type="text"
+                      value={customerState}
+                      onChange={(e) => setCustomerState(e.target.value)}
+                      className="form-input"
+                      required
+                    />
+                  </div>
+
+                  {invoiceType === 'Tax Invoice' && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <label style={{ fontSize: '0.75rem', fontWeight: '600', color: 'var(--text-secondary)' }}>Customer GSTIN</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. 29XYZAB5678C1Z2"
+                        value={customerGstin}
+                        onChange={(e) => setCustomerGstin(e.target.value)}
+                        className="form-input"
+                      />
+                    </div>
+                  )}
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <label style={{ fontSize: '0.75rem', fontWeight: '600', color: 'var(--text-secondary)' }}>Reverse Charge (Y/N)</label>
+                    <select
+                      value={reverseCharge}
+                      onChange={(e) => setReverseCharge(e.target.value)}
+                      className="form-input"
+                      style={{ background: 'var(--card-bg-light)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', borderRadius: '6px', padding: '8px' }}
+                    >
+                      <option value="N">N</option>
+                      <option value="Y">Y</option>
+                    </select>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <label style={{ fontSize: '0.75rem', fontWeight: '600', color: 'var(--text-secondary)' }}>Shipping Charge (₹)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={shipping}
+                      onChange={(e) => setShipping(Math.max(0, parseFloat(e.target.value) || 0))}
+                      className="form-input"
+                    />
+                  </div>
+
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <label style={{ fontSize: '0.75rem', fontWeight: '600', color: 'var(--text-secondary)' }}>Company Full Address</label>
-                  <input 
-                    type="text" 
-                    placeholder="e.g. #402 Apex Tech Park, Indiranagar, Bangalore"
-                    value={sellerAddress} 
-                    onChange={(e) => setSellerAddress(e.target.value)}
-                    className="form-input" 
-                  />
-                </div>
-
-                {/* Bank Details block */}
-                <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '12px', marginTop: '4px' }}>
-                  <h4 style={{ fontSize: '0.85rem', fontWeight: '800', marginBottom: '8px', color: '#c084fc' }}>🏦 Bank Account Details</h4>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px' }}>
-                    
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <label style={{ fontSize: '0.7rem', fontWeight: '600', color: 'var(--text-secondary)' }}>Bank Name</label>
-                      <input 
-                        type="text" 
-                        placeholder="e.g. HDFC Bank"
-                        value={bankName} 
-                        onChange={(e) => setBankName(e.target.value)}
-                        className="form-input" 
-                        style={{ padding: '6px', fontSize: '0.8rem' }}
-                      />
-                    </div>
-
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <label style={{ fontSize: '0.7rem', fontWeight: '600', color: 'var(--text-secondary)' }}>Account Holder Name</label>
-                      <input 
-                        type="text" 
-                        placeholder="e.g. Vertex Systems Ltd"
-                        value={bankAccountName} 
-                        onChange={(e) => setBankAccountName(e.target.value)}
-                        className="form-input" 
-                        style={{ padding: '6px', fontSize: '0.8rem' }}
-                      />
-                    </div>
-
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <label style={{ fontSize: '0.7rem', fontWeight: '600', color: 'var(--text-secondary)' }}>Account Type</label>
-                      <input 
-                        type="text" 
-                        placeholder="e.g. Current Account"
-                        value={bankAccountType} 
-                        onChange={(e) => setBankAccountType(e.target.value)}
-                        className="form-input" 
-                        style={{ padding: '6px', fontSize: '0.8rem' }}
-                      />
-                    </div>
-
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <label style={{ fontSize: '0.7rem', fontWeight: '600', color: 'var(--text-secondary)' }}>Account Number</label>
-                      <input 
-                        type="text" 
-                        placeholder="e.g. 987654321012"
-                        value={bankAccountNumber} 
-                        onChange={(e) => setBankAccountNumber(e.target.value)}
-                        className="form-input" 
-                        style={{ padding: '6px', fontSize: '0.8rem' }}
-                      />
-                    </div>
-
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <label style={{ fontSize: '0.7rem', fontWeight: '600', color: 'var(--text-secondary)' }}>IFSC Code</label>
-                      <input 
-                        type="text" 
-                        placeholder="e.g. HDFC0001234"
-                        value={bankIfscCode} 
-                        onChange={(e) => setBankIfscCode(e.target.value)}
-                        className="form-input" 
-                        style={{ padding: '6px', fontSize: '0.8rem' }}
-                      />
-                    </div>
-
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <label style={{ fontSize: '0.7rem', fontWeight: '600', color: 'var(--text-secondary)' }}>Branch Name</label>
-                      <input 
-                        type="text" 
-                        placeholder="e.g. Indiranagar Branch, Bangalore"
-                        value={bankBranch} 
-                        onChange={(e) => setBankBranch(e.target.value)}
-                        className="form-input" 
-                        style={{ padding: '6px', fontSize: '0.8rem' }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Form Grid */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
-                
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <label style={{ fontSize: '0.75rem', fontWeight: '600', color: 'var(--text-secondary)' }}>Invoice Type</label>
-                  <select 
-                    value={invoiceType} 
-                    onChange={(e) => setInvoiceType(e.target.value)}
+                  <label style={{ fontSize: '0.75rem', fontWeight: '600', color: 'var(--text-secondary)' }}>Customer Full Address</label>
+                  <textarea
+                    placeholder="Street address, block, building details..."
+                    value={customerAddress}
+                    onChange={(e) => setCustomerAddress(e.target.value)}
                     className="form-input"
-                    style={{ background: 'var(--card-bg-light)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', borderRadius: '6px', padding: '8px' }}
-                  >
-                    <option value="Tax Invoice">Tax Invoice</option>
-                    <option value="Cash Bill">Cash Bill</option>
-                  </select>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <label style={{ fontSize: '0.75rem', fontWeight: '600', color: 'var(--text-secondary)' }}>Invoice Number</label>
-                  <input 
-                    type="text" 
-                    value={invoiceNumber} 
-                    onChange={(e) => setInvoiceNumber(e.target.value)}
-                    className="form-input" 
-                    required 
+                    style={{ height: '50px', resize: 'none', padding: '8px' }}
                   />
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <label style={{ fontSize: '0.75rem', fontWeight: '600', color: 'var(--text-secondary)' }}>Invoice Date</label>
-                  <input 
-                    type="date" 
-                    value={invoiceDate} 
-                    onChange={(e) => setInvoiceDate(e.target.value)}
-                    className="form-input" 
-                    required 
-                  />
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <label style={{ fontSize: '0.75rem', fontWeight: '600', color: 'var(--text-secondary)' }}>Customer Name</label>
-                  <input 
-                    type="text" 
-                    placeholder="e.g. Acumen Global Solutions"
-                    value={customerName} 
-                    onChange={(e) => setCustomerName(e.target.value)}
-                    className="form-input" 
-                    required 
-                  />
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <label style={{ fontSize: '0.75rem', fontWeight: '600', color: 'var(--text-secondary)' }}>Customer State</label>
-                  <input 
-                    type="text" 
-                    value={customerState} 
-                    onChange={(e) => setCustomerState(e.target.value)}
-                    className="form-input" 
-                    required 
-                  />
-                </div>
-
-                {invoiceType === 'Tax Invoice' && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <label style={{ fontSize: '0.75rem', fontWeight: '600', color: 'var(--text-secondary)' }}>Customer GSTIN</label>
-                    <input 
-                      type="text" 
-                      placeholder="e.g. 29XYZAB5678C1Z2"
-                      value={customerGstin} 
-                      onChange={(e) => setCustomerGstin(e.target.value)}
-                      className="form-input" 
-                    />
+                {/* Line Items Builder */}
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <h4 style={{ fontSize: '0.9rem', fontWeight: '700' }}>Line Items</h4>
+                    <button
+                      type="button"
+                      onClick={handleAddItem}
+                      className="btn btn-secondary"
+                      style={{ padding: '4px 8px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '4px' }}
+                    >
+                      <Plus style={{ width: '12px', height: '12px' }} /> Add Item
+                    </button>
                   </div>
-                )}
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <label style={{ fontSize: '0.75rem', fontWeight: '600', color: 'var(--text-secondary)' }}>Reverse Charge (Y/N)</label>
-                  <select 
-                    value={reverseCharge} 
-                    onChange={(e) => setReverseCharge(e.target.value)}
-                    className="form-input"
-                    style={{ background: 'var(--card-bg-light)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', borderRadius: '6px', padding: '8px' }}
-                  >
-                    <option value="N">N</option>
-                    <option value="Y">Y</option>
-                  </select>
+                  <div style={{ overflowX: 'auto', maxHeight: '180px' }}>
+                    <table className="custom-table" style={{ fontSize: '0.8rem' }}>
+                      <thead>
+                        <tr>
+                          <th style={{ width: '40%' }}>Description</th>
+                          <th style={{ width: '15%' }}>HSN/SAC</th>
+                          <th style={{ width: '20%' }}>Unit Price (₹)</th>
+                          <th style={{ width: '15%' }}>Qty</th>
+                          <th style={{ width: '10%' }}>Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {items.map((item, idx) => (
+                          <tr key={idx}>
+                            <td>
+                              <input
+                                type="text"
+                                required
+                                placeholder="e.g. Brochure Design Balance"
+                                value={item.description}
+                                onChange={(e) => handleItemChange(idx, 'description', e.target.value)}
+                                className="form-input"
+                                style={{ padding: '6px', fontSize: '0.8rem' }}
+                              />
+                            </td>
+                            <td>
+                              <input
+                                type="text"
+                                required
+                                value={item.hsnCode}
+                                onChange={(e) => handleItemChange(idx, 'hsnCode', e.target.value)}
+                                className="form-input"
+                                style={{ padding: '6px', fontSize: '0.8rem' }}
+                              />
+                            </td>
+                            <td>
+                              <input
+                                type="number"
+                                min="0"
+                                required
+                                value={item.unitPrice}
+                                onChange={(e) => handleItemChange(idx, 'unitPrice', Math.max(0, parseFloat(e.target.value) || 0))}
+                                className="form-input"
+                                style={{ padding: '6px', fontSize: '0.8rem' }}
+                              />
+                            </td>
+                            <td>
+                              <input
+                                type="number"
+                                min="1"
+                                required
+                                value={item.qty}
+                                onChange={(e) => handleItemChange(idx, 'qty', Math.max(1, parseInt(e.target.value) || 1))}
+                                className="form-input"
+                                style={{ padding: '6px', fontSize: '0.8rem' }}
+                              />
+                            </td>
+                            <td>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveItem(idx)}
+                                disabled={items.length <= 1}
+                                className="btn btn-secondary"
+                                style={{ padding: '6px', color: '#ef4444', opacity: items.length <= 1 ? 0.4 : 1 }}
+                              >
+                                <Trash2 style={{ width: '14px', height: '14px' }} />
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <label style={{ fontSize: '0.75rem', fontWeight: '600', color: 'var(--text-secondary)' }}>Shipping Charge (₹)</label>
-                  <input 
-                    type="number" 
-                    min="0"
-                    value={shipping} 
-                    onChange={(e) => setShipping(Math.max(0, parseFloat(e.target.value) || 0))}
-                    className="form-input" 
-                  />
+                {/* Summary calculations */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', background: 'var(--card-bg-light)', borderRadius: '8px' }}>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                    CGST: 9% | SGST: 9% (Only applicable to Tax Invoices)
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'right' }}>
+                    <div style={{ fontSize: '0.85rem' }}>Subtotal: <strong>{formatCurrency(totals.subtotal)}</strong></div>
+                    {invoiceType === 'Tax Invoice' && (
+                      <div style={{ fontSize: '0.85rem', color: '#60a5fa' }}>CGST (9%) + SGST (9%): <strong>{formatCurrency(totals.taxTotal)}</strong></div>
+                    )}
+                    {shipping > 0 && <div style={{ fontSize: '0.85rem' }}>Shipping: <strong>{formatCurrency(shipping)}</strong></div>}
+                    <div style={{ fontSize: '1.1rem', fontWeight: '800', color: '#34d399', borderTop: '1px solid var(--border-color)', paddingTop: '4px', marginTop: '4px' }}>
+                      Grand Total: {formatCurrency(totals.grandTotal)}
+                    </div>
+                  </div>
                 </div>
 
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                <label style={{ fontSize: '0.75rem', fontWeight: '600', color: 'var(--text-secondary)' }}>Customer Full Address</label>
-                <textarea 
-                  placeholder="Street address, block, building details..."
-                  value={customerAddress} 
-                  onChange={(e) => setCustomerAddress(e.target.value)}
-                  className="form-input"
-                  style={{ height: '50px', resize: 'none', padding: '8px' }}
-                />
-              </div>
-
-              {/* Line Items Builder */}
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                  <h4 style={{ fontSize: '0.9rem', fontWeight: '700' }}>Line Items</h4>
-                  <button 
-                    type="button" 
-                    onClick={handleAddItem}
-                    className="btn btn-secondary"
-                    style={{ padding: '4px 8px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '4px' }}
-                  >
-                    <Plus style={{ width: '12px', height: '12px' }} /> Add Item
+                {/* Submit Buttons */}
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '10px' }}>
+                  <button type="button" onClick={() => setShowCreateModal(false)} className="btn btn-secondary">Cancel</button>
+                  <button type="submit" className="btn gradient-btn-primary">
+                    {editingInvoice ? '💾 Update & Save Invoice' : 'Save Order & Generate Bill'}
                   </button>
                 </div>
 
-                <div style={{ overflowX: 'auto', maxHeight: '180px' }}>
-                  <table className="custom-table" style={{ fontSize: '0.8rem' }}>
-                    <thead>
-                      <tr>
-                        <th style={{ width: '40%' }}>Description</th>
-                        <th style={{ width: '15%' }}>HSN/SAC</th>
-                        <th style={{ width: '20%' }}>Unit Price (₹)</th>
-                        <th style={{ width: '15%' }}>Qty</th>
-                        <th style={{ width: '10%' }}>Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {items.map((item, idx) => (
-                        <tr key={idx}>
-                          <td>
-                            <input 
-                              type="text" 
-                              required 
-                              placeholder="e.g. Brochure Design Balance"
-                              value={item.description}
-                              onChange={(e) => handleItemChange(idx, 'description', e.target.value)}
-                              className="form-input"
-                              style={{ padding: '6px', fontSize: '0.8rem' }}
-                            />
-                          </td>
-                          <td>
-                            <input 
-                              type="text" 
-                              required
-                              value={item.hsnCode}
-                              onChange={(e) => handleItemChange(idx, 'hsnCode', e.target.value)}
-                              className="form-input"
-                              style={{ padding: '6px', fontSize: '0.8rem' }}
-                            />
-                          </td>
-                          <td>
-                            <input 
-                              type="number" 
-                              min="0"
-                              required
-                              value={item.unitPrice}
-                              onChange={(e) => handleItemChange(idx, 'unitPrice', Math.max(0, parseFloat(e.target.value) || 0))}
-                              className="form-input"
-                              style={{ padding: '6px', fontSize: '0.8rem' }}
-                            />
-                          </td>
-                          <td>
-                            <input 
-                              type="number" 
-                              min="1"
-                              required
-                              value={item.qty}
-                              onChange={(e) => handleItemChange(idx, 'qty', Math.max(1, parseInt(e.target.value) || 1))}
-                              className="form-input"
-                              style={{ padding: '6px', fontSize: '0.8rem' }}
-                            />
-                          </td>
-                          <td>
-                            <button 
-                              type="button" 
-                              onClick={() => handleRemoveItem(idx)}
-                              disabled={items.length <= 1}
-                              className="btn btn-secondary"
-                              style={{ padding: '6px', color: '#ef4444', opacity: items.length <= 1 ? 0.4 : 1 }}
-                            >
-                              <Trash2 style={{ width: '14px', height: '14px' }} />
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              {/* Summary calculations */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', background: 'var(--card-bg-light)', borderRadius: '8px' }}>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                  CGST: 9% | SGST: 9% (Only applicable to Tax Invoices)
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'right' }}>
-                  <div style={{ fontSize: '0.85rem' }}>Subtotal: <strong>{formatCurrency(totals.subtotal)}</strong></div>
-                  {invoiceType === 'Tax Invoice' && (
-                    <div style={{ fontSize: '0.85rem', color: '#60a5fa' }}>CGST (9%) + SGST (9%): <strong>{formatCurrency(totals.taxTotal)}</strong></div>
-                  )}
-                  {shipping > 0 && <div style={{ fontSize: '0.85rem' }}>Shipping: <strong>{formatCurrency(shipping)}</strong></div>}
-                  <div style={{ fontSize: '1.1rem', fontWeight: '800', color: '#34d399', borderTop: '1px solid var(--border-color)', paddingTop: '4px', marginTop: '4px' }}>
-                    Grand Total: {formatCurrency(totals.grandTotal)}
-                  </div>
-                </div>
-              </div>
-
-              {/* Submit Buttons */}
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '10px' }}>
-                <button type="button" onClick={() => setShowCreateModal(false)} className="btn btn-secondary">Cancel</button>
-                <button type="submit" className="btn gradient-btn-primary">Save Order & Generate Bill</button>
-              </div>
-
-            </form>
+              </form>
             )}
           </div>
         </div>
@@ -1598,21 +1746,42 @@ const OrderInvoiceManager = () => {
       {/* Invoice Viewer Modal */}
       {selectedInvoice && activeInvoice && (
         <div className="modal-overlay">
-          <div className="modal-content print-area" style={{ 
-            padding: '40px', 
-            maxWidth: '920px', 
-            width: '100%', 
-            background: '#ffffff', 
-            color: '#1f2937', 
+          <div className="modal-content print-area" style={{
+            padding: '40px',
+            maxWidth: '920px',
+            width: '100%',
+            background: '#ffffff',
+            color: '#1f2937',
             fontFamily: 'sans-serif',
             boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.3)',
             borderRadius: '8px'
           }}>
-            
+
             {/* Close & Print Buttons for UI only */}
             <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid #e5e7eb', paddingBottom: '12px' }}>
               <span style={{ fontWeight: '700', fontSize: '1rem', color: '#374151' }}>Invoice Preview Panel</span>
-              <div style={{ display: 'flex', gap: '12px' }}>
+              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                <button
+                  onClick={() => {
+                    const inv = selectedInvoice;
+                    setSelectedInvoice(null);
+                    handleEditInvoice(inv);
+                  }}
+                  className="btn btn-secondary"
+                  style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#fbbf24', borderColor: 'rgba(251, 191, 36, 0.4)' }}
+                >
+                  <Edit2 style={{ width: '15px', height: '15px' }} /> Edit Invoice
+                </button>
+                <button
+                  onClick={() => {
+                    const inv = selectedInvoice;
+                    handleDeleteInvoice(inv);
+                  }}
+                  className="btn btn-secondary"
+                  style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.4)' }}
+                >
+                  <Trash2 style={{ width: '15px', height: '15px' }} /> Delete
+                </button>
                 <button onClick={() => window.print()} className="btn gradient-btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <Printer style={{ width: '16px', height: '16px' }} /> Print Invoice
                 </button>
@@ -1624,12 +1793,12 @@ const OrderInvoiceManager = () => {
 
             {/* Print Area Contents */}
             <div style={{ border: '1px solid #9ca3af', padding: '16px' }}>
-              
+
               {/* Header Top Section (Logo and Title table) */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
                 {/* Logo & Company details */}
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                  
+
                   {/* Dynamic Logo Rendering */}
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '140px', border: '1px solid #e5e7eb', padding: '8px', borderRadius: '4px', background: '#fafafa' }}>
                     {activeInvoice.sellerLogo ? (
@@ -1857,12 +2026,12 @@ const OrderInvoiceManager = () => {
       {/* Template Sample Modal */}
       {sampleModalTemplate && (
         <div className="modal-overlay">
-          <div className="modal-content print-area" style={{ 
-            padding: '24px', 
-            maxWidth: '900px', 
-            width: '95%', 
-            background: '#ffffff', 
-            color: '#1f2937', 
+          <div className="modal-content print-area" style={{
+            padding: '24px',
+            maxWidth: '900px',
+            width: '95%',
+            background: '#ffffff',
+            color: '#1f2937',
             borderRadius: '10px',
             maxHeight: '90vh',
             overflowY: 'auto'
@@ -1876,9 +2045,9 @@ const OrderInvoiceManager = () => {
                   This is a realistic sample demonstration of how your invoice will look using the {sampleModalTemplate} layout.
                 </div>
               </div>
-              <button 
-                onClick={() => setSampleModalTemplate(null)} 
-                className="btn btn-secondary" 
+              <button
+                onClick={() => setSampleModalTemplate(null)}
+                className="btn btn-secondary"
                 style={{ color: '#ef4444' }}
               >
                 Close Sample
@@ -1886,17 +2055,17 @@ const OrderInvoiceManager = () => {
             </div>
 
             {renderTemplateContent({
-              sellerName: 'Vertex Systems & Innovations',
+              sellerName: DEFAULT_SELLER_INFO.companyName,
               sellerLogo: null,
-              sellerAddress: '#402 Apex Tech Park, Indiranagar, Bangalore - 560038',
-              sellerWebsite: 'www.vertexsystems.io',
-              sellerGstin: '29ABCDE1234F1Z5',
-              bankName: 'HDFC Bank',
-              bankAccountName: 'Vertex Systems & Innovations',
+              sellerAddress: DEFAULT_SELLER_INFO.address,
+              sellerWebsite: DEFAULT_SELLER_INFO.website,
+              sellerGstin: DEFAULT_SELLER_INFO.gstin,
+              bankName: DEFAULT_BANK_DETAILS.bankName,
+              bankAccountName: DEFAULT_BANK_DETAILS.accountName,
               bankAccountType: 'Current Account',
-              bankAccountNumber: '987654321012',
-              bankIfscCode: 'HDFC0001234',
-              bankBranch: 'Indiranagar Branch, Bangalore',
+              bankAccountNumber: DEFAULT_BANK_DETAILS.accountNumber,
+              bankIfscCode: DEFAULT_BANK_DETAILS.ifscCode,
+              bankBranch: DEFAULT_BANK_DETAILS.branch,
               customerName: 'Acumen Global Solutions Ltd',
               customerAddress: '78 Cyber Heights, Outer Ring Road, Bangalore - 560103',
               customerState: 'Karnataka',

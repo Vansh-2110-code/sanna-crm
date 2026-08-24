@@ -1,0 +1,1002 @@
+[
+  {
+    "_id": {
+      "$oid": "6a3cbbde0622592ff7fa460a"
+    },
+    "username": "admin",
+    "message": "New announcement from Collab User A 7e1e3ec1: 'This is a team wide announcement from A!'",
+    "type": "announcement",
+    "created_at": {
+      "$date": "2026-06-25T05:25:50.355Z"
+    },
+    "read": true
+  },
+  {
+    "_id": {
+      "$oid": "6a3cbbde0622592ff7fa460b"
+    },
+    "username": "empsi13",
+    "message": "New announcement from Collab User A 7e1e3ec1: 'This is a team wide announcement from A!'",
+    "type": "announcement",
+    "created_at": {
+      "$date": "2026-06-25T05:25:50.382Z"
+    },
+    "read": true
+  },
+  {
+    "_id": {
+      "$oid": "6a3cbbde0622592ff7fa460c"
+    },
+    "username": "empsi09",
+    "message": "New announcement from Collab User A 7e1e3ec1: 'This is a team wide announcement from A!'",
+    "type": "announcement",
+    "created_at": {
+      "$date": "2026-06-25T05:25:50.41Z"
+    },
+    "read": true
+  },
+  {
+    "_id": {
+      "$oid": "6a3cbbde0622592ff7fa460d"
+    },
+    "username": "empsi10",
+    "message": "New announcement from Collab User A 7e1e3ec1: 'This is a team wide announcement from A!'",
+    "type": "announcement",
+    "created_at": {
+      "$date": "2026-06-25T05:25:50.437Z"
+    },
+    "read": true
+  },
+  {
+    "_id": {
+      "$oid": "6a3cbbde0622592ff7fa460f"
+    },
+    "username": "empsi11",
+    "message": "New announcement from Collab User A 7e1e3ec1: 'This is a team wide announcement from A!'",
+    "type": "announcement",
+    "created_at": {
+      "$date": "2026-06-25T05:25:50.502Z"
+    },
+    "read": true
+  },
+  {
+    "_id": {
+      "$oid": "6a3cbbde0622592ff7fa4610"
+    },
+    "username": "empsi12",
+    "message": "New announcement from Collab User A 7e1e3ec1: 'This is a team wide announcement from A!'",
+    "type": "announcement",
+    "created_at": {
+      "$date": "2026-06-25T05:25:50.531Z"
+    },
+    "read": true
+  },
+  {
+    "_id": {
+      "$oid": "6a3cbe878c04ed9b760999ac"
+    },
+    "username": "admin",
+    "message": "New announcement from Collab User A 514abe99: 'This is a team wide announcement from A!'",
+    "type": "announcement",
+    "created_at": {
+      "$date": "2026-06-25T05:37:11.536Z"
+    },
+    "read": true
+  },
+  {
+    "_id": {
+      "$oid": "6a3cbe878c04ed9b760999ad"
+    },
+    "username": "empsi13",
+    "message": "New announcement from Collab User A 514abe99: 'This is a team wide announcement from A!'",
+    "type": "announcement",
+    "created_at": {
+      "$date": "2026-06-25T05:37:11.56Z"
+    },
+    "read": true
+  },
+  {
+    "_id": {
+      "$oid": "6a3cbe878c04ed9b760999ae"
+    },
+    "username": "empsi09",
+    "message": "New announcement from Collab User A 514abe99: 'This is a team wide announcement from A!'",
+    "type": "announcement",
+    "created_at": {
+      "$date": "2026-06-25T05:37:11.586Z"
+    },
+    "read": true
+  },
+  {
+    "_id": {
+      "$oid": "6a3cbe878c04ed9b760999af"
+    },
+    "username": "empsi10",
+    "message": "New announcement from Collab User A 514abe99: 'This is a team wide announcement from A!'",
+    "type": "announcement",
+    "created_at": {
+      "$date": "2026-06-25T05:37:11.614Z"
+    },
+    "read": true
+  },
+  {
+    "_id": {
+      "$oid": "6a3cbe878c04ed9b760999b1"
+    },
+    "username": "empsi11",
+    "message": "New announcement from Collab User A 514abe99: 'This is a team wide announcement from A!'",
+    "type": "announcement",
+    "created_at": {
+      "$date": "2026-06-25T05:37:11.663Z"
+    },
+    "read": true
+  },
+  {
+    "_id": {
+      "$oid": "6a3cbe878c04ed9b760999b2"
+    },
+    "username": "empsi12",
+    "message": "New announcement from Collab User A 514abe99: 'This is a team wide announcement from A!'",
+    "type": "announcement",
+    "created_at": {
+      "$date": "2026-06-25T05:37:11.687Z"
+    },
+    "read": true
+  },
+  {
+    "_id": {
+      "$oid": "6a3cc32a0bf7ff39cc24b6cf"
+    },
+    "username": "admin",
+    "message": "New announcement from Srikakula Anirudh: 'hello sir'",
+    "type": "announcement",
+    "created_at": {
+      "$date": "2026-06-25T05:56:58.528Z"
+    },
+    "read": true
+  },
+  {
+    "_id": {
+      "$oid": "6a3cc32a0bf7ff39cc24b6d0"
+    },
+    "username": "empsi09",
+    "message": "New announcement from Srikakula Anirudh: 'hello sir'",
+    "type": "announcement",
+    "created_at": {
+      "$date": "2026-06-25T05:56:58.716Z"
+    },
+    "read": true
+  },
+  {
+    "_id": {
+      "$oid": "6a3cc32a0bf7ff39cc24b6d1"
+    },
+    "username": "empsi10",
+    "message": "New announcement from Srikakula Anirudh: 'hello sir'",
+    "type": "announcement",
+    "created_at": {
+      "$date": "2026-06-25T05:56:58.903Z"
+    },
+    "read": true
+  },
+  {
+    "_id": {
+      "$oid": "6a3cc32b0bf7ff39cc24b6d2"
+    },
+    "username": "empsi11",
+    "message": "New announcement from Srikakula Anirudh: 'hello sir'",
+    "type": "announcement",
+    "created_at": {
+      "$date": "2026-06-25T05:56:59.09Z"
+    },
+    "read": true
+  },
+  {
+    "_id": {
+      "$oid": "6a3cc32b0bf7ff39cc24b6d3"
+    },
+    "username": "empsi12",
+    "message": "New announcement from Srikakula Anirudh: 'hello sir'",
+    "type": "announcement",
+    "created_at": {
+      "$date": "2026-06-25T05:56:59.278Z"
+    },
+    "read": true
+  },
+  {
+    "_id": {
+      "$oid": "6a3d112e4dc5252f03476a2c"
+    },
+    "username": "empsi13",
+    "message": "New announcement from Admin User: 'hello team'",
+    "type": "announcement",
+    "created_at": {
+      "$date": "2026-06-25T11:29:50.272Z"
+    },
+    "read": true
+  },
+  {
+    "_id": {
+      "$oid": "6a3d112e4dc5252f03476a2d"
+    },
+    "username": "empsi09",
+    "message": "New announcement from Admin User: 'hello team'",
+    "type": "announcement",
+    "created_at": {
+      "$date": "2026-06-25T11:29:50.475Z"
+    },
+    "read": true
+  },
+  {
+    "_id": {
+      "$oid": "6a3d112e4dc5252f03476a2e"
+    },
+    "username": "empsi10",
+    "message": "New announcement from Admin User: 'hello team'",
+    "type": "announcement",
+    "created_at": {
+      "$date": "2026-06-25T11:29:50.676Z"
+    },
+    "read": true
+  },
+  {
+    "_id": {
+      "$oid": "6a3d112e4dc5252f03476a2f"
+    },
+    "username": "empsi11",
+    "message": "New announcement from Admin User: 'hello team'",
+    "type": "announcement",
+    "created_at": {
+      "$date": "2026-06-25T11:29:50.878Z"
+    },
+    "read": true
+  },
+  {
+    "_id": {
+      "$oid": "6a3d11324dc5252f03476a40"
+    },
+    "username": "empsi12",
+    "message": "New announcement from Admin User: 'hello team'",
+    "type": "announcement",
+    "created_at": {
+      "$date": "2026-06-25T11:29:54.332Z"
+    },
+    "read": true
+  },
+  {
+    "_id": {
+      "$oid": "6a3d11344dc5252f03476a42"
+    },
+    "username": "empsi13",
+    "message": "New announcement from Admin User: 'hello team'",
+    "type": "announcement",
+    "created_at": {
+      "$date": "2026-06-25T11:29:56.736Z"
+    },
+    "read": true
+  },
+  {
+    "_id": {
+      "$oid": "6a3d11344dc5252f03476a43"
+    },
+    "username": "empsi09",
+    "message": "New announcement from Admin User: 'hello team'",
+    "type": "announcement",
+    "created_at": {
+      "$date": "2026-06-25T11:29:56.938Z"
+    },
+    "read": true
+  },
+  {
+    "_id": {
+      "$oid": "6a3d11354dc5252f03476a44"
+    },
+    "username": "empsi10",
+    "message": "New announcement from Admin User: 'hello team'",
+    "type": "announcement",
+    "created_at": {
+      "$date": "2026-06-25T11:29:57.139Z"
+    },
+    "read": true
+  },
+  {
+    "_id": {
+      "$oid": "6a3d11354dc5252f03476a45"
+    },
+    "username": "empsi11",
+    "message": "New announcement from Admin User: 'hello team'",
+    "type": "announcement",
+    "created_at": {
+      "$date": "2026-06-25T11:29:57.341Z"
+    },
+    "read": true
+  },
+  {
+    "_id": {
+      "$oid": "6a3d11384dc5252f03476a56"
+    },
+    "username": "empsi12",
+    "message": "New announcement from Admin User: 'hello team'",
+    "type": "announcement",
+    "created_at": {
+      "$date": "2026-06-25T11:30:00.768Z"
+    },
+    "read": true
+  },
+  {
+    "_id": {
+      "$oid": "6a3d11554dc5252f03476a58"
+    },
+    "username": "admin",
+    "message": "New secure message from Srikakula Anirudh",
+    "type": "direct_message",
+    "created_at": {
+      "$date": "2026-06-25T11:30:29.39Z"
+    },
+    "read": true
+  },
+  {
+    "_id": {
+      "$oid": "6a3fa71361aff38ede79ea1e"
+    },
+    "username": "admin",
+    "message": "New leave request (CL) submitted by Test Manager (Manager).",
+    "type": "leave_request_alert",
+    "created_at": {
+      "$date": "2026-06-27T10:33:55.585Z"
+    },
+    "read": true
+  },
+  {
+    "_id": {
+      "$oid": "6a3fa71361aff38ede79ea1f"
+    },
+    "username": "test_admin",
+    "message": "New leave request (CL) submitted by Test Manager (Manager).",
+    "type": "leave_request_alert",
+    "created_at": {
+      "$date": "2026-06-27T10:33:55.61Z"
+    },
+    "read": false
+  },
+  {
+    "_id": {
+      "$oid": "6a3fa72542a561972b2e8d09"
+    },
+    "username": "admin",
+    "message": "New leave request (CL) submitted by Mock Manager (Manager).",
+    "type": "leave_request_alert",
+    "created_at": {
+      "$date": "2026-06-27T10:34:13.702Z"
+    },
+    "read": true
+  },
+  {
+    "_id": {
+      "$oid": "6a3fa72542a561972b2e8d0a"
+    },
+    "username": "mock_admin",
+    "message": "New leave request (CL) submitted by Mock Manager (Manager).",
+    "type": "leave_request_alert",
+    "created_at": {
+      "$date": "2026-06-27T10:34:13.727Z"
+    },
+    "read": false
+  },
+  {
+    "_id": {
+      "$oid": "6a3fa9a66c430356ab650637"
+    },
+    "username": "admin",
+    "message": "New leave request (Hours) submitted by manager123 (Manager).",
+    "type": "leave_request_alert",
+    "created_at": {
+      "$date": "2026-06-27T10:44:54.16Z"
+    },
+    "read": true
+  },
+  {
+    "_id": {
+      "$oid": "6a3fa9f36c430356ab650639"
+    },
+    "username": "admin",
+    "message": "New leave request (Hours) submitted by manager123 (Manager).",
+    "type": "leave_request_alert",
+    "created_at": {
+      "$date": "2026-06-27T10:46:11.687Z"
+    },
+    "read": true
+  },
+  {
+    "_id": {
+      "$oid": "6a42089dcbdde3c8b0834571"
+    },
+    "username": "admin",
+    "message": "New leave request (Hours) submitted by manager123 (Manager).",
+    "type": "leave_request_alert",
+    "created_at": {
+      "$date": "2026-06-29T05:54:37.371Z"
+    },
+    "read": true
+  },
+  {
+    "_id": {
+      "$oid": "6a42089dcbdde3c8b0834572"
+    },
+    "username": "empsi01",
+    "message": "New leave request (Hours) submitted by manager123 (Manager).",
+    "type": "leave_request_alert",
+    "created_at": {
+      "$date": "2026-06-29T05:54:37.559Z"
+    },
+    "read": false
+  },
+  {
+    "_id": {
+      "$oid": "6a420cda890c762ec32ba179"
+    },
+    "username": "manager",
+    "message": "Your leave request for Hours (2026-06-29 to 2026-06-29) has been Rejected by Admin User.",
+    "type": "leave_status",
+    "created_at": {
+      "$date": "2026-06-29T06:12:42.401Z"
+    },
+    "read": false
+  },
+  {
+    "_id": {
+      "$oid": "6a420cdb890c762ec32ba17a"
+    },
+    "username": "manager",
+    "message": "Your leave request for Hours (2026-06-27 to 2026-06-27) has been Rejected by Admin User.",
+    "type": "leave_status",
+    "created_at": {
+      "$date": "2026-06-29T06:12:43.334Z"
+    },
+    "read": false
+  },
+  {
+    "_id": {
+      "$oid": "6a420cdf890c762ec32ba17b"
+    },
+    "username": "manager",
+    "message": "Your leave request for Hours (2026-06-27 to 2026-06-27) has been Rejected by Admin User.",
+    "type": "leave_status",
+    "created_at": {
+      "$date": "2026-06-29T06:12:47.058Z"
+    },
+    "read": false
+  },
+  {
+    "_id": {
+      "$oid": "6a44db9a0f30cfdbb27eb9a8"
+    },
+    "username": "admin",
+    "message": "Hosting Renewal Alert: The domain 'nkenterprise.net' (GoDaddy) is renewing on 2026-07-15 (in 14 days). Remember to send a mail to the client email: N/A.",
+    "type": "hosting_renewal_reminder",
+    "created_at": {
+      "$date": "2026-07-01T09:19:22.322Z"
+    },
+    "read": true,
+    "metadata": {
+      "domain": "nkenterprise.net",
+      "renewal_date": "2026-07-15",
+      "days_remaining": 14
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6a44db9a0f30cfdbb27eb9a9"
+    },
+    "username": "empsi01",
+    "message": "Hosting Renewal Alert: The domain 'nkenterprise.net' (GoDaddy) is renewing on 2026-07-15 (in 14 days). Remember to send a mail to the client email: N/A.",
+    "type": "hosting_renewal_reminder",
+    "created_at": {
+      "$date": "2026-07-01T09:19:22.397Z"
+    },
+    "read": false,
+    "metadata": {
+      "domain": "nkenterprise.net",
+      "renewal_date": "2026-07-15",
+      "days_remaining": 14
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6a44db9a0f30cfdbb27eb9aa"
+    },
+    "username": "admin",
+    "message": "Hosting Renewal Alert: The domain 'oysteroustalkwise.com' (GoDaddy) is renewing on 2026-07-25 (in 24 days). Remember to send a mail to the client email: N/A.",
+    "type": "hosting_renewal_reminder",
+    "created_at": {
+      "$date": "2026-07-01T09:19:22.532Z"
+    },
+    "read": true,
+    "metadata": {
+      "domain": "oysteroustalkwise.com",
+      "renewal_date": "2026-07-25",
+      "days_remaining": 24
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6a44db9a0f30cfdbb27eb9ab"
+    },
+    "username": "empsi01",
+    "message": "Hosting Renewal Alert: The domain 'oysteroustalkwise.com' (GoDaddy) is renewing on 2026-07-25 (in 24 days). Remember to send a mail to the client email: N/A.",
+    "type": "hosting_renewal_reminder",
+    "created_at": {
+      "$date": "2026-07-01T09:19:22.6Z"
+    },
+    "read": false,
+    "metadata": {
+      "domain": "oysteroustalkwise.com",
+      "renewal_date": "2026-07-25",
+      "days_remaining": 24
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6a44db9a0f30cfdbb27eb9ac"
+    },
+    "username": "admin",
+    "message": "Hosting Renewal Alert: The domain 'globalautoequipment.in' (GoDaddy) is renewing on 2026-07-27 (in 26 days). Remember to send a mail to the client email: N/A.",
+    "type": "hosting_renewal_reminder",
+    "created_at": {
+      "$date": "2026-07-01T09:19:22.74Z"
+    },
+    "read": true,
+    "metadata": {
+      "domain": "globalautoequipment.in",
+      "renewal_date": "2026-07-27",
+      "days_remaining": 26
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6a44db9a0f30cfdbb27eb9ad"
+    },
+    "username": "empsi01",
+    "message": "Hosting Renewal Alert: The domain 'globalautoequipment.in' (GoDaddy) is renewing on 2026-07-27 (in 26 days). Remember to send a mail to the client email: N/A.",
+    "type": "hosting_renewal_reminder",
+    "created_at": {
+      "$date": "2026-07-01T09:19:22.808Z"
+    },
+    "read": false,
+    "metadata": {
+      "domain": "globalautoequipment.in",
+      "renewal_date": "2026-07-27",
+      "days_remaining": 26
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6a44dbb8568978e3b930d1de"
+    },
+    "username": "admin",
+    "message": "Hosting Renewal Alert: The domain 'sannainnovations.com' (GoDaddy) is renewing on 2026-08-01 (in 30 days). Remember to send a mail to the client email: srini.epson@gmail.com.",
+    "type": "hosting_renewal_reminder",
+    "created_at": {
+      "$date": "2026-07-01T09:19:52.302Z"
+    },
+    "read": true,
+    "metadata": {
+      "domain": "sannainnovations.com",
+      "renewal_date": "2026-08-01",
+      "days_remaining": 30
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6a44dbb8568978e3b930d1df"
+    },
+    "username": "empsi01",
+    "message": "Hosting Renewal Alert: The domain 'sannainnovations.com' (GoDaddy) is renewing on 2026-08-01 (in 30 days). Remember to send a mail to the client email: srini.epson@gmail.com.",
+    "type": "hosting_renewal_reminder",
+    "created_at": {
+      "$date": "2026-07-01T09:19:52.388Z"
+    },
+    "read": false,
+    "metadata": {
+      "domain": "sannainnovations.com",
+      "renewal_date": "2026-08-01",
+      "days_remaining": 30
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6a4626e5250c08896f11a1ae"
+    },
+    "username": "empsi10",
+    "message": "Your onboarding checklist has been assigned! Please check the Onboarding Checklist tab.",
+    "read": true,
+    "created_at": {
+      "$date": "2026-07-02T08:52:53.567Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6a462aafe06017770e324f84"
+    },
+    "username": "empsi13",
+    "message": "Your onboarding checklist has been assigned! Please check the Onboarding Checklist tab.",
+    "read": true,
+    "created_at": {
+      "$date": "2026-07-02T09:09:03.948Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6a462c381329a0b9ab0a21c7"
+    },
+    "username": "empsi13",
+    "message": "Your onboarding checklist has been assigned! Please check the Onboarding Checklist tab.",
+    "read": true,
+    "created_at": {
+      "$date": "2026-07-02T09:15:36.087Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6a462ee0bcf567f01d7f06ba"
+    },
+    "username": "empsi13",
+    "message": "Your onboarding checklist has been assigned! Please check the Onboarding Checklist tab.",
+    "read": true,
+    "created_at": {
+      "$date": "2026-07-02T09:26:56.566Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6a46452747096e0751b2da22"
+    },
+    "username": "empsi13",
+    "message": "Your onboarding checklist has been assigned! Please check the Onboarding Checklist tab.",
+    "read": true,
+    "created_at": {
+      "$date": "2026-07-02T11:01:59.401Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6a464680970fbb7b80dc0c65"
+    },
+    "username": "empsi13",
+    "message": "Your onboarding checklist has been assigned! Please check the Onboarding Checklist tab.",
+    "read": true,
+    "created_at": {
+      "$date": "2026-07-02T11:07:44.298Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6a4647bab0a65c1bfb72c7ae"
+    },
+    "username": "empsi13",
+    "message": "Your onboarding checklist has been assigned! Please check the Onboarding Checklist tab.",
+    "read": true,
+    "created_at": {
+      "$date": "2026-07-02T11:12:58.438Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6a477c00e8d094c93cc5c0d7"
+    },
+    "username": "admin",
+    "message": "New leave request (Hours) submitted by manager123 (Manager).",
+    "type": "leave_request_alert",
+    "created_at": {
+      "$date": "2026-07-03T09:08:16.982Z"
+    },
+    "read": true
+  },
+  {
+    "_id": {
+      "$oid": "6a477c01e8d094c93cc5c0d8"
+    },
+    "username": "empsi01",
+    "message": "New leave request (Hours) submitted by manager123 (Manager).",
+    "type": "leave_request_alert",
+    "created_at": {
+      "$date": "2026-07-03T09:08:17.171Z"
+    },
+    "read": false
+  },
+  {
+    "_id": {
+      "$oid": "6a477c51e8d094c93cc5c0d9"
+    },
+    "username": "manager",
+    "message": "Your leave request for Hours (2026-07-03 to 2026-07-03) has been Rejected by Admin User.",
+    "type": "leave_status",
+    "created_at": {
+      "$date": "2026-07-03T09:09:37.019Z"
+    },
+    "read": false
+  },
+  {
+    "_id": {
+      "$oid": "6a477ea8e8d094c93cc5c0db"
+    },
+    "username": "empsi05",
+    "message": "Your onboarding checklist has been assigned! Please check the Onboarding Checklist tab.",
+    "read": true,
+    "created_at": {
+      "$date": "2026-07-03T09:19:36.69Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6a4b5dba710b6e6adc315f7d"
+    },
+    "username": "empsi13",
+    "message": "Your onboarding checklist has been assigned! Please check the Onboarding Checklist tab.",
+    "read": true,
+    "created_at": {
+      "$date": "2026-07-06T07:48:10.686Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6a4b600a710b6e6adc315f80"
+    },
+    "username": "empsi09",
+    "message": "Your account has been temporarily restricted by an administrator or manager. Please contact support.",
+    "type": "account_restricted",
+    "created_at": {
+      "$date": "2026-07-06T07:58:02.42Z"
+    },
+    "read": false
+  },
+  {
+    "_id": {
+      "$oid": "6a4b605d710b6e6adc315f81"
+    },
+    "username": "empsi08",
+    "message": "Your account has been temporarily restricted by an administrator or manager. Please contact support.",
+    "type": "account_restricted",
+    "created_at": {
+      "$date": "2026-07-06T07:59:25.928Z"
+    },
+    "read": false
+  },
+  {
+    "_id": {
+      "$oid": "6a4b7b869912f0d8ca0d0bf2"
+    },
+    "username": "empsi13",
+    "message": "Your onboarding checklist has been assigned! Please check the Onboarding Checklist tab.",
+    "read": true,
+    "created_at": {
+      "$date": "2026-07-06T09:55:18.003Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6a5b8b7f67f4fb50f6f897eb"
+    },
+    "username": "admin",
+    "message": "New registration pending approval: Mohana Priya Sakthivel (Employee)",
+    "type": "registration_pending",
+    "created_at": {
+      "$date": "2026-07-18T14:19:43.346Z"
+    },
+    "read": true
+  },
+  {
+    "_id": {
+      "$oid": "6a5b8b7f67f4fb50f6f897ec"
+    },
+    "username": "empsi01",
+    "message": "New registration pending approval: Mohana Priya Sakthivel (Employee)",
+    "type": "registration_pending",
+    "created_at": {
+      "$date": "2026-07-18T14:19:43.347Z"
+    },
+    "read": false
+  },
+  {
+    "_id": {
+      "$oid": "6a5dd3c4967e0d573bb9c88f"
+    },
+    "username": "empsi13",
+    "message": "New secure message from Mohana Priya Sakthivel",
+    "type": "direct_message",
+    "created_at": {
+      "$date": "2026-07-20T07:52:36.693Z"
+    },
+    "read": true
+  },
+  {
+    "_id": {
+      "$oid": "6a5dd3f4967e0d573bb9c891"
+    },
+    "username": "empsi13",
+    "message": "New secure message from Mohana Priya Sakthivel",
+    "type": "direct_message",
+    "created_at": {
+      "$date": "2026-07-20T07:53:24.763Z"
+    },
+    "read": true
+  },
+  {
+    "_id": {
+      "$oid": "6a5dd44e967e0d573bb9c893"
+    },
+    "username": "empsi05",
+    "message": "New secure message from Mohana Priya Sakthivel",
+    "type": "direct_message",
+    "created_at": {
+      "$date": "2026-07-20T07:54:54.665Z"
+    },
+    "read": false
+  },
+  {
+    "_id": {
+      "$oid": "6a5dd472967e0d573bb9c898"
+    },
+    "username": "empsi15",
+    "message": "Your onboarding checklist has been assigned! Please check the Onboarding Checklist tab.",
+    "read": true,
+    "created_at": {
+      "$date": "2026-07-20T07:55:30.346Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6a61f3262774f4af6f5a4bb9"
+    },
+    "username": "empsi14",
+    "message": "Your onboarding checklist has been assigned! Please check the Onboarding Checklist tab.",
+    "read": false,
+    "created_at": {
+      "$date": "2026-07-23T10:55:34.708Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6a61f4c42774f4af6f5a4bbe"
+    },
+    "username": "empsi02",
+    "message": "Your onboarding checklist has been assigned! Please check the Onboarding Checklist tab.",
+    "read": false,
+    "created_at": {
+      "$date": "2026-07-23T11:02:28.465Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6a61f4d12774f4af6f5a4bc3"
+    },
+    "username": "empsi03",
+    "message": "Your onboarding checklist has been assigned! Please check the Onboarding Checklist tab.",
+    "read": false,
+    "created_at": {
+      "$date": "2026-07-23T11:02:41.084Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6a61f4d32774f4af6f5a4bc8"
+    },
+    "username": "empsi04",
+    "message": "Your onboarding checklist has been assigned! Please check the Onboarding Checklist tab.",
+    "read": false,
+    "created_at": {
+      "$date": "2026-07-23T11:02:43.83Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6a61f4d62774f4af6f5a4bcd"
+    },
+    "username": "empsi05",
+    "message": "Your onboarding checklist has been assigned! Please check the Onboarding Checklist tab.",
+    "read": false,
+    "created_at": {
+      "$date": "2026-07-23T11:02:46.269Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6a61f4db2774f4af6f5a4bd2"
+    },
+    "username": "empsi07",
+    "message": "Your onboarding checklist has been assigned! Please check the Onboarding Checklist tab.",
+    "read": true,
+    "created_at": {
+      "$date": "2026-07-23T11:02:51.707Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6a61f4df2774f4af6f5a4bd7"
+    },
+    "username": "empsi10",
+    "message": "Your onboarding checklist has been assigned! Please check the Onboarding Checklist tab.",
+    "read": true,
+    "created_at": {
+      "$date": "2026-07-23T11:02:55.492Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6a61f4e32774f4af6f5a4bdc"
+    },
+    "username": "empsi11",
+    "message": "Your onboarding checklist has been assigned! Please check the Onboarding Checklist tab.",
+    "read": false,
+    "created_at": {
+      "$date": "2026-07-23T11:02:59.095Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6a61f4e52774f4af6f5a4be1"
+    },
+    "username": "empsi13",
+    "message": "Your onboarding checklist has been assigned! Please check the Onboarding Checklist tab.",
+    "read": true,
+    "created_at": {
+      "$date": "2026-07-23T11:03:01.297Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6a61fd862774f4af6f5a4beb"
+    },
+    "username": "empsi07",
+    "message": "Your onboarding checklist has been assigned! Please check the Onboarding Checklist tab.",
+    "read": true,
+    "created_at": {
+      "$date": "2026-07-23T11:39:50.233Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6a62f1441644aed5261d2abc"
+    },
+    "username": "empsi16",
+    "message": "Your account has been temporarily restricted by an administrator or manager. Please contact support.",
+    "type": "account_restricted",
+    "created_at": {
+      "$date": "2026-07-24T04:59:48.603Z"
+    },
+    "read": false
+  },
+  {
+    "_id": {
+      "$oid": "6a6354be1644aed5261d2ac9"
+    },
+    "username": "empsi17",
+    "message": "Your onboarding checklist has been assigned! Please check the Onboarding Checklist tab.",
+    "read": false,
+    "created_at": {
+      "$date": "2026-07-24T12:04:14.707Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6a6c7296ce09d0935da803d9"
+    },
+    "username": "empsi18",
+    "message": "Your onboarding checklist has been assigned! Please check the Onboarding Checklist tab.",
+    "read": true,
+    "created_at": {
+      "$date": "2026-07-31T10:01:58.637Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6a716e98a1fcd1c9a6425d2c"
+    },
+    "username": "empsi19",
+    "message": "Your onboarding checklist has been assigned! Please check the Onboarding Checklist tab.",
+    "read": true,
+    "created_at": {
+      "$date": "2026-08-04T04:46:16.872Z"
+    }
+  }
+]

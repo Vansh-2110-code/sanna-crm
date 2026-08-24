@@ -1,0 +1,77 @@
+[
+  {
+    "_id": {
+      "$oid": "6a3cbaef0636fb53a65de41d"
+    },
+    "sender": "empsi13",
+    "recipient": "admin",
+    "ciphertext": "bw3idcywbh6pb82Z7RO6d12MfIGy5PEkRLRPunHbwPVMh8zp13ToZuFh7Zb1X0C2Oi8lehcY6AqgIt+L5ozxDZvM5w==",
+    "iv": "0d5Pnyrc4/0aEALu",
+    "sender_key_enc": "VzvDFbELBtM1y/VMOSsrvhoMvv44tPaUkxuk3gXPo6xfC3dEnn6Unb7wicnsk3vBPTC+sbf4pWb0h/5q93aw/9vUi46RwLpuPZP3DUP6vhvo6QAmRlQX858FnLCQiJVihi7nvxMV/bhPiw4VxmQreacAsPC2B2OiUT2fGPeivtaH5FLriTLnPnrq0RD/vC/tg0a6j84fi6++sccsTM8jX8GEsD98fBC5vsAHosBaXjtO7a6GT5BjIcy259U/+ujUT1EuzNc4W+wzp+E65mXDKOJrinEawmUSGHtYToGNvuQM4a0K3K5LjeCohG7xqJxfaYwh2M3Dze9ToRikBeyQpQ==",
+    "recipient_key_enc": "dieBUBrCx5f4I6ZU19Hf1iI1QcstFzUIHzFnqJ7Jg8a6XsE94ZW0C6wOQNH2rakyq7PgmViQcUVGgXlJK/v38f/dPLCveBuxB0JyQDaISVS8w3+ytI3ErdvxXKwEH1gkCSBJmzEEOFMWbMc59HrNpc/yS/KuZ3xUyKoxa9gKVbmNQK4CwBsNMjOyL2g4lX3a8zf00SJV24PfAAOmILRdN7NK005gvYTft9p+DEXq62YQ1DdX+3ARITlCNXFLNM8/M10Sp7UyDLFwOj44h20ghpi9aUuaVJfFw/DfxTKAefWQwItM9quu/d5/2yC2DsLOb/1BfApCc/Y9s+VkwlrBVg==",
+    "created_at": {
+      "$date": "2026-06-25T05:21:51.531Z"
+    },
+    "seen": true
+  },
+  {
+    "_id": {
+      "$oid": "6a3d11554dc5252f03476a57"
+    },
+    "sender": "empsi13",
+    "recipient": "admin",
+    "ciphertext": "fKY3Thm9f/sD6t6xO/3BWKF3sjyFEXlLrlHDH3RYDzxa1bERd2jVqFgJbfCWtDppuAK4n/jdSUlPHtjyswSCpZ11Xw==",
+    "iv": "uN61YIwh5Vl1zWVh",
+    "sender_key_enc": "KFY7KES7NpRGdHchZvm208if/UUS9bDi/E2S4LjfJzQKBdI6rzckhAt/gN3j0c12/9LHadsHqHqu9wRwI3XMUixH+Xb451U4CbSeIqF9NV+nSClSNIXqC65vPsfoNXhNuYTKqhHbpr+xQ8iY56Qn/b3/bcV02E6F393IOEf9KMJ+CmtP1CCvAnNoEseI4ssdOaUuWOjrxr/e3XCozxZ0eVb8mkq69dLhf6kp4RKyU/X8KGlxaqsxqsVbIPCDaV+SZRPOqgikr3gtGet8tEkABXpfFHL+xpl24AQ5s0GLF6A6grxwMj8R6wXqp0hdIvly35myULNcXgazWh5Cto2RWA==",
+    "recipient_key_enc": "kGH/OAZ+4IHMWOtemyE0lgNB/3UuLeNHKJknfvMTmM0fgCZZMat+2DFSM5d3KvRk5EyqyMzMovJ5CiRXztwkFnqVo7w1h1eG00K6xd6mncYlEjm8NN03hCJj5FBTzCi250la67BWipnhL7C+ieklyjUSlxE7FoxIIzQb4ThPK/zvCwyWS4l+98oof2llimY080grr/JLyFZiLcpCWksnCKoA3fE4geEqfQooETAO2oVbk9OL+H5js+jgq0oj6e62To8Vm2EAlVniQb64kXPXW2NIl9AQyj+iZBASuDEYR6FbSPo6Q3nEBFJKVVSeKaz3OAHPTHkZ/90vZrJYwJBrgg==",
+    "created_at": {
+      "$date": "2026-06-25T11:30:29.187Z"
+    },
+    "seen": true
+  },
+  {
+    "_id": {
+      "$oid": "6a5dd3c4967e0d573bb9c88e"
+    },
+    "sender": "mohana priya sakthivel",
+    "recipient": "empsi13",
+    "ciphertext": "tFvw0Z575lfl9d08pWpTv8lAr7PBEgRS9bok4Ts3mfeUf3AfP0rjM7jZnmKrWhqwZ3eXjudx8kr4Gf+F0Hz7QfHcwTE=",
+    "iv": "4kucC1BbWDKkIeiG",
+    "sender_key_enc": "CqK7iICj+Rf5gtRBYdfVqwLHOFgYOoTDit6sPCMSQUJepZS+BArGFZXig6z1pc2yDhTiJa2hNkTx8g/eSHzK8cVEaoic2vpVw8cVgbNlt89OLoF4elu4MWhtG2MIOGmOB0vJm8cU45VFzqN61e/ZjBNncn6thQowTaREReOwvl2j3oQHo1RrWb+gLkeNBKikrpUC73MzQQFamy3Dfq1jnKBoExNkYL0WSce+gcRiCo9JkYfE6KJeFe+GRLiyowh34/xEr+5N3GeZC2CRvKSXMqUTkyLGnyFhdWW5M1AoL2sTjZVXPYAYQOT2m5nyiaqe3j4nqvpe5XIXY7rj8whkiA==",
+    "recipient_key_enc": "iMEAlbYEilLq+5HewcsopLbcIPGvhzP0bcfHn6dcpvBZm4faroTFsaPmTj260nhokqz+HqteXSLLgvNUClmIeCvC+7X8RF9w23j8KKHjTnC3dWpBBbnOro27EFQ1g3DBn79RsTVyEN1fQ9zwjJ3cjqAl4RO4MhlcQClJPl9UzXIrC0LMR7HbJFNINGoqJp6vODBuTTGFcgBiZXppFjFpRWPPFnFfsgJoFUcwfvbNXVDtCb/ZnPHOs3/HGXlek349C9JR5XT/TofaAZ/tqk98OuFLzlGR1QdNc1cKO6akvaBDOl+IAhC7G7UJzWBfx5YTC7G6EAk2n0/2pXBHafODTA==",
+    "created_at": {
+      "$date": "2026-07-20T07:52:36.691Z"
+    },
+    "seen": false
+  },
+  {
+    "_id": {
+      "$oid": "6a5dd3f4967e0d573bb9c890"
+    },
+    "sender": "mohana priya sakthivel",
+    "recipient": "empsi13",
+    "ciphertext": "IAI2OE54GuiaMp1DOS8xCAYiLhsOrnRiJfhUHLga4rzf7mvFthopkhDC3MtkdYK/VLL+fLAL205VzRdMlXTQQgKqh4ggj3z2L/EZhHf6xoYUvVvCQ4BcGVz4zP59HqVaC4tCB7Zl8xifKg==",
+    "iv": "mv0zN4CG7RQZ5Hh+",
+    "sender_key_enc": "Qh2vJdXNtUOYNZz+xAHdvHqXFzPoUkaStHE42JuIpvhqaXcwxjuZrUHvnCmmECWx9Mhjic1MyKFUPzRF1WGzeIdCjlVmsVenSalb2Ozjl+gv9DL/L7y/IyMBXyfw0qtW4+lvcxH4TtLAZs+IU1bUvx+gyEAXBthIMqKc3H32jeOvDadnLVhiEErnY8JDx7IFGoq2LQ2QG+dS6V8p60Dtjjb9LTi4e3g+7xvbz4GchIJndutGJR1hlLQUEnC1rwwQ6Ifw4Sf6+m7KgplFGyrBPGDH/5GutwacyBgfVpjd/Mg9unw8wqo4p8ydqYiuLMcQbE982CDjMJvNr/YR6YbvBQ==",
+    "recipient_key_enc": "GYHcRDVsuf2dIJFBp3lZ3ozHDgAWx+233wqINJKgckYxGT1LpCpppmIorB+fq9gpIeXyrG0zdM0QHNh0/xFRGeh9Cx3zE43/UFj6J8HdOMkxq97nQbZCvxim1JUJkm1YKoi1uhy0iZtPNzgfZ/BnhPU2WhpJBdyo7yQH/AOVAC9LIpm4ZTpRicOn2kzLYRTe2BWcOwUapHrmScDgltcJEiPdr255xT7Kgdy/E9m1gpzoLOVEaATwfhozgiFASqIte+fzqlchj2J1T8T7Ht0zEoapUydxqyqJByHpQW05+GbS79N9S7MAR7X/p2009g5YXRgRnsaz48FSgXzELxYIpg==",
+    "created_at": {
+      "$date": "2026-07-20T07:53:24.761Z"
+    },
+    "seen": false
+  },
+  {
+    "_id": {
+      "$oid": "6a5dd44e967e0d573bb9c892"
+    },
+    "sender": "mohana priya sakthivel",
+    "recipient": "empsi05",
+    "ciphertext": "Xa+VO4iEsHvTUf75IifGiL49RGc7KOg2HYYOkRvlJkmE4W66cZSgNZeaqBirsNADj6TGv/Q6QcFc01kK31ixOE80a7/3ixLU+mL7jcFNuP9wQ7fup2uI6w5Foq7++xQSICU8Y4YbWGOYk9bs9Bhb7A==",
+    "iv": "5E4yL8P45AlZrI0P",
+    "sender_key_enc": "YAEwT/Fo3yhRzL2SdpYaWlEmMYiTk5MVzAgz0WmybqEi4mDF/QT1v3v5/ZxMZGVN/753nDulDSGFh3pPg0ii/p4VcqTBfxXbWg7ilYV42ueRpJon50zezJn1Q1P9VkuAEiexKCQ/fa7LtE4nESNGoITCLUljNWaEpyrxWR3QbY9+dNd4pvfNdGoDWFl9W+h8huLpBDTJh9Rln8zTM+Jv05Se1DLt/rlmM3XQhg+8TeQqFB86WdU+/YYBkceEP8SeQLdWtgjePGomr0He2uqoC3PTsfzD1ZOIjcNpe9ssFq5cPF1l64s7K3MEHj1wkk63dXG3tL3RjMa2qGbfmuGaEg==",
+    "recipient_key_enc": "m6FstuYAEU9uLGn8AMyEpV+GpxtwjBRgi6o/uTYSquSGKenbJMyiPcdR7aSia9sB+mzNu2TyjfPPlybo+MXGo7G74sdiz8ZeOl0PhcdVB6Ghth3c0hdyXFwLODQIgi3qoKtrsvJu/HmQBeduJhZ3m3dBF9+Ht/8fcZJIZnOoSNCeTHxQxkMXZ5Exn7T9slEq6tgpSSNeB+vF12wgqrsXthGoYZWO9ksXPAWS6GTs7VIQj7K19ycG5mKYguvvvh9Bmz59n7LZiP3a4tXc2ldvfLsBntQvHlEgkhoRUhoFFAVIYhfzrJPb9eejSYeMUmlPR29YTmHyGWIF9/ux7dVtkg==",
+    "created_at": {
+      "$date": "2026-07-20T07:54:54.663Z"
+    },
+    "seen": false
+  }
+]

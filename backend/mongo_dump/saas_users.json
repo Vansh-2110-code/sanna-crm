@@ -1,0 +1,348 @@
+[
+  {
+    "_id": {
+      "$oid": "6a59c68bfd86d2baf9e28ca4"
+    },
+    "company_id": "joy",
+    "username": "srikakulaanirudh0506@gmail.com",
+    "email": "srikakulaanirudh0506@gmail.com",
+    "full_name": "srikakula anirudh",
+    "password_hash": "scrypt:32768:8:1$wjby8lxb8PhFEh8A$8a396b1b4c4749b48a951158c75faf4aeef53b633c9059990578007df67124e203c372ffb0f9934beb6dca702ebf84477d44ba4b775ca2ba96b438211542dbca",
+    "role": "Admin",
+    "created_at": {
+      "$date": "2026-07-17T06:07:07.458Z"
+    },
+    "active": true
+  },
+  {
+    "_id": {
+      "$oid": "6a59c9ed85be681de15061b8"
+    },
+    "company_id": "sanna",
+    "username": "admin",
+    "email": "admin@sannainnovations.com",
+    "full_name": "Admin User",
+    "password_hash": "scrypt:32768:8:1$8CJXCGvdTWyALfIO$7abf2d98de0d39fb76c5ee2ab36016a9bfd0a8478c4386c077efacc0d47c889aa6bfcc0ad0241bbf021277153e04da5308e5437b6092b99113f67e55736eb7c9",
+    "role": "Admin",
+    "created_at": {
+      "$date": "2026-07-17T06:21:33.4Z"
+    },
+    "active": true,
+    "employee_type": "Full-Time"
+  },
+  {
+    "_id": {
+      "$oid": "6a59c9ed85be681de15061b9"
+    },
+    "company_id": "sanna",
+    "username": "manager",
+    "email": "manager123@gamil.com",
+    "full_name": "manager123",
+    "password_hash": "scrypt:32768:8:1$laHK5TMDlPfZK7MO$2f59efcb3930ee2c1e6cdc5e8221180961059f34a33ab1f08033f6a8e7533245ba4d296c208cbe9221ee4c9ed0aec25c193534cf5b4d28c475b9aff898c3c025",
+    "role": "Employee",
+    "created_at": {
+      "$date": "2026-06-27T05:12:45.748Z"
+    },
+    "active": true,
+    "employee_type": "Full-Time"
+  },
+  {
+    "_id": {
+      "$oid": "6a59c9ed85be681de15061ba"
+    },
+    "company_id": "sanna",
+    "username": "empsi01",
+    "email": "empsi01@sannainnovations.com",
+    "full_name": "Srinivas",
+    "password_hash": "scrypt:32768:8:1$wzvHugFe1sf2f0zQ$905b8e7bc292efc55881b25a1087c381f602ab49a298c8177918d2eb72611c056a8ba3c14374a41b1c2f87b5f0831379a1b32c5b18fbab0cfa44895915236f48",
+    "role": "Admin",
+    "created_at": {
+      "$date": "2026-07-17T06:21:33.406Z"
+    },
+    "active": true,
+    "employee_type": "Full-Time"
+  },
+  {
+    "_id": {
+      "$oid": "6a59c9ed85be681de15061bb"
+    },
+    "company_id": "sanna",
+    "username": "empsi02",
+    "email": "empsi02@sannainnovations.com",
+    "full_name": "Jyothi",
+    "password_hash": "scrypt:32768:8:1$EmxOvIUJsOCZrqIl$1b5fcd08eeb49a815041b2e8e6f019e009114099ceb31e1a2353c0d88aa6ab9f31aeed3838be6166f8ae6045aa9f7a5ef14b02a2df2b3c45b16a1532bae47911",
+    "role": "Employee",
+    "created_at": {
+      "$date": "2026-07-17T06:21:33.408Z"
+    },
+    "active": true,
+    "employee_type": "Full-Time"
+  },
+  {
+    "_id": {
+      "$oid": "6a59c9ed85be681de15061bc"
+    },
+    "company_id": "sanna",
+    "username": "empsi03",
+    "email": "empsi03@sannainnovations.com",
+    "full_name": "Sowmya",
+    "password_hash": "scrypt:32768:8:1$8hbWRPue5bkt6ESC$93fc0416a8711a37584b1529610dd1916a3b42ad6a4b9663cdfb16db2b0b3f597bbdc375a66b11cb0c96a88c5e3fde478ae8be324b59e26145c8d536f9439927",
+    "role": "Employee",
+    "created_at": {
+      "$date": "2026-07-17T06:21:33.411Z"
+    },
+    "active": true,
+    "employee_type": "Full-Time"
+  },
+  {
+    "_id": {
+      "$oid": "6a59c9ed85be681de15061bd"
+    },
+    "company_id": "sanna",
+    "username": "empsi04",
+    "email": "naveen@sannainnovations.com",
+    "full_name": "Naveen Kumar",
+    "password_hash": "scrypt:32768:8:1$7U9gKtzoJCinharF$c66c9654b1817b9c92f5683914baeda5a2e97ce56d70771ffcfdb8043cd473767d62d1e00bdb7c1edeefb17f4dfc8a10b0fc4ea1ca039b0a494d8a863b7a2acd",
+    "role": "Employee",
+    "created_at": {
+      "$date": "2026-07-17T06:21:33.414Z"
+    },
+    "active": true,
+    "employee_type": "Full-Time"
+  },
+  {
+    "_id": {
+      "$oid": "6a59c9ed85be681de15061be"
+    },
+    "company_id": "sanna",
+    "username": "empsi05",
+    "email": "empsi05@sannainnovations.com",
+    "full_name": "Nikki",
+    "password_hash": "scrypt:32768:8:1$xPnbr7pLpyfJeXzx$04e8dd1faceda30908e8950eab9cd396a8e1f9a29a8c72374995c7d84ca6b4672e0ec28da7f8436eea0a7f23fb643d56a1d08100550f2e64f22d8ee75fa98887",
+    "role": "Employee",
+    "created_at": {
+      "$date": "2026-07-17T06:21:33.417Z"
+    },
+    "active": true,
+    "employee_type": "Full-Time"
+  },
+  {
+    "_id": {
+      "$oid": "6a59c9ed85be681de15061bf"
+    },
+    "company_id": "sanna",
+    "username": "empsi06",
+    "email": "empsi06@sannainnovations.com",
+    "full_name": "Mavuri Anand Kumar",
+    "password_hash": "scrypt:32768:8:1$zozmvf6fXDUEDi5N$60c2447c6291f6bd1d79c7ddd6dcf5fd636312ec0941817dbfff8a41399c629aef8fbdc169ede75cadc4f5c6a1d1330784fdcab660e95c3ffac3bd7cf8f3514c",
+    "role": "Employee",
+    "created_at": {
+      "$date": "2026-07-17T06:21:33.424Z"
+    },
+    "active": true,
+    "employee_type": "Full-Time"
+  },
+  {
+    "_id": {
+      "$oid": "6a59c9ed85be681de15061c0"
+    },
+    "company_id": "sanna",
+    "username": "empsi07",
+    "email": "empsi07@sannainnovations.com",
+    "full_name": "Riya Biswas Dasgupta",
+    "password_hash": "scrypt:32768:8:1$4cdvFXam3gKoMiYC$15f0069f80df59b3e4394fb0f4374e0c9b2c6ad54bb2d2725dea58f63d0e8e316ecc300d38e613e380dede51b4d5167183517a44ff3efa833999bcc8e5c34c98",
+    "role": "Employee",
+    "created_at": {
+      "$date": "2026-07-17T06:21:33.428Z"
+    },
+    "active": true,
+    "employee_type": "Full-Time"
+  },
+  {
+    "_id": {
+      "$oid": "6a59c9ed85be681de15061c1"
+    },
+    "company_id": "sanna",
+    "username": "empsi08",
+    "email": "empsi08@sannainnovations.com",
+    "full_name": "Adarsh",
+    "password_hash": "scrypt:32768:8:1$qBHRRbDnwmrqgBts$6b0f8d89674bbac0cd1d50d83479c962329bacab9561363912881ce1be4976d0d9f6ad73a1c9e4135a23d2bbff43708a9f54d3f87f9d011d40c9506c1745bf56",
+    "role": "Employee",
+    "created_at": {
+      "$date": "2026-07-17T06:21:33.433Z"
+    },
+    "active": true,
+    "employee_type": "Full-Time"
+  },
+  {
+    "_id": {
+      "$oid": "6a59c9ed85be681de15061c2"
+    },
+    "company_id": "sanna",
+    "username": "empsi09",
+    "email": "empsi09@sannainnovations.com",
+    "full_name": "Jakka Balaji Mahendra",
+    "password_hash": "scrypt:32768:8:1$EhgZHPEUAdUYD2Qd$76f0dc9230ba098986d814aa4eb4338d5fe78cb6ef823d4ec21904b9989d9d39cb861b61e6b8591e9489c0130edac86cbd683e9f076a10059c54c8c4ce0d9d3f",
+    "role": "Employee",
+    "created_at": {
+      "$date": "2026-07-17T06:21:33.437Z"
+    },
+    "active": true,
+    "employee_type": "Full-Time"
+  },
+  {
+    "_id": {
+      "$oid": "6a59c9ed85be681de15061c3"
+    },
+    "company_id": "sanna",
+    "username": "empsi10",
+    "email": "btia23001@joyuniversity.edu.in",
+    "full_name": "Bhuvan Sai Adithya",
+    "password_hash": "scrypt:32768:8:1$gd1tpQkbsPso0DtJ$2be69cd348ac4c67bbdd1a9971ae31d67bc4dc975819488e35d6b88e335390d09927a798a865668b737853ea2e5f2bb5a4651a7253594f3d3644dfe8df384cde",
+    "role": "Intern",
+    "created_at": {
+      "$date": "2026-07-17T06:21:33.439Z"
+    },
+    "active": true,
+    "employee_type": "Intern"
+  },
+  {
+    "_id": {
+      "$oid": "6a59c9ed85be681de15061c4"
+    },
+    "company_id": "sanna",
+    "username": "empsi11",
+    "email": "shalinisree17@gmail.com",
+    "full_name": "M.Shalini Sree",
+    "password_hash": "scrypt:32768:8:1$XkRfUS832pRaUgnb$b7494b0ed1c36895ec39a354fe5fa1a6477ad8d5e164c701417fd2f943f57d1086f91be4484e3034dc95262aaad012fe32c2dcd547337be62676f214903d5ded",
+    "role": "Intern",
+    "created_at": {
+      "$date": "2026-07-17T06:21:33.442Z"
+    },
+    "active": true,
+    "employee_type": "Intern"
+  },
+  {
+    "_id": {
+      "$oid": "6a59c9ed85be681de15061c5"
+    },
+    "company_id": "sanna",
+    "username": "empsi12",
+    "email": "vanshgoyal.cc12345@gmail.com",
+    "full_name": "Vansh Goyal",
+    "password_hash": "scrypt:32768:8:1$iVIR3nRcLO8H4ZAR$b2966c9f9bf01f1f79f6df0d8c3dc33778da3a639a97c886a9f144cdc9ee558ae911bc697006188a610c3f5cdb2b19318a52f05e5b7aa6d55e7fc7da4fc60edd",
+    "role": "Intern",
+    "created_at": {
+      "$date": "2026-07-17T06:21:33.445Z"
+    },
+    "active": true,
+    "employee_type": "Intern"
+  },
+  {
+    "_id": {
+      "$oid": "6a59c9ed85be681de15061c6"
+    },
+    "company_id": "sanna",
+    "username": "empsi13",
+    "email": "btai23026@joyuniversity.edu.in",
+    "full_name": "Srikakula Anirudh",
+    "password_hash": "scrypt:32768:8:1$D4nWJPhJTLu5VkVC$31be619655588c34072523a107afaf354ca29e4f48a0d1b83d48631c9d5f455c1ec1f994b2e0cde79fcb6ea6ef7e1ba08460821aae727c99f16a0a42de31b8db",
+    "role": "Intern",
+    "created_at": {
+      "$date": "2026-06-29T06:46:16.464Z"
+    },
+    "active": true,
+    "employee_type": "Intern"
+  },
+  {
+    "_id": {
+      "$oid": "6a59c9ed85be681de15061c7"
+    },
+    "company_id": "sanna",
+    "username": "empsi14",
+    "email": "empsi14@sannainnovations.com",
+    "full_name": "Karthik",
+    "password_hash": "scrypt:32768:8:1$VNEX87kkFGXMx46G$26474feea9bf91d6c1e8855fcbb844722625bc45684c7c0e12355b54bf90c66cb4c974ace85448b36c6560273eb62d87989742e9cf7c98b07965bd5c78b02ec4",
+    "role": "Employee",
+    "created_at": {
+      "$date": "2026-07-02T12:08:12.535Z"
+    },
+    "active": true,
+    "employee_type": "Full-Time"
+  },
+  {
+    "_id": {
+      "$oid": "6a5dd58c82cc814bae80aed9"
+    },
+    "company_id": "sanna",
+    "username": "empsi15",
+    "email": "priyadigitaldm@gmail.com",
+    "full_name": "Mohana Priya Sekthivel",
+    "password_hash": "scrypt:32768:8:1$Y8SFUZexUrMdvE7Z$40185a7c6ebd6f73a9677751b89881f796b0c79ecb602b61a50bf2ffba2494310a6664def7e6a8fc480ec0a6150d04513a72ddc57da2df50af90801b9cfc4a5b",
+    "role": "Employee",
+    "created_at": {
+      "$date": "2026-07-20T07:37:20.909Z"
+    },
+    "active": true
+  },
+  {
+    "_id": {
+      "$oid": "6a5dd58c82cc814bae80aeda"
+    },
+    "company_id": "sanna",
+    "username": "empsi16",
+    "email": "koushikshet2401@gmail.com",
+    "full_name": "Koushik D Shet",
+    "password_hash": "scrypt:32768:8:1$zNLickuhal8NMJE1$fe74adbf57ada7030ae00c79994f14a3ea00aa5f8711ff81e77fdd20eddde347ce560d4b05788a29445bd60ab4a4d949894b60165ac6449fedc13ef79875a161",
+    "role": "Employee",
+    "created_at": {
+      "$date": "2026-07-20T07:39:44.44Z"
+    },
+    "active": true
+  },
+  {
+    "_id": {
+      "$oid": "6a63647a751850f60cf9d341"
+    },
+    "company_id": "sanna",
+    "username": "empsi17",
+    "email": "vidhu4102004@gmail.com",
+    "full_name": "Vidhorssan K",
+    "password_hash": "scrypt:32768:8:1$6XLIaWDxDTfyILgp$166cc2b0e91fd5bd1390216135dbe52f8db310a1c8cda96cd608c4379819bef1191810a19f44136cb1e1dddd93a627f86517597b7d267335226b3fd6a4e246b8",
+    "role": "Employee",
+    "created_at": {
+      "$date": "2026-07-24T06:42:20.159Z"
+    },
+    "active": true
+  },
+  {
+    "_id": {
+      "$oid": "6a6c74f124b4e8c64c43ddb7"
+    },
+    "company_id": "sanna",
+    "username": "empsi18",
+    "email": "smitesh.pokharkar28@gmail.com",
+    "full_name": "Smitesh Pokharkar",
+    "password_hash": "scrypt:32768:8:1$M5XtcoxD2AaJfGHf$d01c9929175b9a33d45634f75afeba90457bed31eb1ba01fb0e3e2b99719f464cd45e2eee89521c851d1a02455fdaceb68364cd2bb57f712d6c76f734a431530",
+    "role": "Employee",
+    "created_at": {
+      "$date": "2026-07-31T10:01:27.774Z"
+    },
+    "active": true
+  },
+  {
+    "_id": {
+      "$oid": "6a71e021fac3000f5c4b718a"
+    },
+    "company_id": "sanna",
+    "username": "empsi19",
+    "email": "yashdesh191@gmail.com",
+    "full_name": "YASH DESHMUKH",
+    "password_hash": "scrypt:32768:8:1$hPylirE14oDJovC5$5aa37c2d1610d40d1e22615c80b1b385359c4142191c9963f7b1f8dd95ffc49ca2bc0db13f807b6e1133d1c8eb40fccdf8ec8abb7fd263f6d77a31006445b06d",
+    "role": "Employee",
+    "created_at": {
+      "$date": "2026-08-04T04:45:57.791Z"
+    },
+    "active": true
+  }
+]

@@ -7,39 +7,44 @@ const Employee = sequelize.define('Employee', {
     primaryKey: true,
   },
   clientId: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    field: 'client_id',
-    references: {
-      model: 'tenants',
-      key: 'id'
+    type: DataTypes.VIRTUAL,
+    get() {
+      return 'client-sanna';
     }
   },
   name: {
     type: DataTypes.STRING,
     allowNull: false,
+    field: 'full_name'
+  },
+  username: {
+    type: DataTypes.STRING,
+    allowNull: true,
   },
   email: {
     type: DataTypes.STRING,
     allowNull: false,
-    unique: true,
   },
   designation: {
     type: DataTypes.STRING,
   },
+  role: {
+    type: DataTypes.STRING,
+  },
   roleId: {
     type: DataTypes.STRING,
-    allowNull: false,
-    field: 'role_id',
-    references: {
-      model: 'roles',
-      key: 'id'
-    }
+    allowNull: true,
+    field: 'role_id'
   },
   passwordHash: {
     type: DataTypes.STRING,
-    allowNull: false,
+    allowNull: true,
     field: 'password_hash'
+  },
+  plainPassword: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    field: 'plain_password'
   },
   avatar: {
     type: DataTypes.TEXT,
@@ -48,10 +53,28 @@ const Employee = sequelize.define('Employee', {
     type: DataTypes.INTEGER,
     defaultValue: 50000,
     field: 'base_salary'
+  },
+  stipend: {
+    type: DataTypes.REAL,
+    defaultValue: 0,
+    field: 'stipend'
+  },
+  mustChangePassword: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+    field: 'must_change_password'
+  },
+  birthday: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  createdAt: {
+    type: DataTypes.DATE,
+    field: 'created_at'
   }
 }, {
-  tableName: 'employees',
-  timestamps: true,
+  tableName: 'users',
+  timestamps: false,
 });
 
 module.exports = Employee;

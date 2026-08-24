@@ -391,7 +391,7 @@ const IntegrationHub = () => {
                       1️⃣ Step 1: Create a Meta Developer App
                     </div>
                     <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                      Log into <strong>developers.facebook.com</strong>, click <strong>Create App</strong>, choose <strong>Other &gt; Business</strong> as the app type, and name your app (e.g. <code>Astra CRM Intake</code>).
+                      Log into <strong>developers.facebook.com</strong>, click <strong>Create App</strong>, choose <strong>Other &gt; Business</strong> as the app type, and name your app (e.g. <code>Sanna CRM Intake</code>).
                     </p>
                   </div>
 

@@ -50,18 +50,9 @@ async function startServer() {
     logger.info('🔌 Connecting to database...');
     try {
       await sequelize.authenticate();
-      logger.info('MySQL Database connection established successfully.');
+      logger.info('Database connection established successfully.');
     } catch (dbErr) {
-      logger.warn('MySQL connection unavailable. Initializing SQLite fallback database...');
-      const { Sequelize } = require('sequelize');
-      const sqliteInstance = new Sequelize({
-        dialect: 'sqlite',
-        storage: path.join(__dirname, 'astra_crm_dev.sqlite'),
-        logging: false
-      });
-      Object.assign(sequelize, sqliteInstance);
-      await sequelize.authenticate();
-      logger.info('SQLite fallback database connection established.');
+      logger.error('Database connection error:', dbErr.message);
     }
     
     // Sync tables and seed initial data in development/test

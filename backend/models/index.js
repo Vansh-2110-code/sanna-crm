@@ -16,7 +16,7 @@ Tenant.hasMany(Employee, { foreignKey: 'clientId', as: 'employees' });
 Employee.belongsTo(Tenant, { foreignKey: 'clientId', as: 'tenant' });
 
 Role.hasMany(Employee, { foreignKey: 'roleId', as: 'employees' });
-Employee.belongsTo(Role, { foreignKey: 'roleId', as: 'role' });
+Employee.belongsTo(Role, { foreignKey: 'roleId', as: 'assignedRole' });
 
 Tenant.hasMany(Lead, { foreignKey: 'clientId', as: 'leads' });
 Lead.belongsTo(Tenant, { foreignKey: 'clientId', as: 'tenant' });

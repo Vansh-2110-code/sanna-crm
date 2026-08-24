@@ -81,7 +81,7 @@ const CustomerDashboard = () => {
           }}>
             <img
               src="/logo.png"
-              alt="Astra CRM Logo"
+              alt="Sanna CRM Logo"
               style={{
                 width: '100%',
                 height: '100%',
@@ -92,7 +92,7 @@ const CustomerDashboard = () => {
           </div>
           <div>
             <div style={{ fontSize: '0.8rem', color: '#c084fc', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Astra CRM Customer Portal
+              Sanna CRM Customer Portal
             </div>
             <h2 style={{ fontSize: '1.6rem', fontWeight: '800', margin: '2px 0' }}>
               Welcome back, {currentUser.name}

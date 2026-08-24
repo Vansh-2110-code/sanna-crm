@@ -44,7 +44,7 @@ const PricingPlansModal = ({ isOpen, onClose, seatLimitAlert = false }) => {
           key: (import.meta.env && import.meta.env.VITE_RAZORPAY_KEY_ID) || process.env.REACT_APP_RAZORPAY_KEY_ID || 'rzp_test_mockKeyId2026',
           amount: order.amount || amount * 100,
           currency: order.currency || 'INR',
-          name: 'ASTRA CRM Enterprise',
+          name: 'SANNA CRM Enterprise',
           description: `Subscription Upgrade to ${planName} (${maxSeats} Seats)`,
           order_id: (order && order.id && !order.id.startsWith('order_mock_')) ? order.id : undefined,
           handler: async (response) => {

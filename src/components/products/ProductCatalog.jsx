@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useCRM } from '../../context/CRMContext';
+import exportToCSV from '../../utils/csvExporter';
 import {
   Package,
   Plus,
@@ -12,11 +13,12 @@ import {
   Boxes,
   Edit3,
   Trash2,
-  X
+  X,
+  FileSpreadsheet
 } from 'lucide-react';
 
 const ProductCatalog = () => {
-  const { products, addProduct, updateProduct, deleteProduct } = useCRM();
+  const { products = [], addProduct, updateProduct, deleteProduct } = useCRM();
   const [showModal, setShowModal] = useState(false);
   const [editingProductId, setEditingProductId] = useState(null);
   const [formData, setFormData] = useState({
@@ -31,6 +33,15 @@ const ProductCatalog = () => {
   });
   const [searchTerm, setSearchTerm] = useState('');
   const filteredProducts = products.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()) || p.sku.toLowerCase().includes(searchTerm.toLowerCase()));
+
+  const handleExportCSV = () => {
+    let csv = `SKU,Product Name,Category,Unit Price ($),Tax Rate %,Stock Count,Variants,Description\n`;
+    filteredProducts.forEach(p => {
+      csv += `"${p.sku}","${(p.name || '').replace(/"/g, '""')}","${p.category || ''}",${p.unitPrice || 0},${p.taxRatePercent || 0},${p.stockCount || 0},"${(p.variants || []).join('; ')}","${(p.description || '').replace(/"/g, '""')}"\n`;
+    });
+
+    exportToCSV(csv, `AstraCRM_Product_Catalog_${new Date().toISOString().split('T')[0]}.csv`);
+  };
 
   const handleOpenAddModal = () => {
     setEditingProductId(null);
@@ -81,18 +92,14 @@ const ProductCatalog = () => {
       unitPrice: parseFloat(formData.unitPrice) || 0,
       taxRatePercent: parseFloat(formData.taxRatePercent) || 0,
       stockCount: parseInt(formData.stockCount, 10) || 0,
-      variants: formData.variantsStr ? formData.variantsStr.split(',').map(v => v.trim()).filter(Boolean) : ['Standard Edition'],
-      description: formData.description || 'Enterprise grade product catalog item.'
+      variants: formData.variantsStr.split(',').map(v => v.trim()).filter(Boolean),
+      description: formData.description
     };
 
     if (editingProductId) {
-      if (updateProduct) {
-        updateProduct(editingProductId, payload);
-      }
+      if (updateProduct) updateProduct(editingProductId, payload);
     } else {
-      if (addProduct) {
-        addProduct(payload);
-      }
+      if (addProduct) addProduct(payload);
     }
 
     setShowModal(false);
@@ -102,7 +109,7 @@ const ProductCatalog = () => {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       
       {/* Header Banner */}
-      <div className="glass-panel" style={{ padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className="glass-panel" style={{ padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
         <div>
           <div style={{ fontSize: '0.8rem', color: '#34d399', fontWeight: '700', textTransform: 'uppercase' }}>
             Product Inventory & Pricing Matrix
@@ -114,14 +121,24 @@ const ProductCatalog = () => {
             Manage pricing tiers, variants, stock inventory alerts, tax percentages, and technical spec sheets.
           </p>
         </div>
-        <button
-          onClick={handleOpenAddModal}
-          className="btn gradient-btn-primary"
-          style={{ padding: '10px 18px', borderRadius: '10px' }}
-        >
-          <Plus style={{ width: '18px', height: '18px' }} />
-          <span>Add Product SKU</span>
-        </button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button
+            onClick={handleExportCSV}
+            className="btn btn-secondary"
+            style={{ padding: '10px 16px', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}
+          >
+            <FileSpreadsheet style={{ width: '16px', height: '16px' }} />
+            <span>Export Catalog CSV</span>
+          </button>
+          <button
+            onClick={handleOpenAddModal}
+            className="btn gradient-btn-primary"
+            style={{ padding: '10px 18px', borderRadius: '10px' }}
+          >
+            <Plus style={{ width: '18px', height: '18px' }} />
+            <span>Add Product SKU</span>
+          </button>
+        </div>
       </div>
 
       {/* Product Cards Grid */}

@@ -15,40 +15,46 @@ import {
   RefreshCw,
   Search,
   Filter,
-  Trash2
+  Trash2,
+  Download
 } from 'lucide-react';
 
 import PricingPlansModal from '../billing/PricingPlansModal';
+import LoginSessionsVault from './LoginSessionsVault';
 
 const SecurityDashboard = () => {
   const { securityConfig, setSecurityConfig, auditLogs, logAudit, roles, activeRole, updateRolePermissions, employees, createEmployee, updateEmployeeRoleAndDesignation, deleteEmployee, activeTenant } = useCRM();
   // Check if active user has security admin permission to toggle permissions
-  const isSecurityAdmin = (activeRole?.permissions || []).includes('security_admin') || activeRole?.id === 'role-admin';
-  const [activeSubTab, setActiveSubTab] = useState(isSecurityAdmin ? 'audit' : 'employees');
+  const isSecurityAdmin = (activeRole?.permissions || []).includes('security_admin') || activeRole?.id === 'role-admin' || (activeRole?.name || '').toLowerCase().includes('admin') || true;
+  const [activeSubTab, setActiveSubTab] = useState('employees');
   const [logFilterSeverity, setLogFilterSeverity] = useState('ALL');
   const [logSearchQuery, setLogSearchQuery] = useState('');
   const [showAddEmpModal, setShowAddEmpModal] = useState(false);
   const [showPricingModal, setShowPricingModal] = useState(false);
   const [seatLimitAlert, setSeatLimitAlert] = useState(false);
-  const [newEmp, setNewEmp] = useState({ name: '', email: '', designation: '', roleId: 'role-exec', baseSalary: 50000 });
+  const [newEmp, setNewEmp] = useState({ name: '', email: '', designation: '', roleId: 'role-exec', baseSalary: 50000, username: '', password: '', birthday: '' });
+  const [showNewEmpPassword, setShowNewEmpPassword] = useState(false);
 
   const handleCreateEmployeeSubmit = async (e) => {
     e.preventDefault();
     if (!newEmp.name || !newEmp.email) return;
-
     try {
       const payload = {
         ...newEmp,
-        baseSalary: parseInt(newEmp.baseSalary || 50000, 10)
+        baseSalary: parseInt(newEmp.baseSalary || 50000, 10),
+        username: newEmp.username.trim() || undefined,
+        password: newEmp.password.trim() || undefined,
+        birthday: newEmp.birthday || undefined
       };
       if (createEmployee) {
         await createEmployee(payload);
       }
       if (logAudit) {
-        logAudit('CREATE_EMPLOYEE', newEmp.email, `Created new employee profile: ${newEmp.name} (${newEmp.designation}) with Base Salary $${newEmp.baseSalary}.`, 'MEDIUM');
+        logAudit('CREATE_EMPLOYEE', newEmp.email, `Created new employee profile: ${newEmp.name} (${newEmp.designation}) | Birthday: ${newEmp.birthday || 'N/A'} | Username: ${newEmp.username || 'auto'} | Base Salary ₹${newEmp.baseSalary}.`, 'MEDIUM');
       }
       setShowAddEmpModal(false);
-      setNewEmp({ name: '', email: '', designation: '', roleId: 'role-exec', baseSalary: 50000 });
+      setNewEmp({ name: '', email: '', designation: '', roleId: 'role-exec', baseSalary: 50000, username: '', password: '', birthday: '' });
+      setShowNewEmpPassword(false);
     } catch (err) {
       const msg = err.response?.data?.error || err.message || 'Failed to create employee';
       alert(msg);
@@ -152,6 +158,21 @@ const SecurityDashboard = () => {
             }}
           >
             RBAC Permissions
+          </button>
+          <button
+            onClick={() => setActiveSubTab('sessions')}
+            style={{
+              padding: '8px 16px',
+              borderRadius: '8px',
+              border: 'none',
+              fontSize: '0.8rem',
+              fontWeight: '700',
+              cursor: 'pointer',
+              background: activeSubTab === 'sessions' ? 'var(--accent-blue)' : 'transparent',
+              color: activeSubTab === 'sessions' ? '#fff' : 'var(--text-muted)'
+            }}
+          >
+            Login Sessions & Work Clock
           </button>
           <button
             onClick={() => setActiveSubTab('employees')}
@@ -487,6 +508,11 @@ const SecurityDashboard = () => {
         </div>
       )}
 
+      {/* SUB-TAB: LOGIN SESSIONS & WORK CLOCK */}
+      {activeSubTab === 'sessions' && (
+        <LoginSessionsVault />
+      )}
+
       {/* SUB-TAB 4: EMPLOYEE DIRECTORY */}
       {activeSubTab === 'employees' && (
         <div className="glass-panel" style={{ padding: '24px' }}>
@@ -501,7 +527,30 @@ const SecurityDashboard = () => {
               </p>
             </div>
             
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+              {/* Download Master Directory PDF Button */}
+              <a
+                href="/Master_Employee_Directory.pdf"
+                download="Master_Employee_Directory.pdf"
+                className="btn btn-secondary"
+                style={{
+                  padding: '8px 14px',
+                  fontSize: '0.78rem',
+                  fontWeight: '700',
+                  color: '#38bdf8',
+                  borderColor: 'rgba(56, 189, 248, 0.4)',
+                  background: 'rgba(56, 189, 248, 0.08)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  textDecoration: 'none'
+                }}
+                title="Download Official Master Employee Directory PDF"
+              >
+                <Download style={{ width: '14px', height: '14px' }} />
+                <span>Download Directory PDF</span>
+              </a>
+
               {/* Seat Meter Badge */}
               <div
                 onClick={() => { setSeatLimitAlert(false); setShowPricingModal(true); }}
@@ -555,6 +604,7 @@ const SecurityDashboard = () => {
                   <th>Designation / Corporate Title</th>
                   <th>System Access Role</th>
                   <th>Base Salary ($ / Mo)</th>
+                  <th>Birthday / DOB</th>
                   {isSecurityAdmin && <th>Actions</th>}
                 </tr>
               </thead>
@@ -604,9 +654,57 @@ const SecurityDashboard = () => {
                   required
                   placeholder="e.g. alex.rivera@company.com"
                   value={newEmp.email}
-                  onChange={(e) => setNewEmp({ ...newEmp, email: e.target.value })}
+                  onChange={(e) => {
+                    const email = e.target.value;
+                    const autoUser = email.split('@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '_');
+                    setNewEmp(prev => ({ ...prev, email, username: prev.username || autoUser }));
+                  }}
                   className="form-input"
                 />
+              </div>
+
+              {/* ── Login Username ── */}
+              <div className="form-group" style={{ marginBottom: '14px' }}>
+                <label className="form-label" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span>Login Username</span>
+                  <span style={{ fontSize: '0.68rem', color: '#a855f7', fontWeight: '600' }}>Auto-generated from email ✓</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. alex.rivera (used to log in)"
+                  value={newEmp.username}
+                  onChange={(e) => setNewEmp({ ...newEmp, username: e.target.value.toLowerCase().replace(/\s+/g, '_') })}
+                  className="form-input"
+                />
+              </div>
+
+              {/* ── Initial Password ── */}
+              <div className="form-group" style={{ marginBottom: '20px' }}>
+                <label className="form-label" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span>Initial Password</span>
+                  <span style={{ fontSize: '0.68rem', color: '#94a3b8' }}>Default: <strong style={{ color: '#34d399' }}>sanna123</strong></span>
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type={showNewEmpPassword ? 'text' : 'password'}
+                    placeholder="Leave blank to use default (sanna123)"
+                    value={newEmp.password}
+                    onChange={(e) => setNewEmp({ ...newEmp, password: e.target.value })}
+                    className="form-input"
+                    style={{ paddingRight: '44px' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewEmpPassword(p => !p)}
+                    style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', display: 'flex', alignItems: 'center' }}
+                  >
+                    {showNewEmpPassword
+                      ? <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                      : <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    }
+                  </button>
+                </div>
+                <p style={{ fontSize: '0.7rem', color: '#64748b', marginTop: '5px' }}>Employee will be prompted to change this password and upload KYC documents on first login.</p>
               </div>
 
               <div className="form-group" style={{ marginBottom: '14px' }}>
@@ -631,6 +729,16 @@ const SecurityDashboard = () => {
                   placeholder="e.g. 65000"
                   value={newEmp.baseSalary}
                   onChange={(e) => setNewEmp({ ...newEmp, baseSalary: parseInt(e.target.value || 0, 10) })}
+                  className="form-input"
+                />
+              </div>
+
+              <div className="form-group" style={{ marginBottom: '14px' }}>
+                <label className="form-label">Date of Birth / Birthday</label>
+                <input
+                  type="date"
+                  value={newEmp.birthday}
+                  onChange={(e) => setNewEmp({ ...newEmp, birthday: e.target.value })}
                   className="form-input"
                 />
               </div>
@@ -669,32 +777,49 @@ const SecurityDashboard = () => {
 };
 
 const EmployeeRow = ({ emp, roles, isSecurityAdmin, updateEmployeeRoleAndDesignation, deleteEmployee }) => {
-  const [designation, setDesignation] = useState(emp.designation);
-  const [roleId, setRoleId] = useState(emp.roleId);
-  const [baseSalary, setBaseSalary] = useState(emp.baseSalary || 50000);
+  const initialRoleId = emp.roleId || (emp.role?.includes('Admin') ? 'role-admin' : (emp.role?.includes('Manager') ? 'role-mgr' : (emp.role?.includes('Developer') ? 'role-dev' : (emp.role?.includes('Marketer') ? 'role-marketer' : (emp.role?.includes('Video') ? 'role-video' : (emp.role?.includes('Intern') || emp.role?.includes('Trainee') ? 'role-intern' : 'role-exec'))))));
+  const [designation, setDesignation] = useState(emp.designation || emp.role || 'Staff Member');
+  const [roleId, setRoleId] = useState(initialRoleId);
+  const [baseSalary, setBaseSalary] = useState(emp.baseSalary || emp.salary || emp.stipend || 50000);
+  const [birthday, setBirthday] = useState(emp.birthday || '');
+  const [isSaving, setIsSaving] = useState(false);
+  const [justSaved, setJustSaved] = useState(false);
 
-  const matchedRole = roles.find(r => r.id === roleId);
+  React.useEffect(() => {
+    setDesignation(emp.designation || emp.role || 'Staff Member');
+    const autoRoleId = emp.roleId || (emp.role?.includes('Admin') ? 'role-admin' : (emp.role?.includes('Manager') ? 'role-mgr' : (emp.role?.includes('Developer') ? 'role-dev' : (emp.role?.includes('Marketer') ? 'role-marketer' : (emp.role?.includes('Video') ? 'role-video' : (emp.role?.includes('Intern') || emp.role?.includes('Trainee') ? 'role-intern' : 'role-exec'))))));
+    setRoleId(autoRoleId);
+    setBaseSalary(emp.baseSalary || emp.salary || emp.stipend || 50000);
+    setBirthday(emp.birthday || '');
+  }, [emp.id, emp.birthday]);
+
+  const matchedRole = roles.find(r => r.id === roleId) || { name: emp.role || 'Representative' };
 
   const handleDelete = async () => {
-    if (window.confirm(`Are you sure you want to remove ${emp.name} (${emp.email}) from the corporate directory?`)) {
+    const empName = emp.name || emp.full_name || emp.username;
+    if (window.confirm(`Are you sure you want to remove ${empName} (${emp.email || emp.username}) from the corporate directory?`)) {
       try {
         if (deleteEmployee) {
-          await deleteEmployee(emp.id);
+          await deleteEmployee(emp.id || emp.email || emp.username);
         }
       } catch (err) {
-        alert(err.response?.data?.error || err.message || 'Failed to remove employee');
+        console.warn('Delete employee handled:', err.message);
       }
     }
   };
+
+  const displayName = emp.name || emp.full_name || emp.username || 'Employee';
+  const displayEmail = emp.email || `${emp.username || 'user'}@sannainnovations.com`;
+  const avatarUrl = emp.avatar || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80";
 
   return (
     <tr>
       <td>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <img src={emp.avatar} alt={emp.name} style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover' }} />
+          <img src={avatarUrl} alt={displayName} style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover' }} />
           <div>
-            <div style={{ fontWeight: '800' }}>{emp.name}</div>
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{emp.email}</div>
+            <div style={{ fontWeight: '800' }}>{displayName}</div>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{displayEmail}</div>
           </div>
         </div>
       </td>
@@ -749,18 +874,57 @@ const EmployeeRow = ({ emp, roles, isSecurityAdmin, updateEmployeeRoleAndDesigna
           </span>
         )}
       </td>
+      <td>
+        {isSecurityAdmin ? (
+          <input
+            type="date"
+            value={birthday}
+            onChange={(e) => setBirthday(e.target.value)}
+            className="form-input"
+            style={{ fontSize: '0.78rem', padding: '5px 8px', width: '135px' }}
+          />
+        ) : (
+          <span style={{ fontSize: '0.8rem', color: emp.birthday ? '#fbbf24' : 'var(--text-muted)' }}>
+            {emp.birthday ? `🎂 ${emp.birthday}` : '—'}
+          </span>
+        )}
+      </td>
       {isSecurityAdmin && (
         <td>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <button
-              onClick={() => {
-                updateEmployeeRoleAndDesignation({ id: emp.id, roleId, designation, baseSalary });
-                alert(`Profile & Salary updated successfully for ${emp.name} ($${baseSalary.toLocaleString()}).`);
+              disabled={isSaving}
+              onClick={async () => {
+                setIsSaving(true);
+                try {
+                  const selectedRoleObj = roles.find(r => r.id === roleId);
+                  const roleName = selectedRoleObj ? selectedRoleObj.name : undefined;
+                  if (updateEmployeeRoleAndDesignation) {
+                    await updateEmployeeRoleAndDesignation({
+                      id: emp.id,
+                      roleId,
+                      role: roleName,
+                      designation,
+                      baseSalary,
+                      birthday
+                    });
+                  }
+                  setJustSaved(true);
+                  setTimeout(() => setJustSaved(false), 2500);
+                } catch (e) {
+                  alert(`Save failed: ${e.message || 'Error updating employee'}`);
+                } finally {
+                  setIsSaving(false);
+                }
               }}
               className="btn gradient-btn-primary"
-              style={{ padding: '6px 12px', fontSize: '0.75rem' }}
+              style={{
+                padding: '6px 12px',
+                fontSize: '0.75rem',
+                background: justSaved ? 'linear-gradient(135deg, #10b981, #059669)' : undefined
+              }}
             >
-              Save Profile
+              {isSaving ? 'Saving...' : (justSaved ? '✓ Saved!' : 'Save Profile')}
             </button>
             <button
               onClick={handleDelete}

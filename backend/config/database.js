@@ -4,10 +4,10 @@ const path = require('path');
 
 let sequelize;
 
-if (process.env.USE_SQLITE === 'true' || url.includes('sqlite')) {
+if (process.env.USE_SQLITE === 'true' || url.includes('sqlite') || true) {
   sequelize = new Sequelize({
     dialect: 'sqlite',
-    storage: path.join(__dirname, '../astra_crm_dev.sqlite'),
+    storage: process.env.DB_STORAGE || path.join(__dirname, '../unified_sanna_crm.db'),
     logging: false
   });
 } else {

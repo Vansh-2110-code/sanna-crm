@@ -109,7 +109,7 @@ const Order = sequelize.define('Order', {
   sellerName: {
     type: DataTypes.STRING,
     field: 'seller_name',
-    defaultValue: 'Vertex Innovations'
+    defaultValue: 'Sanna Innovations'
   },
   sellerLogo: {
     type: DataTypes.TEXT,

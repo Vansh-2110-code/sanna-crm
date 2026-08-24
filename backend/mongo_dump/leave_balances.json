@@ -1,0 +1,289 @@
+[
+  {
+    "_id": {
+      "$oid": "6a3f87045dd81747a3553e4d"
+    },
+    "username": "admin",
+    "cl_used": 0,
+    "hours_used": 0,
+    "sl_used": 0
+  },
+  {
+    "_id": {
+      "$oid": "6a3f87155dd81747a3553e4e"
+    },
+    "username": "empsi13",
+    "cl_used": 0,
+    "hours_used": 0,
+    "sl_used": 0
+  },
+  {
+    "_id": {
+      "$oid": "6a3f872f5dd81747a3553e4f"
+    },
+    "username": "manager",
+    "cl_used": 0,
+    "hours_used": 0,
+    "sl_used": 0
+  },
+  {
+    "_id": {
+      "$oid": "6a3f88ec5dd81747a3553e62"
+    },
+    "username": "manager",
+    "year": 2026,
+    "cl_used": 0,
+    "hours_used": 0,
+    "sl_used": 0
+  },
+  {
+    "_id": {
+      "$oid": "6a3fa7275dd81747a3553ef6"
+    },
+    "username": "mock_manager2",
+    "year": 2026,
+    "cl_used": 0,
+    "hours_used": 0,
+    "sl_used": 0
+  },
+  {
+    "_id": {
+      "$oid": "6a3fc4da5dd81747a3553f50"
+    },
+    "year": 2026,
+    "username": "empsi13",
+    "cl_used": 0,
+    "hours_used": 0,
+    "sl_used": 0
+  },
+  {
+    "_id": {
+      "$oid": "6a3fc4da5dd81747a3553f51"
+    },
+    "username": "empsi12",
+    "year": 2026,
+    "cl_used": 0,
+    "hours_used": 0,
+    "sl_used": 0
+  },
+  {
+    "_id": {
+      "$oid": "6a3fc4da5dd81747a3553f52"
+    },
+    "username": "empsi09",
+    "year": 2026,
+    "cl_used": 0,
+    "hours_used": 0,
+    "sl_used": 0
+  },
+  {
+    "_id": {
+      "$oid": "6a3fc4da5dd81747a3553f53"
+    },
+    "year": 2026,
+    "username": "empsi11",
+    "cl_used": 0,
+    "hours_used": 0,
+    "sl_used": 0
+  },
+  {
+    "_id": {
+      "$oid": "6a3fc4da5dd81747a3553f54"
+    },
+    "year": 2026,
+    "username": "empsi10",
+    "cl_used": 0,
+    "hours_used": 0,
+    "sl_used": 0
+  },
+  {
+    "_id": {
+      "$oid": "6a3fc64b5dd81747a355401a"
+    },
+    "year": 2026,
+    "username": "empsi01",
+    "cl_used": 0,
+    "hours_used": 0,
+    "sl_used": 0
+  },
+  {
+    "_id": {
+      "$oid": "6a3fc64b5dd81747a355401b"
+    },
+    "username": "empsi02",
+    "year": 2026,
+    "cl_used": 0,
+    "hours_used": 0,
+    "sl_used": 0
+  },
+  {
+    "_id": {
+      "$oid": "6a3fc64c5dd81747a355401c"
+    },
+    "username": "empsi03",
+    "year": 2026,
+    "cl_used": 0,
+    "hours_used": 0,
+    "sl_used": 0
+  },
+  {
+    "_id": {
+      "$oid": "6a3fc64c5dd81747a355401d"
+    },
+    "year": 2026,
+    "username": "empsi04",
+    "cl_used": 0,
+    "hours_used": 0,
+    "sl_used": 0
+  },
+  {
+    "_id": {
+      "$oid": "6a3fc64c5dd81747a355401e"
+    },
+    "username": "empsi05",
+    "year": 2026,
+    "cl_used": 0,
+    "hours_used": 0,
+    "sl_used": 0
+  },
+  {
+    "_id": {
+      "$oid": "6a3fc64c5dd81747a355401f"
+    },
+    "year": 2026,
+    "username": "empsi06",
+    "cl_used": 0,
+    "hours_used": 0,
+    "sl_used": 0
+  },
+  {
+    "_id": {
+      "$oid": "6a3fc64c5dd81747a3554020"
+    },
+    "username": "empsi07",
+    "year": 2026,
+    "cl_used": 0,
+    "hours_used": 0,
+    "sl_used": 0
+  },
+  {
+    "_id": {
+      "$oid": "6a3fc64c5dd81747a3554021"
+    },
+    "username": "empsi08",
+    "year": 2026,
+    "cl_used": 0,
+    "hours_used": 0,
+    "sl_used": 0
+  },
+  {
+    "_id": {
+      "$oid": "6a3fc64c5dd81747a3554022"
+    },
+    "year": 2026,
+    "username": "empsi09",
+    "cl_used": 0,
+    "hours_used": 0,
+    "sl_used": 0
+  },
+  {
+    "_id": {
+      "$oid": "6a3fc64c5dd81747a3554023"
+    },
+    "username": "empsi10",
+    "year": 2026,
+    "cl_used": 0,
+    "hours_used": 0,
+    "sl_used": 0
+  },
+  {
+    "_id": {
+      "$oid": "6a3fc64c5dd81747a3554024"
+    },
+    "username": "empsi11",
+    "year": 2026,
+    "cl_used": 0,
+    "hours_used": 0,
+    "sl_used": 0
+  },
+  {
+    "_id": {
+      "$oid": "6a3fc64d5dd81747a3554025"
+    },
+    "year": 2026,
+    "username": "empsi12",
+    "cl_used": 0,
+    "hours_used": 0,
+    "sl_used": 0
+  },
+  {
+    "_id": {
+      "$oid": "6a3fc64d5dd81747a3554026"
+    },
+    "year": 2026,
+    "username": "empsi13",
+    "cl_used": 0,
+    "hours_used": 0,
+    "sl_used": 0
+  },
+  {
+    "_id": {
+      "$oid": "6a3fe9025dd81747a3554734"
+    },
+    "username": "empsi14",
+    "year": 2026,
+    "cl_used": 0,
+    "hours_used": 0,
+    "sl_used": 0
+  },
+  {
+    "_id": {
+      "$oid": "6a4b782dad398a6486524a6a"
+    },
+    "year": 2026,
+    "username": "empsi15",
+    "cl_used": 0,
+    "hours_used": 0,
+    "sl_used": 0
+  },
+  {
+    "_id": {
+      "$oid": "6a5dd0c08273ead3099d3d94"
+    },
+    "username": "empsi16",
+    "year": 2026,
+    "cl_used": 0,
+    "hours_used": 0,
+    "sl_used": 0
+  },
+  {
+    "_id": {
+      "$oid": "6a63094c8273ead309a54ccc"
+    },
+    "username": "empsi17",
+    "year": 2026,
+    "cl_used": 0,
+    "hours_used": 0,
+    "sl_used": 0
+  },
+  {
+    "_id": {
+      "$oid": "6a6c72778273ead309b4f6c5"
+    },
+    "username": "empsi18",
+    "year": 2026,
+    "cl_used": 0,
+    "hours_used": 0,
+    "sl_used": 0
+  },
+  {
+    "_id": {
+      "$oid": "6a716e858273ead309bce1d4"
+    },
+    "username": "empsi19",
+    "year": 2026,
+    "cl_used": 0,
+    "hours_used": 0,
+    "sl_used": 0
+  }
+]

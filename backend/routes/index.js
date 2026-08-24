@@ -22,6 +22,8 @@ const paymentRoutes = require('./paymentRoutes');
 const salaryRoutes = require('./salaryRoutes');
 const attendanceRoutes = require('./attendanceRoutes');
 const metaAdsRoutes = require('./metaAdsRoutes');
+const misRoutes = require('./misRoutes');
+const kycRoutes = require('./kycRoutes');
 
 // Swagger Documentation Page Route
 router.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
@@ -29,6 +31,8 @@ router.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 // Open / public routes
 router.use('/auth', authRoutes);
 router.use('/integrations/meta-ads', metaAdsRoutes);
+router.use('/projects', misRoutes);
+router.use('/mis', misRoutes);
 
 // Protected routes (require token authentication & tenant context injection)
 // Public lead submission endpoint (no auth, uses API key)
@@ -46,5 +50,6 @@ router.use('/tenants', authenticateToken, tenantRoutes);
 router.use('/payments', authenticateToken, paymentRoutes);
 router.use('/salary', authenticateToken, salaryRoutes);
 router.use('/attendance', authenticateToken, attendanceRoutes);
+router.use('/kyc', authenticateToken, kycRoutes);
 
 module.exports = router;

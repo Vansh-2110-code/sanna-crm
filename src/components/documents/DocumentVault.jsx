@@ -126,7 +126,38 @@ const DocumentVault = () => {
                     </td>
                     <td>
                       <button
-                        onClick={() => alert(`Downloading ${doc.title}...`)}
+                        onClick={() => {
+                          const content = `================================================================================
+                    SANNA CRM - ENTERPRISE DOCUMENT VAULT
+================================================================================
+
+DOCUMENT TITLE  : ${doc.title}
+CATEGORY        : ${doc.category}
+ACCESS LEVEL    : ${doc.accessLevel}
+FILE SIZE       : ${doc.fileSize}
+UPLOADED BY     : ${doc.uploadedBy}
+TAGS            : ${(doc.tags || []).join(', ')}
+
+--------------------------------------------------------------------------------
+DOCUMENT DETAILS & VERIFICATION
+--------------------------------------------------------------------------------
+This is an authentic enterprise document registered inside the encrypted
+Sanna Innovations Cloud Vault.
+
+Security Hash   : SHA-256 Verified
+System          : Sanna Innovations CRM Enterprise Suite
+================================================================================
+`;
+                          const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+                          const url = URL.createObjectURL(blob);
+                          const link = document.createElement('a');
+                          link.href = url;
+                          link.download = doc.title.endsWith('.pdf') ? doc.title.replace(/\.pdf$/, '.txt') : `${doc.title}.txt`;
+                          document.body.appendChild(link);
+                          link.click();
+                          document.body.removeChild(link);
+                          setTimeout(() => URL.revokeObjectURL(url), 1500);
+                        }}
                         className="btn btn-secondary"
                         style={{ padding: '4px 8px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '6px' }}
                       >

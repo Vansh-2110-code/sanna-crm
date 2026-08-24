@@ -7,7 +7,22 @@ class EmployeeRepository extends BaseRepository {
   }
 
   async findByEmail(email) {
-    return this.findOne({ where: { email } });
+    return this.findByUsernameOrEmail(email);
+  }
+
+  async findByUsernameOrEmail(identifier) {
+    const { Op } = require('sequelize');
+    if (!identifier) return null;
+    const clean = identifier.trim().toLowerCase();
+    return this.findOne({
+      where: {
+        [Op.or]: [
+          { email: clean },
+          { email: `${clean}@sannainnovations.com` },
+          { username: clean }
+        ]
+      }
+    });
   }
 
   async findByTenant(clientId) {

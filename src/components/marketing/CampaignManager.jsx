@@ -1,21 +1,27 @@
 import React, { useState } from 'react';
 import { useCRM } from '../../context/CRMContext';
-import { Megaphone, Plus, TrendingUp, Users, Mail, MessageSquare, Percent, CheckCircle2 } from 'lucide-react';
+import exportToCSV from '../../utils/csvExporter';
+import { Megaphone, Plus, TrendingUp, Users, Mail, MessageSquare, Percent, CheckCircle2, FileSpreadsheet } from 'lucide-react';
 
 const CampaignManager = () => {
-  const { campaigns, addCampaign, logAudit } = useCRM();
+  const { campaigns = [], addCampaign, logAudit } = useCRM();
   const [showModal, setShowModal] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
-    channel: 'Email Outreach',
-    targetAudience: '',
-    sentCount: 1000,
-    openRatePercent: 45.0,
-    clickRatePercent: 20.0,
-    convertedLeads: 8,
-    estimatedROI: '300%'
+    channel: 'Email Newsletter',
+    targetAudience: 'All Leads',
+    sentCount: 500
   });
+
+  const handleExportCSV = () => {
+    let csv = `Campaign ID,Name,Channel,Target Audience,Sent Count,Open Rate %,Click Rate %,Converted Leads,Estimated ROI,Status,Start Date\n`;
+    campaigns.forEach(c => {
+      csv += `"${c.id}","${(c.name || '').replace(/"/g, '""')}","${c.channel || ''}","${c.targetAudience || ''}",${c.sentCount || 0},"${c.openRatePercent || 0}%","${c.clickRatePercent || 0}%",${c.convertedLeads || 0},"${c.estimatedROI || '0%'}","${c.status || 'Active'}","${c.startDate || ''}"\n`;
+    });
+
+    exportToCSV(csv, `AstraCRM_Marketing_Campaigns_${new Date().toISOString().split('T')[0]}.csv`);
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -57,7 +63,7 @@ const CampaignManager = () => {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       
       {/* Header Banner */}
-      <div className="glass-panel" style={{ padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className="glass-panel" style={{ padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
         <div>
           <div style={{ fontSize: '0.8rem', color: '#8b5cf6', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
             Omnichannel Marketing Hub & Growth Telemetry
@@ -70,14 +76,24 @@ const CampaignManager = () => {
           </p>
         </div>
 
-        <button
-          onClick={() => setShowModal(true)}
-          className="btn gradient-btn-primary"
-          style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 18px' }}
-        >
-          <Plus style={{ width: '18px', height: '18px' }} />
-          <span>Launch New Campaign</span>
-        </button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button
+            onClick={handleExportCSV}
+            className="btn btn-secondary"
+            style={{ padding: '10px 16px', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}
+          >
+            <FileSpreadsheet style={{ width: '16px', height: '16px' }} />
+            <span>Export Campaigns CSV</span>
+          </button>
+          <button
+            onClick={() => setShowModal(true)}
+            className="btn gradient-btn-primary"
+            style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 18px' }}
+          >
+            <Plus style={{ width: '18px', height: '18px' }} />
+            <span>Launch New Campaign</span>
+          </button>
+        </div>
       </div>
 
       {/* Campaigns Grid */}

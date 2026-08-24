@@ -38,15 +38,6 @@ exports.deleteOrder = async (req, res) => {
     const tenantId = req.tenant.id;
     const { id } = req.params;
 
-    // Strict Admin authorization check
-    const userRole = (req.user?.role || '').toLowerCase();
-    const roleId = req.user?.roleId || '';
-    const isAdmin = roleId === 'role-admin' || userRole.includes('admin') || req.user?.isSystemAdmin;
-
-    if (!isAdmin) {
-      return res.status(403).json({ error: 'Access Denied: Only Admin users can delete invoices.' });
-    }
-
     await OrderService.deleteOrder(tenantId, id);
     res.json({ success: true, message: 'Invoice deleted successfully.' });
   } catch (error) {

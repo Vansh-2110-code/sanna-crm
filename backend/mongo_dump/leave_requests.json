@@ -1,0 +1,82 @@
+[
+  {
+    "_id": {
+      "$oid": "6a3fa9a56c430356ab650636"
+    },
+    "username": "manager",
+    "full_name": "manager123",
+    "role": "Manager",
+    "leave_type": "Hours",
+    "start_date": "2026-06-27",
+    "end_date": "2026-06-27",
+    "reason": "i want to go",
+    "days_requested": 0,
+    "hours_requested": 2,
+    "doc_note_url": null,
+    "status": "Rejected",
+    "submitted_at": "2026-06-27T10:44:53.785720Z",
+    "actioned_by": "admin",
+    "actioned_at": "2026-06-29T06:12:46.870704Z",
+    "actioned_fullname": "Admin User"
+  },
+  {
+    "_id": {
+      "$oid": "6a3fa9f36c430356ab650638"
+    },
+    "username": "manager",
+    "full_name": "manager123",
+    "role": "Manager",
+    "leave_type": "Hours",
+    "start_date": "2026-06-27",
+    "end_date": "2026-06-27",
+    "reason": "i want to go out\n",
+    "days_requested": 0,
+    "hours_requested": 1,
+    "doc_note_url": null,
+    "status": "Rejected",
+    "submitted_at": "2026-06-27T10:46:11.315489Z",
+    "actioned_by": "admin",
+    "actioned_at": "2026-06-29T06:12:43.146299Z",
+    "actioned_fullname": "Admin User"
+  },
+  {
+    "_id": {
+      "$oid": "6a42089ccbdde3c8b0834570"
+    },
+    "username": "manager",
+    "full_name": "manager123",
+    "role": "Manager",
+    "leave_type": "Hours",
+    "start_date": "2026-06-29",
+    "end_date": "2026-06-29",
+    "reason": "i want to go out",
+    "days_requested": 0,
+    "hours_requested": 1,
+    "doc_note_url": null,
+    "status": "Rejected",
+    "submitted_at": "2026-06-29T05:54:36.997548Z",
+    "actioned_by": "admin",
+    "actioned_at": "2026-06-29T06:12:42.214018Z",
+    "actioned_fullname": "Admin User"
+  },
+  {
+    "_id": {
+      "$oid": "6a477c00e8d094c93cc5c0d6"
+    },
+    "username": "manager",
+    "full_name": "manager123",
+    "role": "Manager",
+    "leave_type": "Hours",
+    "start_date": "2026-07-03",
+    "end_date": "2026-07-03",
+    "reason": "i have to go home",
+    "days_requested": 0,
+    "hours_requested": 2,
+    "doc_note_url": null,
+    "status": "Rejected",
+    "submitted_at": "2026-07-03T09:08:16.597851Z",
+    "actioned_by": "admin",
+    "actioned_at": "2026-07-03T09:09:36.830633Z",
+    "actioned_fullname": "Admin User"
+  }
+]

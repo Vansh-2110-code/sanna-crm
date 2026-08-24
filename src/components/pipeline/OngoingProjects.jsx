@@ -1,5 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useCRM } from '../../context/CRMContext';
+import ProjectDeliverablesHub from './ProjectDeliverablesHub';
+import ClientDirectory from './ClientDirectory';
 import {
   FolderKanban,
   CheckCircle2,
@@ -7,6 +9,7 @@ import {
   Calendar,
   User,
   Building2,
+  Building,
   Search,
   Filter,
   TrendingUp,
@@ -61,16 +64,19 @@ const getProgressValue = (deal) => {
 };
 
 const OngoingProjects = () => {
-  const { deals = [], orders = [], updateDeal, deleteDeal, currentUser } = useCRM();
+  const { deals = [], orders = [], clients = [], allClients = [], deliverables = [], updateDeal, deleteDeal, currentUser } = useCRM();
 
+  const [moduleView, setModuleView] = useState('client_directory'); // 'client_directory' | 'projects' | 'deliverables_hub'
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('All');
   const [selectedProject, setSelectedProject] = useState(null);
 
+  const clientList = (Array.isArray(clients) && clients.length > 0) ? clients : (Array.isArray(allClients) ? allClients : []);
+
   const handleUpdateStatus = async (dealId, newStatus) => {
     try {
       if (updateDeal) {
-        const target = deals.find(d => d.id === dealId || `deal-${d.id}` === dealId) || selectedProject;
+        const target = (deals || []).find(d => d.id === dealId || `deal-${d.id}` === dealId) || selectedProject;
         await updateDeal(dealId, {
           company: target?.company,
           title: target?.title,
@@ -91,7 +97,7 @@ const OngoingProjects = () => {
     const val = Math.min(100, Math.max(0, parseInt(newProgress, 10) || 0));
     try {
       if (updateDeal) {
-        const target = deals.find(d => d.id === dealId || `deal-${d.id}` === dealId) || selectedProject;
+        const target = (deals || []).find(d => d.id === dealId || `deal-${d.id}` === dealId) || selectedProject;
         await updateDeal(dealId, {
           company: target?.company,
           title: target?.title,
@@ -111,7 +117,7 @@ const OngoingProjects = () => {
   const handleUpdateDeadline = async (dealId, newDeadline) => {
     try {
       if (updateDeal) {
-        const target = deals.find(d => d.id === dealId || `deal-${d.id}` === dealId) || selectedProject;
+        const target = (deals || []).find(d => d.id === dealId || `deal-${d.id}` === dealId) || selectedProject;
         await updateDeal(dealId, {
           company: target?.company,
           title: target?.title,
@@ -145,9 +151,9 @@ const OngoingProjects = () => {
     }
   };
 
-  // All Closed Won deals auto-populate here (excluding Delivered/Completed projects)
+  // All 7 Closed Won ongoing deals auto-populate here
   const wonDeals = useMemo(() => {
-    return deals.filter(d => {
+    return (deals || []).filter(d => {
       const isWon = d.stage === 'Won' || d.stage === 'Closed Won';
       const status = getProjectStatus(d);
       return isWon && status !== 'Delivered' && status !== 'Completed';
@@ -157,7 +163,7 @@ const OngoingProjects = () => {
   // Helper to compute revenue received per deal from orders
   const getProjectRevenueStats = (deal) => {
     const projectOrders = (orders || []).filter(o => 
-      (o.dealId && o.dealId === deal.id) || 
+      (o.dealId && (o.dealId === deal.id || o.dealId === deal.clientId)) || 
       (o.customerName && deal.company && o.customerName.toLowerCase().trim() === deal.company.toLowerCase().trim())
     );
 
@@ -182,7 +188,7 @@ const OngoingProjects = () => {
       return sum;
     }, 0);
 
-    const totalCost = deal.dealValue || 0;
+    const totalCost = parseFloat(deal.dealValue) || 0;
     const remainingRevenue = Math.max(0, totalCost - revenueReceived);
     const collectionPercent = totalCost > 0 ? Math.min(100, Math.round((revenueReceived / totalCost) * 100)) : 0;
 
@@ -258,6 +264,75 @@ const OngoingProjects = () => {
         </div>
       </div>
 
+      {/* Module Navigation Switcher */}
+      <div className="glass-card" style={{ padding: '8px 12px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+        <button
+          onClick={() => setModuleView('client_directory')}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '8px 16px',
+            borderRadius: '8px',
+            background: moduleView === 'client_directory' ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.25) 0%, rgba(168, 85, 247, 0.15) 100%)' : 'transparent',
+            border: moduleView === 'client_directory' ? '1px solid rgba(99, 102, 241, 0.4)' : '1px solid transparent',
+            color: moduleView === 'client_directory' ? '#818cf8' : 'var(--text-secondary)',
+            fontWeight: moduleView === 'client_directory' ? '700' : '500',
+            fontSize: '0.85rem',
+            cursor: 'pointer'
+          }}
+        >
+          <Building style={{ width: '16px', height: '16px' }} />
+          <span>Client Directory (MIS All Clients)</span>
+        </button>
+
+        <button
+          onClick={() => setModuleView('projects')}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '8px 16px',
+            borderRadius: '8px',
+            background: moduleView === 'projects' ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.25) 0%, rgba(168, 85, 247, 0.15) 100%)' : 'transparent',
+            border: moduleView === 'projects' ? '1px solid rgba(99, 102, 241, 0.4)' : '1px solid transparent',
+            color: moduleView === 'projects' ? '#818cf8' : 'var(--text-secondary)',
+            fontWeight: moduleView === 'projects' ? '700' : '500',
+            fontSize: '0.85rem',
+            cursor: 'pointer'
+          }}
+        >
+          <FolderKanban style={{ width: '16px', height: '16px' }} />
+          <span>Projects & Revenue Milestones</span>
+        </button>
+
+        <button
+          onClick={() => setModuleView('deliverables_hub')}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '8px 16px',
+            borderRadius: '8px',
+            background: moduleView === 'deliverables_hub' ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.25) 0%, rgba(168, 85, 247, 0.15) 100%)' : 'transparent',
+            border: moduleView === 'deliverables_hub' ? '1px solid rgba(99, 102, 241, 0.4)' : '1px solid transparent',
+            color: moduleView === 'deliverables_hub' ? '#818cf8' : 'var(--text-secondary)',
+            fontWeight: moduleView === 'deliverables_hub' ? '700' : '500',
+            fontSize: '0.85rem',
+            cursor: 'pointer'
+          }}
+        >
+          <Layers style={{ width: '16px', height: '16px' }} />
+          <span>Deliverables, Ad Spend & Operations Hub</span>
+        </button>
+      </div>
+
+      {moduleView === 'client_directory' ? (
+        <ClientDirectory />
+      ) : moduleView === 'deliverables_hub' ? (
+        <ProjectDeliverablesHub />
+      ) : (
+        <>
       {/* Filter Bar */}
       <div className="glass-card" style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, minWidth: '240px' }}>
@@ -628,6 +703,8 @@ const OngoingProjects = () => {
             </div>
           </div>
         </div>
+      )}
+      </>
       )}
     </div>
   );

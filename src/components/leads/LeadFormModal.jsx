@@ -49,6 +49,7 @@ const LeadFormModal = ({ onClose }) => {
     email: '',
     phone: '',
     source: 'Website Forms',
+    status: 'Lead Intake',
     projectCategory: 'Software Development',
     projectType: 'One Time', // 'One Time' | 'Recurring'
     productNeeded: '',
@@ -89,6 +90,7 @@ const LeadFormModal = ({ onClose }) => {
       email: formData.email,
       phone: formData.phone || '',
       source: formData.source,
+      status: formData.status || 'Lead Intake',
       projectCategory: formData.projectCategory || 'Software Development',
       projectType: formData.projectType || 'One Time',
       productNeeded: formData.productNeeded || '',
@@ -299,6 +301,24 @@ const LeadFormModal = ({ onClose }) => {
             </div>
 
             <div className="form-group">
+              <label className="form-label">Stage Status</label>
+              <select
+                value={formData.status}
+                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                className="form-select"
+              >
+                <option value="Lead Intake">Lead Intake</option>
+                <option value="Qualified">Qualified</option>
+                <option value="Need Analysis">Need Analysis</option>
+                <option value="Proposal Sent">Proposal Sent</option>
+                <option value="Negotiation">Negotiation</option>
+                <option value="Won">Won</option>
+                <option value="Lost">Lost</option>
+                <option value="Not Interested">Not Interested</option>
+              </select>
+            </div>
+
+            <div className="form-group">
               <label className="form-label">Assigned Sales Executive</label>
               <select
                 value={formData.assignedTo}
@@ -311,10 +331,11 @@ const LeadFormModal = ({ onClose }) => {
               </select>
             </div>
 
-            <div className="form-group">
+            <div className="form-group" style={{ gridColumn: 'span 2' }}>
               <label className="form-label">Tags (comma separated)</label>
               <input
                 type="text"
+                placeholder="e.g. Healthcare, Web App, Urgent"
                 value={formData.tagsStr}
                 onChange={(e) => setFormData({ ...formData, tagsStr: e.target.value })}
                 className="form-input"

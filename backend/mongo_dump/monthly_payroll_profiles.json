@@ -1,0 +1,522 @@
+[
+  {
+    "_id": {
+      "$oid": "6a4011d15dd81747a3555f6e"
+    },
+    "month": 1,
+    "year": 2026,
+    "username": "empsi01",
+    "salary": 100000,
+    "title": "CEO"
+  },
+  {
+    "_id": {
+      "$oid": "6a4011d55dd81747a3555f8e"
+    },
+    "month": 1,
+    "year": 2026,
+    "username": "empsi02",
+    "salary": 15000,
+    "title": "CCO"
+  },
+  {
+    "_id": {
+      "$oid": "6a4011d75dd81747a3555fae"
+    },
+    "username": "empsi03",
+    "year": 2026,
+    "month": 1,
+    "salary": 25000,
+    "title": "Web Developer"
+  },
+  {
+    "_id": {
+      "$oid": "6a4011d95dd81747a3555fce"
+    },
+    "month": 1,
+    "username": "empsi04",
+    "year": 2026,
+    "salary": 50000,
+    "title": "Head Of Operations"
+  },
+  {
+    "_id": {
+      "$oid": "6a4011da5dd81747a3555fec"
+    },
+    "username": "empsi05",
+    "year": 2026,
+    "month": 1,
+    "salary": 40000,
+    "title": "Digital Marketing Lead"
+  },
+  {
+    "_id": {
+      "$oid": "6a4011dc5dd81747a355600c"
+    },
+    "username": "empsi06",
+    "month": 1,
+    "year": 2026,
+    "salary": 10000,
+    "title": "Video Editor"
+  },
+  {
+    "_id": {
+      "$oid": "6a4011de5dd81747a355602c"
+    },
+    "month": 1,
+    "year": 2026,
+    "username": "empsi07",
+    "salary": 40000,
+    "title": "Sr.Graphic Designer"
+  },
+  {
+    "_id": {
+      "$oid": "6a4011e05dd81747a355604c"
+    },
+    "month": 1,
+    "username": "empsi08",
+    "year": 2026,
+    "salary": 12000,
+    "title": "SEO"
+  },
+  {
+    "_id": {
+      "$oid": "6a4011e15dd81747a355606c"
+    },
+    "username": "empsi01",
+    "year": 2026,
+    "month": 2,
+    "salary": 100000,
+    "title": "CEO"
+  },
+  {
+    "_id": {
+      "$oid": "6a4011e35dd81747a3556089"
+    },
+    "username": "empsi02",
+    "month": 2,
+    "year": 2026,
+    "salary": 15000,
+    "title": "CCO"
+  },
+  {
+    "_id": {
+      "$oid": "6a4011e55dd81747a35560a6"
+    },
+    "month": 2,
+    "username": "empsi03",
+    "year": 2026,
+    "salary": 25000,
+    "title": "Web Developer"
+  },
+  {
+    "_id": {
+      "$oid": "6a4011e65dd81747a35560c3"
+    },
+    "username": "empsi04",
+    "month": 2,
+    "year": 2026,
+    "salary": 50000,
+    "title": "Head Of Operations"
+  },
+  {
+    "_id": {
+      "$oid": "6a4011e85dd81747a35560e0"
+    },
+    "month": 2,
+    "username": "empsi05",
+    "year": 2026,
+    "salary": 40000,
+    "title": "Digital Marketing Lead"
+  },
+  {
+    "_id": {
+      "$oid": "6a4011e95dd81747a35560fd"
+    },
+    "month": 2,
+    "username": "empsi06",
+    "year": 2026,
+    "salary": 10000,
+    "title": "Video Editor"
+  },
+  {
+    "_id": {
+      "$oid": "6a4011eb5dd81747a355611a"
+    },
+    "month": 2,
+    "username": "empsi07",
+    "year": 2026,
+    "salary": 40000,
+    "title": "Sr.Graphic Designer"
+  },
+  {
+    "_id": {
+      "$oid": "6a4011ed5dd81747a3556137"
+    },
+    "username": "empsi01",
+    "month": 3,
+    "year": 2026,
+    "salary": 100000,
+    "title": "CEO"
+  },
+  {
+    "_id": {
+      "$oid": "6a4011ee5dd81747a3556152"
+    },
+    "month": 3,
+    "year": 2026,
+    "username": "empsi02",
+    "salary": 15000,
+    "title": "CCO"
+  },
+  {
+    "_id": {
+      "$oid": "6a4011ef5dd81747a355616d"
+    },
+    "username": "empsi03",
+    "year": 2026,
+    "month": 3,
+    "salary": 25000,
+    "title": "Web Developer"
+  },
+  {
+    "_id": {
+      "$oid": "6a4011f15dd81747a3556188"
+    },
+    "month": 3,
+    "username": "empsi04",
+    "year": 2026,
+    "salary": 55000,
+    "title": "Head Of Operations"
+  },
+  {
+    "_id": {
+      "$oid": "6a4011f25dd81747a35561a3"
+    },
+    "month": 3,
+    "username": "empsi05",
+    "year": 2026,
+    "salary": 40000,
+    "title": "Digital Marketing Lead"
+  },
+  {
+    "_id": {
+      "$oid": "6a4011f45dd81747a35561be"
+    },
+    "username": "empsi06",
+    "year": 2026,
+    "month": 3,
+    "salary": 10000,
+    "title": "Video Editor"
+  },
+  {
+    "_id": {
+      "$oid": "6a4011f55dd81747a35561d9"
+    },
+    "username": "empsi07",
+    "year": 2026,
+    "month": 3,
+    "salary": 40000,
+    "title": "Sr.Graphic Designer"
+  },
+  {
+    "_id": {
+      "$oid": "6a4011f75dd81747a35561f4"
+    },
+    "username": "empsi08",
+    "year": 2026,
+    "month": 3,
+    "salary": 15000,
+    "title": "SEO"
+  },
+  {
+    "_id": {
+      "$oid": "6a4011f85dd81747a355620f"
+    },
+    "username": "empsi01",
+    "year": 2026,
+    "month": 4,
+    "salary": 100000,
+    "title": "CEO"
+  },
+  {
+    "_id": {
+      "$oid": "6a4011fa5dd81747a355622a"
+    },
+    "username": "empsi02",
+    "year": 2026,
+    "month": 4,
+    "salary": 15000,
+    "title": "CCO"
+  },
+  {
+    "_id": {
+      "$oid": "6a4011fb5dd81747a3556245"
+    },
+    "username": "empsi03",
+    "year": 2026,
+    "month": 4,
+    "salary": 25000,
+    "title": "Web Developer"
+  },
+  {
+    "_id": {
+      "$oid": "6a4011fd5dd81747a3556260"
+    },
+    "username": "empsi04",
+    "year": 2026,
+    "month": 4,
+    "salary": 55000,
+    "title": "Head Of Operations"
+  },
+  {
+    "_id": {
+      "$oid": "6a4011fe5dd81747a355627b"
+    },
+    "username": "empsi05",
+    "year": 2026,
+    "month": 4,
+    "salary": 40000,
+    "title": "Digital Marketing Lead"
+  },
+  {
+    "_id": {
+      "$oid": "6a4012005dd81747a3556296"
+    },
+    "username": "empsi06",
+    "month": 4,
+    "year": 2026,
+    "salary": 15000,
+    "title": "Video Editor"
+  },
+  {
+    "_id": {
+      "$oid": "6a4012015dd81747a35562b1"
+    },
+    "month": 4,
+    "year": 2026,
+    "username": "empsi07",
+    "salary": 40000,
+    "title": "Sr.Graphic Designer"
+  },
+  {
+    "_id": {
+      "$oid": "6a4012035dd81747a35562cc"
+    },
+    "month": 4,
+    "year": 2026,
+    "username": "empsi08",
+    "salary": 15000,
+    "title": "SEO"
+  },
+  {
+    "_id": {
+      "$oid": "6a4012045dd81747a35562e7"
+    },
+    "month": 5,
+    "username": "empsi01",
+    "year": 2026,
+    "salary": 100000,
+    "title": "CEO"
+  },
+  {
+    "_id": {
+      "$oid": "6a4012065dd81747a3556302"
+    },
+    "username": "empsi02",
+    "month": 5,
+    "year": 2026,
+    "salary": 15000,
+    "title": "CCO"
+  },
+  {
+    "_id": {
+      "$oid": "6a4012075dd81747a355631d"
+    },
+    "username": "empsi03",
+    "month": 5,
+    "year": 2026,
+    "salary": 30000,
+    "title": "Web Developer"
+  },
+  {
+    "_id": {
+      "$oid": "6a4012095dd81747a3556338"
+    },
+    "username": "empsi04",
+    "month": 5,
+    "year": 2026,
+    "salary": 55000,
+    "title": "Head Of Operations"
+  },
+  {
+    "_id": {
+      "$oid": "6a40120a5dd81747a3556353"
+    },
+    "username": "empsi05",
+    "year": 2026,
+    "month": 5,
+    "salary": 40000,
+    "title": "Digital Marketing Lead"
+  },
+  {
+    "_id": {
+      "$oid": "6a40120c5dd81747a355636e"
+    },
+    "username": "empsi06",
+    "month": 5,
+    "year": 2026,
+    "salary": 10000,
+    "title": "Video Editor"
+  },
+  {
+    "_id": {
+      "$oid": "6a40120d5dd81747a3556389"
+    },
+    "username": "empsi07",
+    "month": 5,
+    "year": 2026,
+    "salary": 40000,
+    "title": "Sr.Graphic Designer"
+  },
+  {
+    "_id": {
+      "$oid": "6a40120f5dd81747a35563a4"
+    },
+    "username": "empsi08",
+    "year": 2026,
+    "month": 5,
+    "salary": 20000,
+    "title": "SEO"
+  },
+  {
+    "_id": {
+      "$oid": "6a4012105dd81747a35563bf"
+    },
+    "month": 6,
+    "year": 2026,
+    "username": "empsi01",
+    "salary": 100000,
+    "title": "CEO"
+  },
+  {
+    "_id": {
+      "$oid": "6a4012115dd81747a35563d8"
+    },
+    "month": 6,
+    "year": 2026,
+    "username": "empsi02",
+    "salary": 15000,
+    "title": "CCO"
+  },
+  {
+    "_id": {
+      "$oid": "6a4012135dd81747a35563f1"
+    },
+    "month": 6,
+    "year": 2026,
+    "username": "empsi03",
+    "salary": 30000,
+    "title": "Project Co-Ordinator"
+  },
+  {
+    "_id": {
+      "$oid": "6a4012145dd81747a355640a"
+    },
+    "month": 6,
+    "year": 2026,
+    "username": "empsi04",
+    "salary": 55000,
+    "title": "Head Of Operations"
+  },
+  {
+    "_id": {
+      "$oid": "6a4012155dd81747a3556423"
+    },
+    "month": 6,
+    "year": 2026,
+    "username": "empsi05",
+    "salary": 40000,
+    "title": "Digital Marketing Lead"
+  },
+  {
+    "_id": {
+      "$oid": "6a4012175dd81747a355643c"
+    },
+    "username": "empsi06",
+    "month": 6,
+    "year": 2026,
+    "salary": 15000,
+    "title": "Video Editor"
+  },
+  {
+    "_id": {
+      "$oid": "6a4012185dd81747a3556455"
+    },
+    "month": 6,
+    "username": "empsi07",
+    "year": 2026,
+    "salary": 40000,
+    "title": "Sr.Graphic Designer"
+  },
+  {
+    "_id": {
+      "$oid": "6a40121a5dd81747a355646e"
+    },
+    "month": 6,
+    "year": 2026,
+    "username": "empsi08",
+    "salary": 20000,
+    "title": "SEO"
+  },
+  {
+    "_id": {
+      "$oid": "6a40121b5dd81747a3556487"
+    },
+    "username": "empsi09",
+    "year": 2026,
+    "month": 6,
+    "salary": 12000,
+    "title": "Data Analyst Intern"
+  },
+  {
+    "_id": {
+      "$oid": "6a40121b5dd81747a3556488"
+    },
+    "month": 6,
+    "year": 2026,
+    "username": "empsi10",
+    "salary": 12000,
+    "title": "Data Analyst Intern"
+  },
+  {
+    "_id": {
+      "$oid": "6a40121b5dd81747a3556489"
+    },
+    "username": "empsi11",
+    "month": 6,
+    "year": 2026,
+    "salary": 12000,
+    "title": "Data Analyst Intern"
+  },
+  {
+    "_id": {
+      "$oid": "6a40121b5dd81747a355648a"
+    },
+    "username": "empsi12",
+    "year": 2026,
+    "month": 6,
+    "salary": 12000,
+    "title": "Data Analyst Intern"
+  },
+  {
+    "_id": {
+      "$oid": "6a40121b5dd81747a355648b"
+    },
+    "username": "empsi13",
+    "year": 2026,
+    "month": 6,
+    "salary": 12000,
+    "title": "Data Analyst Intern"
+  }
+]

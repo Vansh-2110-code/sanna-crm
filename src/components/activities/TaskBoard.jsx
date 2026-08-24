@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useCRM } from '../../context/CRMContext';
+import DailyTaskDiary from './DailyTaskDiary';
 import {
   CheckSquare,
   Plus,
@@ -10,11 +11,15 @@ import {
   Calendar,
   Clock,
   User,
-  CheckCircle2
+  CheckCircle2,
+  BookOpen,
+  Layers
 } from 'lucide-react';
 
 const TaskBoard = () => {
   const { tasks, addTask, toggleTaskStatus, employees = [], currentUser } = useCRM();
+
+  const [activeView, setActiveView] = useState('daily_diary'); // 'daily_diary' | 'activities'
 
   // Get list of sales reps/employees for the active organization
   const availableReps = employees.length > 0 
@@ -58,6 +63,54 @@ const TaskBoard = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      
+      {/* Top Level View Selector */}
+      <div className="glass-card" style={{ padding: '8px 12px', display: 'flex', gap: '8px' }}>
+        <button
+          onClick={() => setActiveView('daily_diary')}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '8px 16px',
+            borderRadius: '8px',
+            background: activeView === 'daily_diary' ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.25) 0%, rgba(168, 85, 247, 0.15) 100%)' : 'transparent',
+            border: activeView === 'daily_diary' ? '1px solid rgba(99, 102, 241, 0.4)' : '1px solid transparent',
+            color: activeView === 'daily_diary' ? '#818cf8' : 'var(--text-secondary)',
+            fontWeight: activeView === 'daily_diary' ? '700' : '500',
+            fontSize: '0.85rem',
+            cursor: 'pointer'
+          }}
+        >
+          <CheckSquare style={{ width: '16px', height: '16px' }} />
+          <span>Daily Work Logs & Timesheet Entry</span>
+        </button>
+
+        <button
+          onClick={() => setActiveView('activities')}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '8px 16px',
+            borderRadius: '8px',
+            background: activeView === 'activities' ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.25) 0%, rgba(168, 85, 247, 0.15) 100%)' : 'transparent',
+            border: activeView === 'activities' ? '1px solid rgba(99, 102, 241, 0.4)' : '1px solid transparent',
+            color: activeView === 'activities' ? '#818cf8' : 'var(--text-secondary)',
+            fontWeight: activeView === 'activities' ? '700' : '500',
+            fontSize: '0.85rem',
+            cursor: 'pointer'
+          }}
+        >
+          <PhoneCall style={{ width: '16px', height: '16px' }} />
+          <span>Omnichannel Activity Center</span>
+        </button>
+      </div>
+
+      {activeView === 'daily_diary' ? (
+        <DailyTaskDiary />
+      ) : (
+        <>
       
       {/* Header Banner */}
       <div className="glass-panel" style={{ padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -266,6 +319,8 @@ const TaskBoard = () => {
             </form>
           </div>
         </div>
+      )}
+      </>
       )}
 
     </div>

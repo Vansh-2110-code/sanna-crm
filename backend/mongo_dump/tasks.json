@@ -1,0 +1,75 @@
+[
+  {
+    "_id": {
+      "$oid": "6a3d29f6bbf376a572de10aa"
+    },
+    "intern_name": "empsi12",
+    "task_name": "Working on the Bulk message website",
+    "category": "Frontend",
+    "assigned_date": "2026-06-25",
+    "due_date": "2026-06-25",
+    "priority": "Medium",
+    "status": "Completed",
+    "percent_done": 100,
+    "assigned_by": "empsi12",
+    "notes": "Made the frontend, database connection and completed backend api integrationto the Website",
+    "started_at": "2026-06-25T13:15:44.725982Z",
+    "completed_at": "2026-06-29T09:16:30.566879Z",
+    "completed_date": "",
+    "intern_fullname": "Vansh Goyal"
+  },
+  {
+    "_id": {
+      "$oid": "6a4de9b46d44b34a1c774764"
+    },
+    "intern_name": "empsi13",
+    "task_name": "complete the frented task for market",
+    "category": "Frontend",
+    "assigned_date": "2026-07-08",
+    "due_date": "2026-07-08",
+    "priority": "Medium",
+    "status": "Completed",
+    "percent_done": 100,
+    "assigned_by": "empsi13",
+    "notes": "",
+    "started_at": "2026-07-08T06:10:02.171132Z",
+    "completed_at": "2026-07-08T06:10:11.864812Z",
+    "completed_date": ""
+  },
+  {
+    "_id": {
+      "$oid": "6a72e71afc366860dc812456"
+    },
+    "intern_name": "empsi18",
+    "task_name": "astraquant",
+    "category": "Database",
+    "assigned_date": "2026-08-05",
+    "due_date": "2026-08-05",
+    "priority": "Medium",
+    "status": "Completed",
+    "percent_done": 100,
+    "assigned_by": "empsi18",
+    "notes": "\tMigrate SQLite → PostgreSQL\n\tReplace AUTHORIZED_USERS dict with a real users/clients table, bcrypt-hashed passwords\n\tBuild proper signup/onboarding flow (no more manual dict edits + redeploy per client)\n",
+    "started_at": null,
+    "completed_at": "2026-08-05T17:14:45.173297Z",
+    "completed_date": ""
+  },
+  {
+    "_id": {
+      "$oid": "6a72e98894e745d221e6f382"
+    },
+    "intern_name": "empsi18",
+    "task_name": "pumec",
+    "category": "Frontend",
+    "assigned_date": "2026-08-05",
+    "due_date": "2026-08-05",
+    "priority": "High",
+    "status": "Completed",
+    "percent_done": 100,
+    "assigned_by": "empsi18",
+    "notes": "upgrade the website according to the requirements of the client",
+    "started_at": "2026-08-05T17:14:52.795280Z",
+    "completed_at": "2026-08-10T07:15:27.039674Z",
+    "completed_date": ""
+  }
+]

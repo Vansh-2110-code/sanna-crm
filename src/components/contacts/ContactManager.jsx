@@ -1,25 +1,44 @@
 import React from 'react';
 import { useCRM } from '../../context/CRMContext';
-import { Building2, Mail, Phone, MapPin, Tag, FileText, ShoppingBag } from 'lucide-react';
+import exportToCSV from '../../utils/csvExporter';
+import { Building2, Mail, Phone, MapPin, Tag, FileText, ShoppingBag, FileSpreadsheet } from 'lucide-react';
 
 const ContactManager = () => {
-  const { leads, quotes, orders } = useCRM();
+  const { leads = [], quotes = [], orders = [] } = useCRM();
+
+  const handleExportCSV = () => {
+    let csv = `Contact ID,Name,Company,Email,Phone,Assigned Rep,Status\n`;
+    leads.forEach(c => {
+      csv += `"${c.id}","${c.name}","${c.company || ''}","${c.email}","${c.phone || ''}","${c.assignedTo || ''}","Active Account"\n`;
+    });
+
+    exportToCSV(csv, `AstraCRM_Contacts_Export_${new Date().toISOString().split('T')[0]}.csv`);
+  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       
-      <div className="glass-panel" style={{ padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className="glass-panel" style={{ padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
         <div>
           <div style={{ fontSize: '0.8rem', color: '#60a5fa', fontWeight: '700', textTransform: 'uppercase' }}>
             Customer 360° Account Intelligence
           </div>
           <h2 style={{ fontSize: '1.5rem', fontWeight: '800', margin: '4px 0' }}>
-            Contacts & Account Profiles
+            Contacts & Account Profiles ({leads.length})
           </h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
             Centralized profile repository for company accounts, decision-maker contacts, interaction history, and linked transactions.
           </p>
         </div>
+
+        <button
+          onClick={handleExportCSV}
+          className="btn btn-secondary"
+          style={{ padding: '10px 16px', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}
+        >
+          <FileSpreadsheet style={{ width: '16px', height: '16px' }} />
+          <span>Export Contacts CSV</span>
+        </button>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '20px' }}>
