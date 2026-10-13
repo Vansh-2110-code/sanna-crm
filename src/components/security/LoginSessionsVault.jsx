@@ -33,7 +33,11 @@ import {
   Link2,
   Layers,
   CheckSquare,
-  Square
+  Square,
+  ChevronDown,
+  ChevronUp,
+  CalendarDays,
+  Users
 } from 'lucide-react';
 
 const SHIFT_MODES = ['Office Campus', 'Remote / Hybrid', 'Client Site / Field'];
@@ -75,6 +79,7 @@ const LoginSessionsVault = () => {
   const [filterStatus, setFilterStatus] = useState('All'); // 'All' | 'Active' | 'Logged Out' | 'Terminated'
   const [filterStaffType, setFilterStaffType] = useState('All'); // 'All' | 'Employee' | 'Intern'
   const [selectedDate, setSelectedDate] = useState('');
+  const [collapsedDates, setCollapsedDates] = useState({});
   const [liveElapsedSeconds, setLiveElapsedSeconds] = useState(0);
   const [syncFeedback, setSyncFeedback] = useState(null);
 
@@ -178,6 +183,54 @@ const LoginSessionsVault = () => {
     return `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
   };
 
+  const getSessionDateKey = (val) => {
+    if (!val) return '';
+    if (typeof val === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(val)) return val;
+    try {
+      const d = new Date(val);
+      if (isNaN(d.getTime())) return String(val).slice(0, 10);
+      return d.toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+    } catch (e) {
+      return String(val).slice(0, 10);
+    }
+  };
+
+  const formatDayTitle = (dateKey) => {
+    if (!dateKey || dateKey === 'Undated') {
+      return {
+        isToday: false,
+        isYesterday: false,
+        fullTitle: 'Undated Sessions',
+        formattedDate: 'Undated Sessions',
+        dayOfWeek: 'Other',
+        shortDate: 'Other'
+      };
+    }
+    try {
+      const [year, month, day] = dateKey.split('-').map(Number);
+      const d = new Date(year, month - 1, day);
+
+      const todayKey = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+      const yestDate = new Date();
+      yestDate.setDate(yestDate.getDate() - 1);
+      const yesterdayKey = yestDate.toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+
+      const isToday = dateKey === todayKey;
+      const isYesterday = dateKey === yesterdayKey;
+
+      return {
+        isToday,
+        isYesterday,
+        fullTitle: d.toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
+        formattedDate: d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }),
+        dayOfWeek: d.toLocaleDateString('en-US', { weekday: 'long' }),
+        shortDate: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+      };
+    } catch (e) {
+      return { isToday: false, isYesterday: false, fullTitle: dateKey, formattedDate: dateKey, dayOfWeek: '', shortDate: dateKey };
+    }
+  };
+
   const parseTimeToMinutes = (timeStr) => {
     if (!timeStr) return 0;
     const clean = String(timeStr).replace(/\s+/g, ' ').trim();
@@ -192,6 +245,7 @@ const LoginSessionsVault = () => {
   };
 
   const getSessionDurationMinutes = (session) => {
+    if (!session || session.status === 'Offline' || session.isOfflinePlaceholder) return 0;
     const currentISTStr = getCurrentISTTimeString(new Date());
     const currentISTMins = parseTimeToMinutes(currentISTStr);
     const inM = parseTimeToMinutes(session.punchInTime || '09:00 AM');
@@ -224,6 +278,14 @@ const LoginSessionsVault = () => {
 
   // Helper to compute duration display badge from punch in & out
   const computeDurationDisplay = (session) => {
+    if (!session || session.status === 'Offline' || session.isOfflinePlaceholder) {
+      return (
+        <span style={{ color: 'var(--text-muted)', fontSize: '0.78rem' }}>
+          0m (0.0 hrs)
+        </span>
+      );
+    }
+
     const totalMins = getSessionDurationMinutes(session);
     const hrs = Math.floor(totalMins / 60);
     const mins = totalMins % 60;
@@ -486,7 +548,7 @@ const LoginSessionsVault = () => {
 
       // Date Filter
       if (selectedDate) {
-        const sessionDate = safeToISODate(s.loginTime);
+        const sessionDate = getSessionDateKey(s.loginTime) || safeToISODate(s.loginTime);
         if (sessionDate !== selectedDate) return false;
       }
 
@@ -507,6 +569,166 @@ const LoginSessionsVault = () => {
       return true;
     });
   }, [visibleSessions, filterStatus, filterStaffType, selectedDate, searchQuery]);
+
+  // Available unique dates in visibleSessions for Quick Navigation Tabs
+  const availableDays = useMemo(() => {
+    const todayKey = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+    const yest = new Date();
+    yest.setDate(yest.getDate() - 1);
+    const yestKey = yest.toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+
+    const map = new Map();
+    // Always include Today in quick navigation tabs
+    map.set(todayKey, {
+      dateKey: todayKey,
+      isToday: true,
+      isYesterday: false,
+      count: 0
+    });
+
+    (visibleSessions || []).forEach(s => {
+      const dKey = getSessionDateKey(s.loginTime);
+      if (dKey && !map.has(dKey)) {
+        map.set(dKey, {
+          dateKey: dKey,
+          isToday: dKey === todayKey,
+          isYesterday: dKey === yestKey,
+          count: 0
+        });
+      }
+      if (dKey && map.has(dKey)) {
+        map.get(dKey).count++;
+      }
+    });
+
+    return Array.from(map.values()).sort((a, b) => b.dateKey.localeCompare(a.dateKey));
+  }, [visibleSessions]);
+
+  // Group filtered sessions Day-Wise (newest date first, active sessions first)
+  const dayGroupedSessions = useMemo(() => {
+    const groups = {};
+
+    // Sort all sessions: Newest date first, then Active first, then latest punch-in
+    const sorted = [...filteredSessions].sort((a, b) => {
+      const dateA = getSessionDateKey(a.loginTime);
+      const dateB = getSessionDateKey(b.loginTime);
+      if (dateA !== dateB) {
+        return dateB.localeCompare(dateA);
+      }
+      if (a.status === 'Active' && b.status !== 'Active') return -1;
+      if (b.status === 'Active' && a.status !== 'Active') return 1;
+      const timeA = parseTimeToMinutes(a.punchInTime || '09:00 AM');
+      const timeB = parseTimeToMinutes(b.punchInTime || '09:00 AM');
+      return timeB - timeA;
+    });
+
+    sorted.forEach(session => {
+      const dKey = getSessionDateKey(session.loginTime) || 'Undated';
+      if (!groups[dKey]) {
+        groups[dKey] = [];
+      }
+      groups[dKey].push(session);
+    });
+
+    // Ensure Today group always exists so manager/admin sees today's full staff status
+    const todayKey = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+    if (!selectedDate || selectedDate === todayKey) {
+      if (!groups[todayKey]) {
+        groups[todayKey] = [];
+      }
+    }
+
+    return Object.keys(groups).sort((a, b) => b.localeCompare(a)).map(dKey => {
+      const list = [...groups[dKey]];
+      const info = formatDayTitle(dKey);
+
+      // If Admin and viewing Today (or specific date), include all registered staff from directory who haven't logged in yet
+      if (isAdmin && (info.isToday || selectedDate === dKey) && allStaff && allStaff.length > 0) {
+        const loggedInStaffKeys = new Set();
+        list.forEach(s => {
+          if (s.userId) loggedInStaffKeys.add(String(s.userId).toLowerCase());
+          if (s.userEmail) loggedInStaffKeys.add(String(s.userEmail).toLowerCase());
+          if (s.userName) loggedInStaffKeys.add(String(s.userName).toLowerCase());
+        });
+
+        allStaff.forEach(staff => {
+          const idMatch = staff.id && loggedInStaffKeys.has(String(staff.id).toLowerCase());
+          const emailMatch = staff.email && loggedInStaffKeys.has(String(staff.email).toLowerCase());
+          const nameMatch = staff.name && loggedInStaffKeys.has(String(staff.name).toLowerCase());
+          if (!idMatch && !emailMatch && !nameMatch) {
+            // Apply current filters if any
+            if (filterStatus !== 'All' && filterStatus !== 'Offline' && filterStatus !== 'Logged Out') return;
+            if (filterStaffType === 'Employee' && (staff.role?.includes('Intern') || staff.type === 'Intern')) return;
+            if (filterStaffType === 'Intern' && (!staff.role?.includes('Intern') && staff.type !== 'Intern')) return;
+
+            if (searchQuery) {
+              const q = searchQuery.toLowerCase();
+              const matchUser = (staff.name || '').toLowerCase().includes(q);
+              const matchEmail = (staff.email || '').toLowerCase().includes(q);
+              const matchRole = (staff.designation || staff.role || '').toLowerCase().includes(q);
+              if (!matchUser && !matchEmail && !matchRole) return;
+            }
+
+            list.push({
+              id: `offline-${staff.id}-${dKey}`,
+              userId: staff.id,
+              userName: staff.name,
+              userEmail: staff.email,
+              role: staff.designation || staff.role || (staff.type === 'Intern' ? 'Intern / Trainee' : 'Staff Member'),
+              staffType: staff.type || 'Employee',
+              loginTime: `${dKey}T09:00:00.000Z`,
+              punchInTime: null,
+              punchOutTime: null,
+              status: 'Offline',
+              workMode: 'Office Campus',
+              ipAddress: '—',
+              device: '—',
+              location: '—',
+              isOfflinePlaceholder: true
+            });
+          }
+        });
+      }
+
+      const uniqueStaff = new Set(list.map(s => s.userId || s.userEmail || s.userName)).size;
+      const activeCount = list.filter(s => s.status === 'Active').length;
+      const offlineCount = list.filter(s => s.status === 'Offline' || s.isOfflinePlaceholder).length;
+
+      let totalDayMinutes = 0;
+      const staffDayMinutes = {};
+      const staffSessionCount = {};
+
+      list.forEach(s => {
+        const staffKey = s.userId || s.userEmail || s.userName;
+        const mins = getSessionDurationMinutes(s);
+        totalDayMinutes += mins;
+        staffDayMinutes[staffKey] = (staffDayMinutes[staffKey] || 0) + mins;
+        staffSessionCount[staffKey] = (staffSessionCount[staffKey] || 0) + 1;
+      });
+
+      let autoPresentCount = 0;
+      Object.values(staffDayMinutes).forEach(mins => {
+        if (mins >= 9 * 60) {
+          autoPresentCount++;
+        }
+      });
+
+      const totalDayHours = (totalDayMinutes / 60).toFixed(1);
+
+      return {
+        dateKey: dKey,
+        dayInfo: info,
+        sessions: list,
+        uniqueStaffCount: uniqueStaff,
+        activeCount,
+        offlineCount,
+        totalDayHours,
+        autoPresentCount,
+        staffDayMinutes,
+        staffSessionCount
+      };
+    });
+  }, [filteredSessions, isAdmin, allStaff, selectedDate, filterStatus, filterStaffType, searchQuery]);
 
   const activeSessionsCount = visibleSessions.filter(s => s.status === 'Active').length;
   const terminatedCount = visibleSessions.filter(s => s.status === 'Terminated').length;
@@ -883,249 +1105,680 @@ const LoginSessionsVault = () => {
         </div>
       )}
 
-      {/* Recorded Sessions Table */}
-      <div className="glass-card" style={{ padding: '0', overflow: 'hidden' }}>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
-            <thead>
-              <tr style={{ background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid var(--border-color)' }}>
-                {isAdmin && (
-                  <th style={{ width: '40px', padding: '12px 10px', textAlign: 'center' }}>
-                    <Layers style={{ width: '14px', height: '14px', color: 'var(--text-muted)' }} title="Select sessions to club" />
-                  </th>
-                )}
-                <th style={{ padding: '12px 16px', textAlign: 'left' }}>Staff Member / Identity</th>
-                <th style={{ padding: '12px 14px', textAlign: 'left' }}>Login / Punch-In</th>
-                <th style={{ padding: '12px 14px', textAlign: 'left' }}>Logout / Punch-Out</th>
-                <th style={{ padding: '12px 14px', textAlign: 'left' }}>Total Duration</th>
-                <th style={{ padding: '12px 12px', textAlign: 'center' }}>Session Status</th>
-                <th style={{ padding: '12px 14px', textAlign: 'center' }}>HR & Security Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredSessions.length === 0 ? (
-                <tr>
-                  <td colSpan={isAdmin ? 7 : 6} style={{ padding: '36px', textAlign: 'center', color: 'var(--text-muted)' }}>
-                    No login session records found matching filter.
-                  </td>
-                </tr>
-              ) : (
-                filteredSessions.map((session, idx) => {
-                  const isActive = session.status === 'Active';
-                  const isTerminated = session.status === 'Terminated';
-                  const isIntern = session.role?.includes('Intern') || session.staffType === 'Intern';
-                  const isSelected = selectedSessionIds.includes(session.id);
+      {/* Day Quick Navigation Tabs & Header */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+          
+          {/* Quick Day Tabs */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflowX: 'auto', paddingBottom: '4px', maxWidth: '100%' }}>
+            <button
+              type="button"
+              onClick={() => setSelectedDate('')}
+              style={{
+                padding: '6px 14px',
+                borderRadius: '20px',
+                fontSize: '0.78rem',
+                fontWeight: '700',
+                cursor: 'pointer',
+                border: !selectedDate ? '1px solid #6366f1' : '1px solid rgba(255,255,255,0.1)',
+                background: !selectedDate ? 'linear-gradient(135deg, rgba(99,102,241,0.25), rgba(56,189,248,0.2))' : 'rgba(255,255,255,0.04)',
+                color: !selectedDate ? '#a5b4fc' : 'var(--text-secondary)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                whiteSpace: 'nowrap',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <CalendarDays style={{ width: '14px', height: '14px' }} />
+              <span>All Days ({visibleSessions.length})</span>
+            </button>
 
-                  return (
-                    <tr
-                      key={session.id || idx}
-                      style={{
-                        borderBottom: '1px solid var(--border-color)',
-                        background: isSelected ? 'rgba(99, 102, 241, 0.12)' : isActive ? 'rgba(16, 185, 129, 0.02)' : 'transparent',
-                        transition: 'background 0.2s ease'
-                      }}
-                    >
-                      {/* Checkbox for Admin Clubbing */}
-                      {isAdmin && (
-                        <td style={{ width: '40px', padding: '12px 10px', textAlign: 'center' }}>
-                          <button
-                            type="button"
-                            onClick={() => handleToggleSelectSession(session.id)}
-                            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: isSelected ? '#818cf8' : 'var(--text-muted)' }}
-                            title="Select this log to club with another log"
-                          >
-                            {isSelected ? (
-                              <CheckSquare style={{ width: '16px', height: '16px', color: '#818cf8' }} />
-                            ) : (
-                              <Square style={{ width: '16px', height: '16px', color: 'rgba(255,255,255,0.2)' }} />
-                            )}
-                          </button>
-                        </td>
-                      )}
-                      
-                      {/* User Identity */}
-                      <td style={{ padding: '12px 16px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <div style={{
-                            width: '32px',
-                            height: '32px',
-                            borderRadius: '8px',
-                            background: isIntern ? 'linear-gradient(135deg, #a855f7, #ec4899)' : 'linear-gradient(135deg, #3b82f6, #6366f1)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: '#fff',
-                            fontWeight: '800',
-                            fontSize: '0.85rem'
-                          }}>
-                            {session.userName?.charAt(0) || 'U'}
-                          </div>
+            {availableDays.slice(0, 8).map(day => {
+              const isSelected = selectedDate === day.dateKey;
+              const info = formatDayTitle(day.dateKey);
+              let label = day.dateKey;
+              if (day.isToday) label = `Today · ${info.shortDate}`;
+              else if (day.isYesterday) label = `Yesterday · ${info.shortDate}`;
+              else label = `${info.dayOfWeek.slice(0, 3)} · ${info.shortDate}`;
 
-                          <div>
-                            <div style={{ fontWeight: '800', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                              <span>{session.userName}</span>
-                              <span style={{
-                                padding: '1px 6px',
-                                borderRadius: '4px',
-                                background: isIntern ? 'rgba(168, 85, 247, 0.15)' : 'rgba(59, 130, 246, 0.15)',
-                                color: isIntern ? '#c084fc' : '#60a5fa',
-                                fontSize: '0.65rem',
-                                fontWeight: '700'
-                              }}>
-                                {isIntern ? 'Intern' : 'Employee'}
-                              </span>
-                            </div>
-                            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                              {session.role} · {session.userEmail}
-                            </div>
-                          </div>
-                        </div>
-                      </td>
+              return (
+                <button
+                  key={day.dateKey}
+                  type="button"
+                  onClick={() => setSelectedDate(isSelected ? '' : day.dateKey)}
+                  style={{
+                    padding: '6px 14px',
+                    borderRadius: '20px',
+                    fontSize: '0.78rem',
+                    fontWeight: '700',
+                    cursor: 'pointer',
+                    border: isSelected
+                      ? '1px solid #34d399'
+                      : day.isToday
+                      ? '1px solid rgba(16, 185, 129, 0.4)'
+                      : '1px solid rgba(255,255,255,0.08)',
+                    background: isSelected
+                      ? 'linear-gradient(135deg, rgba(16,185,129,0.3), rgba(5,150,105,0.25))'
+                      : day.isToday
+                      ? 'rgba(16, 185, 129, 0.08)'
+                      : 'rgba(255,255,255,0.03)',
+                    color: isSelected ? '#34d399' : day.isToday ? '#6ee7b7' : 'var(--text-secondary)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    whiteSpace: 'nowrap',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  {day.isToday && <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981', display: 'inline-block', boxShadow: '0 0 6px #10b981' }} />}
+                  <span>{label}</span>
+                  <span style={{
+                    fontSize: '0.7rem',
+                    padding: '1px 6px',
+                    borderRadius: '10px',
+                    background: isSelected ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.08)',
+                    color: isSelected ? '#34d399' : 'var(--text-muted)'
+                  }}>
+                    {day.count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
 
-                      {/* Login / Punch In */}
-                      <td style={{ padding: '12px 14px', color: 'var(--text-primary)' }}>
-                        <div style={{ fontWeight: '800', color: '#34d399', fontSize: '0.85rem' }}>
-                          {session.punchInTime || '09:00 AM'}
-                        </div>
-                        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-                          {new Date(session.loginTime).toLocaleDateString()}
-                        </div>
-                      </td>
-
-                      {/* Logout / Punch Out */}
-                      <td style={{ padding: '12px 14px', color: 'var(--text-secondary)' }}>
-                        {isActive || !session.punchOutTime ? (
-                          <span style={{ fontSize: '0.75rem', color: '#34d399', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                            <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#10b981', display: 'inline-block', boxShadow: '0 0 8px #10b981' }} />
-                            Online Now
-                          </span>
-                        ) : (
-                          <div style={{ fontWeight: '800', color: 'var(--text-primary)', fontSize: '0.85rem' }}>
-                            {session.punchOutTime}
-                          </div>
-                        )}
-                      </td>
-
-                      {/* Duration */}
-                      <td style={{ padding: '12px 14px', color: 'var(--text-primary)', fontWeight: '700' }}>
-                        {computeDurationDisplay(session)}
-                      </td>
-
-                      {/* Status Badge */}
-                      <td style={{ padding: '12px 12px', textAlign: 'center' }}>
-                        <span style={{
-                          padding: '3px 8px',
-                          borderRadius: '6px',
-                          background: isActive ? 'rgba(16, 185, 129, 0.15)' : isTerminated ? 'rgba(239, 68, 68, 0.15)' : 'rgba(255, 255, 255, 0.08)',
-                          color: isActive ? '#34d399' : isTerminated ? '#f87171' : 'var(--text-muted)',
-                          fontSize: '0.72rem',
-                          fontWeight: '700'
-                        }}>
-                          {session.status}
-                        </span>
-                      </td>
-
-                      {/* Actions */}
-                      <td style={{ padding: '12px 14px', textAlign: 'center' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-                          
-                          {/* Club Log Action Button - ONLY Admin */}
-                          {isAdmin && (
-                            <button
-                              onClick={() => handleOpenClubModal(session)}
-                              className="btn btn-secondary"
-                              style={{
-                                padding: '4px 8px',
-                                fontSize: '0.72rem',
-                                color: '#38bdf8',
-                                border: '1px solid rgba(56, 189, 248, 0.3)',
-                                background: 'rgba(56, 189, 248, 0.08)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '4px'
-                              }}
-                              title="Club / Merge this log with another session to add work times together"
-                            >
-                              <Link2 style={{ width: '12px', height: '12px' }} />
-                              <span>Club</span>
-                            </button>
-                          )}
-
-                          {/* Edit Punch Time Button - ONLY Admin */}
-                          {isAdmin && (
-                            <button
-                              onClick={() => handleOpenEdit(session)}
-                              className="btn btn-secondary"
-                              style={{ padding: '4px 8px', fontSize: '0.72rem', color: '#818cf8' }}
-                              title="Edit punch-in / punch-out time (Admin only)"
-                            >
-                              <Edit2 style={{ width: '12px', height: '12px' }} />
-                              <span>Edit</span>
-                            </button>
-                          )}
-
-                          {/* Revoke Button - ONLY Super Admin / Org Admin can revoke sessions */}
-                          {isActive && (
-                            isAdmin ? (
-                              <button
-                                onClick={() => {
-                                  if (window.confirm(`Are you sure you want to forcibly terminate the active session for ${session.userName}?`)) {
-                                    revokeLoginSession(session.id);
-                                  }
-                                }}
-                                className="btn btn-secondary"
-                                style={{
-                                  padding: '4px 8px',
-                                  fontSize: '0.72rem',
-                                  color: '#f87171',
-                                  border: '1px solid rgba(239, 68, 68, 0.3)',
-                                  background: 'rgba(239, 68, 68, 0.08)'
-                                }}
-                                title="Forcibly terminate active session (Admin Authorization)"
-                              >
-                                <Lock style={{ width: '11px', height: '11px', marginRight: '4px' }} />
-                                Revoke
-                              </button>
-                            ) : (
-                              <span
-                                style={{
-                                  fontSize: '0.7rem',
-                                  color: 'var(--text-muted)',
-                                  fontStyle: 'italic',
-                                  padding: '2px 6px'
-                                }}
-                                title="Only Super Admins can revoke active user sessions"
-                              >
-                                Active (Protected)
-                              </span>
-                            )
-                          )}
-
-                          {/* Delete Punch Record - ONLY Admin */}
-                          {isAdmin && (
-                            <button
-                              onClick={() => {
-                                if (window.confirm(`Delete login record for ${session.userName}?`)) {
-                                  deleteLoginSession(session.id);
-                                }
-                              }}
-                              className="btn btn-secondary"
-                              style={{ padding: '4px 6px', color: '#f87171' }}
-                              title="Delete record (Admin only)"
-                            >
-                              <Trash2 style={{ width: '12px', height: '12px' }} />
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
+          {/* Expand / Collapse All */}
+          {dayGroupedSessions.length > 1 && (
+            <button
+              type="button"
+              onClick={() => {
+                const allCurrentlyCollapsed = dayGroupedSessions.every(g => !!collapsedDates[g.dateKey]);
+                if (allCurrentlyCollapsed) {
+                  setCollapsedDates({});
+                } else {
+                  const newObj = {};
+                  dayGroupedSessions.forEach(g => { newObj[g.dateKey] = true; });
+                  setCollapsedDates(newObj);
+                }
+              }}
+              className="btn btn-secondary"
+              style={{ padding: '6px 14px', fontSize: '0.75rem', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}
+            >
+              {dayGroupedSessions.every(g => !!collapsedDates[g.dateKey]) ? '▼ Expand All Days' : '▲ Collapse All Days'}
+            </button>
+          )}
         </div>
       </div>
+
+      {/* Day-Wise Grouped Session Cards */}
+      {dayGroupedSessions.length === 0 ? (
+        <div className="glass-card" style={{ padding: '40px 20px', textAlign: 'center', color: 'var(--text-muted)' }}>
+          <Calendar style={{ width: '36px', height: '36px', margin: '0 auto 12px', opacity: 0.4 }} />
+          <div style={{ fontSize: '1rem', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '4px' }}>
+            No Session Records Found
+          </div>
+          <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '16px' }}>
+            No daily login / logout logs match the active filters or search terms.
+          </div>
+          {(selectedDate || searchQuery || filterStatus !== 'All' || filterStaffType !== 'All') && (
+            <button
+              type="button"
+              onClick={() => { setSelectedDate(''); setSearchQuery(''); setFilterStatus('All'); setFilterStaffType('All'); }}
+              className="btn btn-secondary"
+              style={{ padding: '7px 16px', fontSize: '0.8rem' }}
+            >
+              Reset Filters & View All
+            </button>
+          )}
+        </div>
+      ) : (
+        dayGroupedSessions.map((group) => {
+          const isCollapsed = !!collapsedDates[group.dateKey];
+          const { isToday, isYesterday, formattedDate, dayOfWeek } = group.dayInfo;
+
+          return (
+            <div
+              key={group.dateKey}
+              className="glass-card"
+              style={{
+                padding: '0',
+                overflow: 'hidden',
+                borderRadius: '14px',
+                border: isToday
+                  ? '1px solid rgba(16, 185, 129, 0.35)'
+                  : isYesterday
+                  ? '1px solid rgba(99, 102, 241, 0.3)'
+                  : '1px solid var(--border-color)',
+                boxShadow: isToday ? '0 4px 20px rgba(16, 185, 129, 0.08)' : 'none'
+              }}
+            >
+              {/* Day Header Section Banner */}
+              <div
+                onClick={() => setCollapsedDates(prev => ({ ...prev, [group.dateKey]: !prev[group.dateKey] }))}
+                style={{
+                  padding: '14px 20px',
+                  background: isToday
+                    ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(15, 23, 42, 0.6) 100%)'
+                    : isYesterday
+                    ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(15, 23, 42, 0.6) 100%)'
+                    : 'rgba(255, 255, 255, 0.02)',
+                  borderBottom: isCollapsed ? 'none' : '1px solid var(--border-color)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: '12px',
+                  cursor: 'pointer',
+                  userSelect: 'none',
+                  transition: 'background 0.2s ease'
+                }}
+              >
+                {/* Left: Date Title & Badges */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{
+                    width: '38px',
+                    height: '38px',
+                    borderRadius: '10px',
+                    background: isToday
+                      ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)'
+                      : isYesterday
+                      ? 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)'
+                      : 'rgba(255, 255, 255, 0.08)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#fff',
+                    boxShadow: isToday ? '0 0 12px rgba(16, 185, 129, 0.4)' : 'none'
+                  }}>
+                    <Calendar style={{ width: '18px', height: '18px' }} />
+                  </div>
+
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      {isToday ? (
+                        <span style={{
+                          fontSize: '0.68rem',
+                          fontWeight: '800',
+                          padding: '2px 8px',
+                          borderRadius: '6px',
+                          background: 'rgba(16, 185, 129, 0.2)',
+                          color: '#34d399',
+                          border: '1px solid rgba(16, 185, 129, 0.4)',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px'
+                        }}>
+                          <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
+                          TODAY
+                        </span>
+                      ) : isYesterday ? (
+                        <span style={{
+                          fontSize: '0.68rem',
+                          fontWeight: '800',
+                          padding: '2px 8px',
+                          borderRadius: '6px',
+                          background: 'rgba(99, 102, 241, 0.2)',
+                          color: '#818cf8',
+                          border: '1px solid rgba(99, 102, 241, 0.4)'
+                        }}>
+                          YESTERDAY
+                        </span>
+                      ) : (
+                        <span style={{
+                          fontSize: '0.68rem',
+                          fontWeight: '700',
+                          padding: '2px 7px',
+                          borderRadius: '6px',
+                          background: 'rgba(255, 255, 255, 0.08)',
+                          color: 'var(--text-muted)'
+                        }}>
+                          {dayOfWeek}
+                        </span>
+                      )}
+
+                      <h4 style={{ fontSize: '1.05rem', fontWeight: '800', margin: 0, color: 'var(--text-primary)' }}>
+                        {formattedDate}
+                      </h4>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Middle & Right: Day Statistics Chips & Collapse Button */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                  
+                  {/* Staff Count Chip */}
+                  <div style={{
+                    fontSize: '0.74rem',
+                    padding: '4px 10px',
+                    borderRadius: '8px',
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    color: 'var(--text-secondary)',
+                    fontWeight: '700',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '5px'
+                  }}>
+                    <Users style={{ width: '13px', height: '13px', color: '#818cf8' }} />
+                    <span>{group.uniqueStaffCount} Staff</span>
+                  </div>
+
+                  {/* Active Online Chip */}
+                  {group.activeCount > 0 && (
+                    <div style={{
+                      fontSize: '0.74rem',
+                      padding: '4px 10px',
+                      borderRadius: '8px',
+                      background: 'rgba(16, 185, 129, 0.15)',
+                      color: '#34d399',
+                      fontWeight: '800',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      border: '1px solid rgba(16, 185, 129, 0.3)'
+                    }}>
+                      <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981', display: 'inline-block', boxShadow: '0 0 6px #10b981' }} />
+                      <span>{group.activeCount} Online Now</span>
+                    </div>
+                  )}
+
+                  {/* Offline / Not Logged In Chip */}
+                  {group.offlineCount > 0 && (
+                    <div style={{
+                      fontSize: '0.74rem',
+                      padding: '4px 10px',
+                      borderRadius: '8px',
+                      background: 'rgba(239, 68, 68, 0.12)',
+                      color: '#f87171',
+                      fontWeight: '700',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      border: '1px solid rgba(239, 68, 68, 0.25)'
+                    }}>
+                      <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#f87171', display: 'inline-block' }} />
+                      <span>{group.offlineCount} Offline</span>
+                    </div>
+                  )}
+
+                  {/* Total Work Hours Chip */}
+                  <div style={{
+                    fontSize: '0.74rem',
+                    padding: '4px 10px',
+                    borderRadius: '8px',
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    color: 'var(--text-secondary)',
+                    fontWeight: '700',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '5px'
+                  }}>
+                    <Clock style={{ width: '13px', height: '13px', color: '#38bdf8' }} />
+                    <span>{group.totalDayHours} hrs Total</span>
+                  </div>
+
+                  {/* Auto Present Count Chip */}
+                  {group.autoPresentCount > 0 && (
+                    <div style={{
+                      fontSize: '0.74rem',
+                      padding: '4px 10px',
+                      borderRadius: '8px',
+                      background: 'rgba(16, 185, 129, 0.12)',
+                      color: '#34d399',
+                      fontWeight: '800',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '5px'
+                    }}>
+                      <CheckCircle2 style={{ width: '13px', height: '13px', color: '#34d399' }} />
+                      <span>{group.autoPresentCount} Auto-Present (9h+)</span>
+                    </div>
+                  )}
+
+                  {/* Total Logs Pill */}
+                  <div style={{
+                    fontSize: '0.72rem',
+                    padding: '3px 8px',
+                    borderRadius: '6px',
+                    background: 'rgba(255, 255, 255, 0.06)',
+                    color: 'var(--text-muted)',
+                    fontWeight: '700'
+                  }}>
+                    {group.sessions.length} {group.sessions.length === 1 ? 'log' : 'logs'}
+                  </div>
+
+                  {/* Toggle Chevron */}
+                  <div style={{
+                    width: '28px',
+                    height: '28px',
+                    borderRadius: '8px',
+                    background: 'rgba(255, 255, 255, 0.06)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'var(--text-secondary)',
+                    marginLeft: '4px'
+                  }}>
+                    {isCollapsed ? <ChevronDown style={{ width: '16px', height: '16px' }} /> : <ChevronUp style={{ width: '16px', height: '16px' }} />}
+                  </div>
+                </div>
+              </div>
+
+              {/* Day Sessions Table (Visible when not collapsed) */}
+              {!isCollapsed && (
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
+                    <thead>
+                      <tr style={{ background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--border-color)' }}>
+                        {isAdmin && (
+                          <th style={{ width: '40px', padding: '10px 10px', textAlign: 'center' }}>
+                            <Layers style={{ width: '14px', height: '14px', color: 'var(--text-muted)' }} title="Select sessions to club" />
+                          </th>
+                        )}
+                        <th style={{ padding: '10px 16px', textAlign: 'left' }}>Staff Member / Identity</th>
+                        <th style={{ padding: '10px 14px', textAlign: 'left' }}>Login / Punch-In</th>
+                        <th style={{ padding: '10px 14px', textAlign: 'left' }}>Logout / Punch-Out</th>
+                        <th style={{ padding: '10px 14px', textAlign: 'left' }}>Session Duration</th>
+                        <th style={{ padding: '10px 12px', textAlign: 'center' }}>Session Status</th>
+                        <th style={{ padding: '10px 14px', textAlign: 'center' }}>HR & Security Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {group.sessions.map((session, idx) => {
+                        const isActive = session.status === 'Active';
+                        const isTerminated = session.status === 'Terminated';
+                        const isIntern = session.role?.includes('Intern') || session.staffType === 'Intern';
+                        const isSelected = selectedSessionIds.includes(session.id);
+                        const staffKey = session.userId || session.userEmail || session.userName;
+                        const hasMultiplePunches = group.staffSessionCount[staffKey] > 1;
+                        const staffTotalDayHrs = ((group.staffDayMinutes[staffKey] || 0) / 60).toFixed(1);
+
+                        return (
+                          <tr
+                            key={session.id || idx}
+                            style={{
+                              borderBottom: '1px solid var(--border-color)',
+                              background: isSelected ? 'rgba(99, 102, 241, 0.12)' : isActive ? 'rgba(16, 185, 129, 0.02)' : 'transparent',
+                              transition: 'background 0.2s ease'
+                            }}
+                          >
+                            {/* Checkbox for Admin Clubbing */}
+                            {isAdmin && (
+                              <td style={{ width: '40px', padding: '12px 10px', textAlign: 'center' }}>
+                                {!session.isOfflinePlaceholder && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleToggleSelectSession(session.id)}
+                                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: isSelected ? '#818cf8' : 'var(--text-muted)' }}
+                                    title="Select this log to club with another log"
+                                  >
+                                    {isSelected ? (
+                                      <CheckSquare style={{ width: '16px', height: '16px', color: '#818cf8' }} />
+                                    ) : (
+                                      <Square style={{ width: '16px', height: '16px', color: 'rgba(255,255,255,0.2)' }} />
+                                    )}
+                                  </button>
+                                )}
+                              </td>
+                            )}
+
+                            {/* User Identity */}
+                            <td style={{ padding: '12px 16px' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <div style={{
+                                  width: '32px',
+                                  height: '32px',
+                                  borderRadius: '8px',
+                                  background: session.isOfflinePlaceholder ? 'rgba(255, 255, 255, 0.1)' : isIntern ? 'linear-gradient(135deg, #a855f7, #ec4899)' : 'linear-gradient(135deg, #3b82f6, #6366f1)',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  color: '#fff',
+                                  fontWeight: '800',
+                                  fontSize: '0.85rem'
+                                }}>
+                                  {session.userName?.charAt(0) || 'U'}
+                                </div>
+
+                                <div>
+                                  <div style={{ fontWeight: '800', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    <span>{session.userName}</span>
+                                    <span style={{
+                                      padding: '1px 6px',
+                                      borderRadius: '4px',
+                                      background: isIntern ? 'rgba(168, 85, 247, 0.15)' : 'rgba(59, 130, 246, 0.15)',
+                                      color: isIntern ? '#c084fc' : '#60a5fa',
+                                      fontSize: '0.65rem',
+                                      fontWeight: '700'
+                                    }}>
+                                      {isIntern ? 'Intern' : 'Employee'}
+                                    </span>
+                                  </div>
+                                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                                    {session.role} · {session.userEmail}
+                                  </div>
+                                </div>
+                              </div>
+                            </td>
+
+                            {/* Login / Punch In */}
+                            <td style={{ padding: '12px 14px', color: 'var(--text-primary)' }}>
+                              {session.isOfflinePlaceholder || session.status === 'Offline' ? (
+                                <div style={{ color: 'var(--text-muted)', fontSize: '0.78rem' }}>
+                                  — Not Logged In —
+                                </div>
+                              ) : (
+                                <>
+                                  <div style={{ fontWeight: '800', color: '#34d399', fontSize: '0.85rem' }}>
+                                    {session.punchInTime || '09:00 AM'}
+                                  </div>
+                                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                                    {new Date(session.loginTime).toLocaleDateString()}
+                                  </div>
+                                </>
+                              )}
+                            </td>
+
+                            {/* Logout / Punch Out */}
+                            <td style={{ padding: '12px 14px', color: 'var(--text-secondary)' }}>
+                              {session.isOfflinePlaceholder || session.status === 'Offline' ? (
+                                <span style={{ color: 'var(--text-muted)', fontSize: '0.78rem' }}>
+                                  Offline
+                                </span>
+                              ) : isActive || !session.punchOutTime ? (
+                                <span style={{ fontSize: '0.75rem', color: '#34d399', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                  <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#10b981', display: 'inline-block', boxShadow: '0 0 8px #10b981' }} />
+                                  Online Now
+                                </span>
+                              ) : (
+                                <div style={{ fontWeight: '800', color: 'var(--text-primary)', fontSize: '0.85rem' }}>
+                                  {session.punchOutTime}
+                                </div>
+                              )}
+                            </td>
+
+                            {/* Duration */}
+                            <td style={{ padding: '12px 14px', color: 'var(--text-primary)', fontWeight: '700' }}>
+                              <div>
+                                {computeDurationDisplay(session)}
+                                {hasMultiplePunches && (
+                                  <div style={{ fontSize: '0.68rem', color: '#818cf8', marginTop: '2px', fontWeight: '700' }}>
+                                    Staff Day Total: {staffTotalDayHrs} hrs
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+
+                            {/* Status Badge */}
+                            <td style={{ padding: '12px 12px', textAlign: 'center' }}>
+                              <span style={{
+                                padding: '3px 8px',
+                                borderRadius: '6px',
+                                background: session.isOfflinePlaceholder || session.status === 'Offline'
+                                  ? 'rgba(239, 68, 68, 0.12)'
+                                  : isActive
+                                  ? 'rgba(16, 185, 129, 0.15)'
+                                  : isTerminated
+                                  ? 'rgba(239, 68, 68, 0.15)'
+                                  : 'rgba(255, 255, 255, 0.08)',
+                                color: session.isOfflinePlaceholder || session.status === 'Offline'
+                                  ? '#f87171'
+                                  : isActive
+                                  ? '#34d399'
+                                  : isTerminated
+                                  ? '#f87171'
+                                  : 'var(--text-muted)',
+                                fontSize: '0.72rem',
+                                fontWeight: '700'
+                              }}>
+                                {session.status}
+                              </span>
+                            </td>
+
+                            {/* Actions */}
+                            <td style={{ padding: '12px 14px', textAlign: 'center' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                                {session.isOfflinePlaceholder || session.status === 'Offline' ? (
+                                  isAdmin && (
+                                    <button
+                                      onClick={() => {
+                                        setAddPunchForm({
+                                          userId: session.userId,
+                                          userName: session.userName,
+                                          userEmail: session.userEmail,
+                                          role: session.role,
+                                          staffType: session.staffType || 'Employee',
+                                          date: group.dateKey || new Date().toISOString().split('T')[0],
+                                          punchInTime: getCurrentISTTimeString(new Date()),
+                                          punchOutTime: '',
+                                          workMode: 'Office Campus',
+                                          status: 'Active',
+                                          ipAddress: '103.21.144.92 (Office Wi-Fi)',
+                                          device: 'Windows 11 · Chrome (Desktop)',
+                                          location: 'Hyderabad, India (Asia/Kolkata)'
+                                        });
+                                        setShowAddPunchModal(true);
+                                      }}
+                                      className="btn btn-secondary"
+                                      style={{
+                                        padding: '4px 10px',
+                                        fontSize: '0.72rem',
+                                        color: '#10b981',
+                                        border: '1px solid rgba(16, 185, 129, 0.3)',
+                                        background: 'rgba(16, 185, 129, 0.08)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '4px'
+                                      }}
+                                      title="Punch in this staff member"
+                                    >
+                                      <Plus style={{ width: '12px', height: '12px' }} />
+                                      <span>Punch In</span>
+                                    </button>
+                                  )
+                                ) : (
+                                  <>
+                                    {/* Club Log Action Button - ONLY Admin */}
+                                    {isAdmin && (
+                                      <button
+                                        onClick={() => handleOpenClubModal(session)}
+                                        className="btn btn-secondary"
+                                        style={{
+                                          padding: '4px 8px',
+                                          fontSize: '0.72rem',
+                                          color: '#38bdf8',
+                                          border: '1px solid rgba(56, 189, 248, 0.3)',
+                                          background: 'rgba(56, 189, 248, 0.08)',
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          gap: '4px'
+                                        }}
+                                        title="Club / Merge this log with another session to add work times together"
+                                      >
+                                        <Link2 style={{ width: '12px', height: '12px' }} />
+                                        <span>Club</span>
+                                      </button>
+                                    )}
+
+                                    {/* Edit Punch Time Button - ONLY Admin */}
+                                    {isAdmin && (
+                                      <button
+                                        onClick={() => handleOpenEdit(session)}
+                                        className="btn btn-secondary"
+                                        style={{ padding: '4px 8px', fontSize: '0.72rem', color: '#818cf8' }}
+                                        title="Edit punch-in / punch-out time (Admin only)"
+                                      >
+                                        <Edit2 style={{ width: '12px', height: '12px' }} />
+                                        <span>Edit</span>
+                                      </button>
+                                    )}
+
+                                    {/* Revoke Button - ONLY Super Admin / Org Admin can revoke sessions */}
+                                    {isActive && (
+                                      isAdmin ? (
+                                        <button
+                                          onClick={() => {
+                                            if (window.confirm(`Are you sure you want to forcibly terminate the active session for ${session.userName}?`)) {
+                                              revokeLoginSession(session.id);
+                                            }
+                                          }}
+                                          className="btn btn-secondary"
+                                          style={{
+                                            padding: '4px 8px',
+                                            fontSize: '0.72rem',
+                                            color: '#f87171',
+                                            border: '1px solid rgba(239, 68, 68, 0.3)',
+                                            background: 'rgba(239, 68, 68, 0.08)'
+                                          }}
+                                          title="Forcibly terminate active session (Admin Authorization)"
+                                        >
+                                          <Lock style={{ width: '11px', height: '11px', marginRight: '4px' }} />
+                                          Revoke
+                                        </button>
+                                      ) : (
+                                        <span
+                                          style={{
+                                            fontSize: '0.7rem',
+                                            color: 'var(--text-muted)',
+                                            fontStyle: 'italic',
+                                            padding: '2px 6px'
+                                          }}
+                                          title="Only Super Admins can revoke active user sessions"
+                                        >
+                                          Active (Protected)
+                                        </span>
+                                      )
+                                    )}
+
+                                    {/* Delete Punch Record - ONLY Admin */}
+                                    {isAdmin && (
+                                      <button
+                                        onClick={() => {
+                                          if (window.confirm(`Delete login record for ${session.userName}?`)) {
+                                            deleteLoginSession(session.id);
+                                          }
+                                        }}
+                                        className="btn btn-secondary"
+                                        style={{ padding: '4px 6px', color: '#f87171' }}
+                                        title="Delete record (Admin only)"
+                                      >
+                                        <Trash2 style={{ width: '12px', height: '12px' }} />
+                                      </button>
+                                    )}
+                                  </>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          );
+        })
+      )}
 
       {/* ========================================================================= */}
       {/* MODAL: CLUB TWO SESSIONS TOGETHER                                         */}

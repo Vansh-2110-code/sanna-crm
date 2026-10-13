@@ -91,6 +91,19 @@ const MainLayout = () => {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [showPasswordChangeModal, setShowPasswordChangeModal] = useState(false);
   const [showKYCModal, setShowKYCModal] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  // Global Keyboard Shortcut: Ctrl+K / Cmd+K for Quick Action Command Palette
+  React.useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setShowQuickCreate(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // Trigger password change prompt on initial login if using default password
   React.useEffect(() => {
@@ -255,20 +268,6 @@ const MainLayout = () => {
         return <ExecutiveDashboard />;
     }
   };
-
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-
-  // Global Keyboard Shortcut: Ctrl+K / Cmd+K for Quick Action Command Palette
-  React.useEffect(() => {
-    const handleKeyDown = (e) => {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
-        e.preventDefault();
-        setShowQuickCreate(prev => !prev);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
 
   return (
     <div className="app-container" style={{

@@ -27,8 +27,10 @@ dist-ssr
 .env
 backend/.env
 backend/node_modules
-backend/db.json
-*.tar.gz
-*.zip
+# Scratch deploy & test scripts with credentials
+backend/check_*.js
+backend/deploy_*.js
+backend/sync_*.js
 
-
+# External redesign folder
+hipapa-redesign/

@@ -246,6 +246,7 @@ const LeadList = () => {
             <option value="Website Forms">Website Forms</option>
             <option value="Social Media">Social Media</option>
             <option value="Email Campaigns">Email Campaigns</option>
+            <option value="WhatsApp Campaign">WhatsApp Campaign</option>
             <option value="Referral">Referrals</option>
             <option value="Manual Entry">Manual Entry</option>
           </select>

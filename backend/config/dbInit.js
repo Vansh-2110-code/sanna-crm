@@ -119,39 +119,37 @@ async function seedDatabase() {
     const isSannaMode = (process.env.APP_MODE === 'sanna') || (process.env.PORT === '5055') || (process.env.CRM_TYPE === 'sanna');
 
     // 1. Tenants
-    const tenantCount = await Tenant.count();
-    if (tenantCount === 0) {
-      if (isSannaMode) {
-        console.log('🌱 Seeding Sanna Innovations tenant...');
-        await Tenant.bulkCreate([
-          {
-            id: "client-sanna",
-            name: "Sanna Innovations Pvt Ltd",
-            subdomain: "sanna",
-            logo: "/logo.png",
-            industry: "Digital Media, Technology & Enterprise IT Solutions",
-            plan: "Enterprise Suite",
-            status: "Active",
-            maxSeats: 100,
-            currency: "INR (₹)"
-          }
-        ], { ignoreDuplicates: true });
-      } else {
-        console.log('🌱 Seeding Clean Astra CRM master tenant...');
-        await Tenant.bulkCreate([
-          {
-            id: "client-astra",
-            name: "Astra CRM",
-            subdomain: "astra",
-            logo: "/logo.png",
-            industry: "Enterprise AI & Cloud SaaS",
-            plan: "Enterprise Suite",
-            status: "Active",
-            maxSeats: 500,
-            currency: "USD ($)"
-          }
-        ], { ignoreDuplicates: true });
-      }
+    try {
+      await Tenant.findOrCreate({
+        where: { id: "client-sanna" },
+        defaults: {
+          id: "client-sanna",
+          name: "Sanna Innovations Pvt Ltd",
+          subdomain: "sanna",
+          logo: "/logo.png",
+          industry: "Digital Media, Technology & Enterprise IT Solutions",
+          plan: "Enterprise Suite",
+          status: "Active",
+          maxSeats: 100,
+          currency: "INR (₹)"
+        }
+      });
+      await Tenant.findOrCreate({
+        where: { id: "client-astra" },
+        defaults: {
+          id: "client-astra",
+          name: "Astra CRM",
+          subdomain: "astra",
+          logo: "/logo.png",
+          industry: "Enterprise AI & Cloud SaaS",
+          plan: "Enterprise Suite",
+          status: "Active",
+          maxSeats: 500,
+          currency: "USD ($)"
+        }
+      });
+    } catch (tenantErr) {
+      console.warn('Tenant sync note:', tenantErr.message);
     }
 
     // 2. Roles
@@ -212,18 +210,22 @@ async function seedDatabase() {
         await Employee.bulkCreate(realEmployees, { ignoreDuplicates: true });
       } else {
         console.log('🌱 Seeding Clean Astra Super Admin account (admin@astracrm.com)...');
-        await Employee.create({
-          id: 'EMP-ASTRA-001',
-          clientId: 'client-astra',
-          username: 'admin',
-          name: 'Astra Administrator',
-          email: 'admin@astracrm.com',
-          designation: 'System Administrator',
-          roleId: 'role-admin',
-          baseSalary: 100000,
-          passwordHash: defaultPasswordHash,
-          avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80'
-        });
+        try {
+          await Employee.create({
+            id: 'EMP-ASTRA-001',
+            clientId: 'client-astra',
+            username: 'admin',
+            name: 'Astra Administrator',
+            email: 'admin@astracrm.com',
+            designation: 'System Administrator',
+            roleId: 'role-admin',
+            baseSalary: 100000,
+            passwordHash: defaultPasswordHash,
+            avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80'
+          });
+        } catch (astraSeedErr) {
+          console.warn('Astra Super Admin seed note:', astraSeedErr.message);
+        }
       }
     }
 

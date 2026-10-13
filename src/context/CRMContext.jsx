@@ -480,9 +480,14 @@ export const CRMProvider = ({ children }) => {
 
   const addAdTransaction = async (data) => {
     const tempId = `TX-${Date.now()}`;
-    setLocalAdTransactions(prev => [{ id: tempId, ...data }, ...prev]);
+    const payload = {
+      id: tempId,
+      currency: data.currency || 'INR',
+      ...data
+    };
+    setLocalAdTransactions(prev => [payload, ...prev]);
     try {
-      await api.post('/mis/adspent/transactions', data);
+      await api.post('/mis/adspent/transactions', payload);
       queryClient.invalidateQueries({ queryKey: ['mis_adspent_tx'] });
     } catch (e) {
       console.warn('API add ad transaction notice:', e.message);
@@ -658,19 +663,22 @@ export const CRMProvider = ({ children }) => {
 
   // Recorded Login Sessions & Live Work Clock State (Exact 14 Active Sanna Employees Today + Yesterday Completed + History)
   const [localLoginSessions, setLocalLoginSessions] = useState(() => {
-    const saved = localStorage.getItem('astra_login_sessions_v12');
+    const saved = localStorage.getItem('astra_login_sessions_v14');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (parsed.length >= 14) return parsed;
+        if (parsed.length >= 14) {
+          const hasMohana = parsed.some(s => s.userId === 'EMP-SANNA-023' || (s.userName && s.userName.includes('Mohana')));
+          if (hasMohana) return parsed;
+        }
       } catch (e) {}
     }
     return INITIAL_LOGIN_SESSIONS;
   });
   useEffect(() => {
     try {
+      localStorage.setItem('astra_login_sessions_v14', JSON.stringify(localLoginSessions));
       localStorage.setItem('astra_login_sessions_v12', JSON.stringify(localLoginSessions));
-      localStorage.setItem('astra_login_sessions_v11', JSON.stringify(localLoginSessions));
       localStorage.setItem('astra_login_sessions', JSON.stringify(localLoginSessions));
     } catch (e) {}
   }, [localLoginSessions]);
@@ -956,8 +964,40 @@ export const CRMProvider = ({ children }) => {
   const addPerformanceEvaluation = (data) => setLocalPerformanceEvaluations(prev => [{ id: `eval-${Date.now()}`, ...data }, ...prev]);
   const updatePerformanceEvaluation = (id, data) => setLocalPerformanceEvaluations(prev => prev.map(e => e.id === id ? { ...e, ...data } : e));
   const deletePerformanceEvaluation = (id) => setLocalPerformanceEvaluations(prev => prev.filter(e => e.id !== id));
+  const batchAddPerformanceEvaluations = (evalsList) => {
+    if (!Array.isArray(evalsList) || evalsList.length === 0) return;
+    setLocalPerformanceEvaluations(prev => {
+      const existingIds = new Set(prev.map(p => `${p.employeeId || p.employeeName}-${p.month}-${p.year}`));
+      const newItems = [];
+      const updatedPrev = prev.map(p => {
+        const key = `${p.employeeId || p.employeeName}-${p.month}-${p.year}`;
+        const match = evalsList.find(e => `${e.employeeId || e.employeeName}-${e.month}-${e.year}` === key);
+        return match ? { ...p, ...match } : p;
+      });
+      evalsList.forEach(e => {
+        const key = `${e.employeeId || e.employeeName}-${e.month}-${e.year}`;
+        if (!existingIds.has(key)) {
+          newItems.push({ id: `eval-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`, ...e });
+        }
+      });
+      return [...newItems, ...updatedPrev];
+    });
+  };
 
-  // EOTM Nominations
+  // EOTM Nominations & Saved Leaderboards
+  const [localEOTMLeaderboards, setLocalEOTMLeaderboards] = useState(() => {
+    const saved = localStorage.getItem('astra_eotm_leaderboards');
+    return saved ? JSON.parse(saved) : {};
+  });
+  useEffect(() => { localStorage.setItem('astra_eotm_leaderboards', JSON.stringify(localEOTMLeaderboards)); }, [localEOTMLeaderboards]);
+
+  const saveMonthlyEOTMLeaderboard = (periodKey, leaderboardData) => {
+    setLocalEOTMLeaderboards(prev => ({
+      ...prev,
+      [periodKey]: leaderboardData
+    }));
+  };
+
   const addEOTMNomination = (data) => setLocalEOTMNominations(prev => [{ id: `eotm-${Date.now()}`, ...data }, ...prev]);
   const deleteEOTMNomination = (id) => setLocalEOTMNominations(prev => prev.filter(e => e.id !== id));
 
@@ -1045,24 +1085,24 @@ export const CRMProvider = ({ children }) => {
 
   // Authentication State
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    return !!sessionStorage.getItem('astra_token');
+    return !!(sessionStorage.getItem('astra_token') || localStorage.getItem('astra_token'));
   });
 
   const [currentUser, setCurrentUser] = useState(() => {
-    const saved = sessionStorage.getItem('astra_user');
+    const saved = sessionStorage.getItem('astra_user') || localStorage.getItem('astra_user');
     return saved ? JSON.parse(saved) : null;
   });
 
   // Active Tenant Context (locked to logged-in user's company context)
   const [activeTenantIdState, setActiveTenantIdState] = useState(() => {
-    const savedUser = sessionStorage.getItem('astra_user');
+    const savedUser = sessionStorage.getItem('astra_user') || localStorage.getItem('astra_user');
     if (savedUser) {
       try {
         const parsed = JSON.parse(savedUser);
         if (parsed?.tenantId) return parsed.tenantId;
       } catch (e) {}
     }
-    return sessionStorage.getItem('crm_active_tenant') || null;
+    return sessionStorage.getItem('crm_active_tenant') || localStorage.getItem('crm_active_tenant') || null;
   });
 
   const setActiveTenantId = (id) => {
@@ -1449,6 +1489,9 @@ export const CRMProvider = ({ children }) => {
       sessionStorage.setItem('astra_token', token);
       sessionStorage.setItem('astra_user', JSON.stringify(enrichedUser));
       sessionStorage.setItem('crm_active_tenant', enrichedUser.tenantId);
+      localStorage.setItem('astra_token', token);
+      localStorage.setItem('astra_user', JSON.stringify(enrichedUser));
+      localStorage.setItem('crm_active_tenant', enrichedUser.tenantId);
 
       setCurrentUser(enrichedUser);
       setIsAuthenticated(true);
@@ -1554,6 +1597,9 @@ export const CRMProvider = ({ children }) => {
         sessionStorage.setItem('astra_token', token);
         sessionStorage.setItem('astra_user', JSON.stringify(authUser));
         sessionStorage.setItem('crm_active_tenant', authUser.tenantId);
+        localStorage.setItem('astra_token', token);
+        localStorage.setItem('astra_user', JSON.stringify(authUser));
+        localStorage.setItem('crm_active_tenant', authUser.tenantId);
 
         setCurrentUser(authUser);
         setIsAuthenticated(true);
@@ -1573,6 +1619,9 @@ export const CRMProvider = ({ children }) => {
     sessionStorage.removeItem('astra_token');
     sessionStorage.removeItem('astra_user');
     sessionStorage.removeItem('crm_active_tenant');
+    localStorage.removeItem('astra_token');
+    localStorage.removeItem('astra_user');
+    localStorage.removeItem('crm_active_tenant');
     setIsAuthenticated(false);
     setCurrentUser(null);
     setActiveTenantId(null);
@@ -3431,8 +3480,9 @@ export const CRMProvider = ({ children }) => {
       financialLedger: localFinancialLedger, addFinancialEntry, updateFinancialEntry, deleteFinancialEntry,
       serviceCatalog: localServiceCatalog, addService, updateService, deleteService, toggleServiceStatus,
       contentCalendar: localContentCalendar, addContentEvent, updateContentEvent, deleteContentEvent,
-      performanceEvaluations: localPerformanceEvaluations, addPerformanceEvaluation, updatePerformanceEvaluation, deletePerformanceEvaluation,
+      performanceEvaluations: localPerformanceEvaluations, addPerformanceEvaluation, updatePerformanceEvaluation, deletePerformanceEvaluation, batchAddPerformanceEvaluations,
       eotmNominations: localEOTMNominations, addEOTMNomination, deleteEOTMNomination,
+      eotmLeaderboards: localEOTMLeaderboards, saveMonthlyEOTMLeaderboard,
       // KYC Vault
       kycDocuments: resolvedKYCDocuments,
       addKYCDocument,

@@ -119,14 +119,24 @@ router.get('/adspent/transactions', async (req, res) => {
 
 router.post('/adspent/transactions', async (req, res) => {
   try {
-    const { project_id, client_name, clientName, date, amount, purpose, mode_of_payment, paymentMode, month, year } = req.body;
+    const { project_id, client_name, clientName, date, amount, purpose, mode_of_payment, paymentMode, month, year, currency } = req.body;
     const finalName = client_name || clientName || 'Client Project';
     const finalMode = mode_of_payment || paymentMode || 'UPI';
-    const insert = await run(
-      `INSERT INTO ad_spent_transactions (project_id, client_name, date, amount, purpose, mode_of_payment, month, year)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [project_id || 1, finalName, date || new Date().toISOString().split('T')[0], amount || 0, purpose || 'Ad Spend', finalMode, month || 8, year || 2026]
-    );
+    const finalCurrency = currency || 'INR';
+    let insert;
+    try {
+      insert = await run(
+        `INSERT INTO ad_spent_transactions (project_id, client_name, date, amount, purpose, mode_of_payment, month, year, currency)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [project_id || 1, finalName, date || new Date().toISOString().split('T')[0], amount || 0, purpose || 'Ad Spend', finalMode, month || 8, year || 2026, finalCurrency]
+      );
+    } catch (insertErr) {
+      insert = await run(
+        `INSERT INTO ad_spent_transactions (project_id, client_name, date, amount, purpose, mode_of_payment, month, year)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [project_id || 1, finalName, date || new Date().toISOString().split('T')[0], amount || 0, purpose || 'Ad Spend', finalMode, month || 8, year || 2026]
+      );
+    }
     res.json({ status: 'created', id: insert.id });
   } catch (e) {
     res.status(500).json({ error: e.message });

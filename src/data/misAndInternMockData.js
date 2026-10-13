@@ -399,6 +399,43 @@ const getYesterdayTime = (hours = 9, minutes = 0) => {
 };
 
 export const INITIAL_LOGIN_SESSIONS = [
+  // --- SEPTEMBER 2026 SESSIONS ---
+  {
+    id: "SES-2026-0908-023",
+    userId: "EMP-SANNA-023",
+    userName: "Mohana Priya Sakthivel",
+    userEmail: "Priyadigitaldm@gmail.com",
+    role: "Digital Marketing Intern",
+    staffType: "Intern",
+    designation: "Performance Marketer",
+    ipAddress: "152.58.18.225 (Airtel 5G)",
+    device: "macOS Sonoma · Chrome (MacBook Pro)",
+    location: "Chennai, India (Asia/Kolkata)",
+    loginTime: "2026-09-08T03:38:00.000Z",
+    lastActive: "Just now",
+    status: "Logged Out",
+    punchInTime: "09:08 AM",
+    punchOutTime: "06:15 PM",
+    workMode: "Remote / Hybrid"
+  },
+  {
+    id: "SES-2026-0907-023",
+    userId: "EMP-SANNA-023",
+    userName: "Mohana Priya Sakthivel",
+    userEmail: "Priyadigitaldm@gmail.com",
+    role: "Digital Marketing Intern",
+    staffType: "Intern",
+    designation: "Performance Marketer",
+    ipAddress: "152.58.18.225 (Airtel 5G)",
+    device: "macOS Sonoma · Chrome (MacBook Pro)",
+    location: "Chennai, India (Asia/Kolkata)",
+    loginTime: "2026-09-07T03:35:00.000Z",
+    lastActive: "1 day ago",
+    status: "Logged Out",
+    punchInTime: "09:05 AM",
+    punchOutTime: "06:12 PM",
+    workMode: "Remote / Hybrid"
+  },
   // --- TODAY'S SESSIONS (8/19/2026) - ACTIVE (ONLINE NOW) ---
   {
     id: "SES-2026-0819-001",

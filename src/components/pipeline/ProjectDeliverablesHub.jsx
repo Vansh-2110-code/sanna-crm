@@ -191,6 +191,7 @@ const ProjectDeliverablesHub = () => {
   const [txDate, setTxDate] = useState('2026-08-14');
   const [txClientId, setTxClientId] = useState('');
   const [txAmount, setTxAmount] = useState('');
+  const [txCurrency, setTxCurrency] = useState('INR'); // 'INR' (₹) or 'USD' ($)
   const [txPurpose, setTxPurpose] = useState('Meta Ads');
   const [txPaymentMode, setTxPaymentMode] = useState('UPI');
 
@@ -202,6 +203,7 @@ const ProjectDeliverablesHub = () => {
         clientName: txClientId,
         date: txDate,
         amount: parseFloat(txAmount) || 0,
+        currency: txCurrency || 'INR',
         purpose: txPurpose,
         paymentMode: txPaymentMode,
         month: selectedAdMonth || 8,
@@ -262,6 +264,7 @@ const ProjectDeliverablesHub = () => {
     month: 8,
     year: 2026,
     platform: 'Meta Ads (Facebook & Instagram)',
+    currency: 'INR',
     spentAmount: 45000,
     leadsGenerated: 65,
     paymentMode: 'Corporate Credit Card (HDFC ****9921)',
@@ -972,8 +975,9 @@ const ProjectDeliverablesHub = () => {
                         <td style={{ padding: '10px 10px', textAlign: 'right', color: row.linkedinAdsSpent > 0 ? '#60a5fa' : 'var(--text-muted)', fontWeight: row.linkedinAdsSpent > 0 ? '700' : '400' }}>
                           {row.linkedinAdsSpent.toFixed(2)}
                         </td>
-                        <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: '800', color: row.totalSpent > 0 ? '#34d399' : 'var(--text-muted)' }}>
-                          ₹{row.totalSpent.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                        <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: '800', color: row.totalSpent > 0 ? ((row.currency === 'USD' || (row.paymentMode && String(row.paymentMode).includes('USD'))) ? '#38bdf8' : '#34d399') : 'var(--text-muted)' }}>
+                          {((row.currency === 'USD' || row.currency === '$' || (row.paymentMode && String(row.paymentMode).includes('USD'))) ? '$' : '₹')}
+                          {row.totalSpent.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                         </td>
                         <td style={{ padding: '10px 12px', color: 'var(--text-secondary)' }}>
                           {row.paymentMode || <span style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.7rem' }}>e.g. UPI or Visa</span>}
@@ -995,7 +999,7 @@ const ProjectDeliverablesHub = () => {
               </h4>
 
               {/* Add Transaction Bar */}
-              <form onSubmit={handleQuickAddTx} style={{ display: 'grid', gridTemplateColumns: '140px 1fr 140px 160px 140px 110px', gap: '10px', marginBottom: '16px', alignItems: 'flex-end', background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '10px', border: '1px solid var(--border-color)' }}>
+              <form onSubmit={handleQuickAddTx} style={{ display: 'grid', gridTemplateColumns: '130px 1.2fr 185px 150px 140px 110px', gap: '10px', marginBottom: '16px', alignItems: 'flex-end', background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '10px', border: '1px solid var(--border-color)' }}>
                 <div>
                   <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Date</label>
                   <input
@@ -1024,16 +1028,37 @@ const ProjectDeliverablesHub = () => {
                 </div>
 
                 <div>
-                  <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Amount (₹)</label>
-                  <input
-                    type="number"
-                    placeholder="Amount"
-                    required
-                    value={txAmount}
-                    onChange={(e) => setTxAmount(e.target.value)}
-                    className="form-input"
-                    style={{ fontSize: '0.75rem', padding: '6px 8px' }}
-                  />
+                  <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Currency & Amount</label>
+                  <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                    <select
+                      value={txCurrency}
+                      onChange={(e) => setTxCurrency(e.target.value)}
+                      className="form-select"
+                      style={{
+                        fontSize: '0.75rem',
+                        padding: '6px 6px',
+                        width: '78px',
+                        flexShrink: 0,
+                        fontWeight: '700',
+                        color: txCurrency === 'USD' ? '#38bdf8' : '#34d399',
+                        background: txCurrency === 'USD' ? 'rgba(56, 189, 248, 0.1)' : 'rgba(52, 211, 153, 0.1)',
+                        borderColor: txCurrency === 'USD' ? 'rgba(56, 189, 248, 0.4)' : 'rgba(52, 211, 153, 0.4)'
+                      }}
+                    >
+                      <option value="INR">₹ (INR)</option>
+                      <option value="USD">$ (USD)</option>
+                    </select>
+                    <input
+                      type="number"
+                      step="any"
+                      placeholder="Amount"
+                      required
+                      value={txAmount}
+                      onChange={(e) => setTxAmount(e.target.value)}
+                      className="form-input"
+                      style={{ fontSize: '0.75rem', padding: '6px 8px', flex: 1 }}
+                    />
+                  </div>
                 </div>
 
                 <div>
@@ -1052,7 +1077,7 @@ const ProjectDeliverablesHub = () => {
                   <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Mode of Payment</label>
                   <input
                     type="text"
-                    placeholder="e.g. UPI, Card"
+                    placeholder="e.g. UPI, Stripe, Wire"
                     value={txPaymentMode}
                     onChange={(e) => setTxPaymentMode(e.target.value)}
                     className="form-input"
@@ -1081,27 +1106,39 @@ const ProjectDeliverablesHub = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {(adSpendTransactions || []).map(tx => (
-                      <tr key={tx.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                        <td style={{ padding: '10px 14px', color: 'var(--text-muted)' }}>{tx.date}</td>
-                        <td style={{ padding: '10px 14px', fontWeight: '700', color: 'var(--text-primary)' }}>{tx.clientName}</td>
-                        <td style={{ padding: '10px 14px', textAlign: 'right', fontWeight: '800', color: '#34d399' }}>
-                          ₹{(tx.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                        </td>
-                        <td style={{ padding: '10px 14px', color: '#818cf8' }}>{tx.purpose}</td>
-                        <td style={{ padding: '10px 14px', color: 'var(--text-secondary)' }}>{tx.paymentMode}</td>
-                        <td style={{ padding: '10px 14px', textAlign: 'center' }}>
-                          <button
-                            onClick={() => deleteAdTransaction && deleteAdTransaction(tx.id)}
-                            className="btn btn-secondary"
-                            style={{ padding: '3px 6px', color: '#f87171', fontSize: '0.7rem' }}
-                            title="Delete"
-                          >
-                            <Trash2 style={{ width: '12px', height: '12px' }} />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
+                    {(adSpendTransactions || []).map(tx => {
+                      const isUsd = tx.currency === 'USD' || tx.currency === '$' || String(tx.currency).toUpperCase() === 'USD' ||
+                        (tx.paymentMode && String(tx.paymentMode).includes('USD')) ||
+                        (tx.mode_of_payment && String(tx.mode_of_payment).includes('USD'));
+                      const symbol = isUsd ? '$' : '₹';
+                      const badgeColor = isUsd ? '#38bdf8' : '#34d399';
+                      return (
+                        <tr key={tx.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                          <td style={{ padding: '10px 14px', color: 'var(--text-muted)' }}>{tx.date}</td>
+                          <td style={{ padding: '10px 14px', fontWeight: '700', color: 'var(--text-primary)' }}>{tx.clientName || tx.client_name}</td>
+                          <td style={{ padding: '10px 14px', textAlign: 'right', fontWeight: '800', color: badgeColor }}>
+                            {symbol}{(tx.amount || 0).toLocaleString(isUsd ? 'en-US' : 'en-IN', { minimumFractionDigits: 2 })}
+                          </td>
+                          <td style={{ padding: '10px 14px', color: '#818cf8' }}>{tx.purpose}</td>
+                          <td style={{ padding: '10px 14px', color: 'var(--text-secondary)' }}>
+                            {tx.paymentMode || tx.mode_of_payment}
+                            {isUsd && !(tx.paymentMode || tx.mode_of_payment || '').includes('USD') && (
+                              <span style={{ marginLeft: '6px', fontSize: '0.65rem', padding: '1px 5px', borderRadius: '4px', background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8', fontWeight: '600' }}>USD</span>
+                            )}
+                          </td>
+                          <td style={{ padding: '10px 14px', textAlign: 'center' }}>
+                            <button
+                              onClick={() => deleteAdTransaction && deleteAdTransaction(tx.id)}
+                              className="btn btn-secondary"
+                              style={{ padding: '3px 6px', color: '#f87171', fontSize: '0.7rem' }}
+                              title="Delete"
+                            >
+                              <Trash2 style={{ width: '12px', height: '12px' }} />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -1884,14 +1921,32 @@ const ProjectDeliverablesHub = () => {
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div className="form-group">
-                  <label className="form-label">Spent Amount (₹) *</label>
-                  <input
-                    type="number"
-                    required
-                    value={editingAdSpend.spentAmount}
-                    onChange={(e) => setEditingAdSpend({ ...editingAdSpend, spentAmount: e.target.value })}
-                    className="form-input"
-                  />
+                  <label className="form-label">Spent Amount *</label>
+                  <div style={{ display: 'flex', gap: '6px' }}>
+                    <select
+                      value={editingAdSpend.currency || 'INR'}
+                      onChange={(e) => setEditingAdSpend({ ...editingAdSpend, currency: e.target.value })}
+                      className="form-select"
+                      style={{
+                        width: '85px',
+                        flexShrink: 0,
+                        fontWeight: '700',
+                        color: editingAdSpend.currency === 'USD' ? '#38bdf8' : '#34d399'
+                      }}
+                    >
+                      <option value="INR">₹ (INR)</option>
+                      <option value="USD">$ (USD)</option>
+                    </select>
+                    <input
+                      type="number"
+                      step="any"
+                      required
+                      value={editingAdSpend.spentAmount}
+                      onChange={(e) => setEditingAdSpend({ ...editingAdSpend, spentAmount: e.target.value })}
+                      className="form-input"
+                      style={{ flex: 1 }}
+                    />
+                  </div>
                 </div>
                 <div className="form-group">
                   <label className="form-label">Leads Generated</label>
@@ -2409,14 +2464,33 @@ const ProjectDeliverablesHub = () => {
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div className="form-group">
-                  <label className="form-label">Spent Amount (₹) *</label>
-                  <input
-                    type="number"
-                    required
-                    value={newAdSpendForm.spentAmount}
-                    onChange={(e) => setNewAdSpendForm({ ...newAdSpendForm, spentAmount: e.target.value })}
-                    className="form-input"
-                  />
+                  <label className="form-label">Spent Amount *</label>
+                  <div style={{ display: 'flex', gap: '6px' }}>
+                    <select
+                      value={newAdSpendForm.currency || 'INR'}
+                      onChange={(e) => setNewAdSpendForm({ ...newAdSpendForm, currency: e.target.value })}
+                      className="form-select"
+                      style={{
+                        width: '85px',
+                        flexShrink: 0,
+                        fontWeight: '700',
+                        color: newAdSpendForm.currency === 'USD' ? '#38bdf8' : '#34d399'
+                      }}
+                    >
+                      <option value="INR">₹ (INR)</option>
+                      <option value="USD">$ (USD)</option>
+                    </select>
+                    <input
+                      type="number"
+                      step="any"
+                      required
+                      placeholder="Amount"
+                      value={newAdSpendForm.spentAmount}
+                      onChange={(e) => setNewAdSpendForm({ ...newAdSpendForm, spentAmount: e.target.value })}
+                      className="form-input"
+                      style={{ flex: 1 }}
+                    />
+                  </div>
                 </div>
                 <div className="form-group">
                   <label className="form-label">Leads Generated</label>
