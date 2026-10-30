@@ -8,6 +8,7 @@ import {
   isBirthdayOnDay,
   formatBirthday
 } from '../../utils/birthdayUtils';
+import { isCompanyHoliday } from '../../utils/companyHolidays';
 import {
   Calendar,
   CheckCircle2,
@@ -197,6 +198,11 @@ const AttendanceTracker = () => {
       return 'P';
     }
 
+    // Check if the day is an official registered Company Holiday
+    if (isCompanyHoliday(selectedYear, selectedMonth, day)) {
+      return 'H';
+    }
+
     // Default fallback: Only Sunday (dayOfWeek === 0) is Holiday (H).
     // Monday through Saturday (including Saturday) are working days and default as 'A' (Absent) unless 9h+ logged!
     const dateObj = new Date(selectedYear, selectedMonth - 1, day);
@@ -302,7 +308,7 @@ const AttendanceTracker = () => {
   const handleAutoSyncSessions = () => {
     if (syncAllSessionsToAttendance) {
       const count = syncAllSessionsToAttendance();
-      setSaveBanner(`⚡ Auto-Synced Attendance: Employees with daily session logs totaling 9.0+ hours have been verified and marked as Present (P)!`);
+      setSaveBanner(`Auto-Synced Attendance: Employees with daily session logs totaling 9.0+ hours have been verified and marked as Present (P)!`);
       setTimeout(() => setSaveBanner(false), 5000);
     }
   };
@@ -385,7 +391,7 @@ const AttendanceTracker = () => {
               <option value="all">All Staff ({allStaffList.length})</option>
               <option value="employees">Employees ({employees.length})</option>
               <option value="interns">Interns ({interns.length})</option>
-              <option value="birthdays">🎂 {MONTH_NAMES[selectedMonth - 1]} Birthdays ({monthBirthdays.length})</option>
+              <option value="birthdays">{MONTH_NAMES[selectedMonth - 1]} Celebrations ({monthBirthdays.length})</option>
             </select>
           </div>
 
@@ -418,7 +424,7 @@ const AttendanceTracker = () => {
             title="Auto-Mark Present (P) for any employee who logged 9+ hours in Daily Sessions"
           >
             <Sparkles style={{ width: '14px', height: '14px', color: '#34d399' }} />
-            <span>⚡ Sync 9h+ Logs</span>
+            <span>Sync 9h+ Logs</span>
           </button>
 
           <button
@@ -467,11 +473,11 @@ const AttendanceTracker = () => {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '1.4rem',
               boxShadow: '0 4px 12px rgba(245, 158, 11, 0.4)',
-              flexShrink: 0
+              flexShrink: 0,
+              color: '#FFFFFF'
             }}>
-              🎂
+              <Gift style={{ width: '22px', height: '22px' }} />
             </div>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -491,7 +497,7 @@ const AttendanceTracker = () => {
                 </span>
               </div>
               <p style={{ margin: '2px 0 0 0', fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-                Staff birthdays are highlighted with 🎂 markers in the attendance matrix. Wish your teammates a Happy Birthday!
+                Staff milestone celebrations are highlighted in the attendance matrix. Wish your teammates a Happy Birthday!
               </p>
             </div>
           </div>
@@ -538,7 +544,7 @@ const AttendanceTracker = () => {
                     padding: '1px 6px',
                     borderRadius: '10px'
                   }}>
-                    {isToday ? '🎉 Today!' : `${MONTH_NAMES[selectedMonth - 1].slice(0, 3)} ${emp.birthdayData.day}`}
+                    {isToday ? 'Today' : `${MONTH_NAMES[selectedMonth - 1].slice(0, 3)} ${emp.birthdayData.day}`}
                   </span>
                 </div>
               );
@@ -659,9 +665,12 @@ const AttendanceTracker = () => {
               color: '#fbbf24',
               fontWeight: '800',
               fontSize: '0.72rem',
-              border: '1px solid #f59e0b'
+              border: '1px solid #f59e0b',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px'
             }}>
-              🎂 Birthday
+              <Gift style={{ width: '12px', height: '12px', color: '#fbbf24' }} /> Birthday
             </span>
             <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>Staff Birthday Day</span>
           </div>
@@ -707,7 +716,7 @@ const AttendanceTracker = () => {
                               : 'transparent',
                         borderLeft: '1px solid rgba(255,255,255,0.05)'
                       }}
-                      title={hasBirthdayOnDay ? `🎂 Employee Birthday on Day ${day}!` : undefined}
+                      title={hasBirthdayOnDay ? `Employee Birthday on Day ${day}!` : undefined}
                     >
                       <div style={{
                         fontWeight: '800',
@@ -717,7 +726,7 @@ const AttendanceTracker = () => {
                         justifyContent: 'center',
                         gap: '2px'
                       }}>
-                        {day} {hasBirthdayOnDay && <span style={{ fontSize: '0.65rem' }}>🎂</span>}
+                        {day} {hasBirthdayOnDay && <Gift style={{ width: '10px', height: '10px', color: '#fbbf24' }} />}
                       </div>
                       <div style={{ fontSize: '0.62rem', color: isSunday ? '#a855f7' : isSaturday ? '#60a5fa' : 'var(--text-muted)' }}>{dayName}</div>
                     </th>
@@ -785,7 +794,7 @@ const AttendanceTracker = () => {
                               }}
                               title={`Birthday on ${formatBirthday(staff.birthday, false)}`}
                             >
-                              🎂
+                              <Gift style={{ width: '12px', height: '12px', color: '#fbbf24' }} />
                             </span>
                           )}
                         </div>
@@ -803,9 +812,12 @@ const AttendanceTracker = () => {
                                 borderRadius: '8px',
                                 background: 'linear-gradient(135deg, #f59e0b, #ec4899)',
                                 color: '#fff',
-                                boxShadow: '0 0 8px rgba(245, 158, 11, 0.5)'
+                                boxShadow: '0 0 8px rgba(245, 158, 11, 0.5)',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '3px'
                               }}>
-                                🎉 Birthday Today!
+                                <PartyPopper style={{ width: '10px', height: '10px' }} /> Birthday Today!
                               </span>
                             )}
                             {!staffBdayToday && staffHasBdayInMonth && (
@@ -816,9 +828,12 @@ const AttendanceTracker = () => {
                                 borderRadius: '8px',
                                 background: 'rgba(245, 158, 11, 0.18)',
                                 color: '#fbbf24',
-                                border: '1px solid rgba(245, 158, 11, 0.3)'
+                                border: '1px solid rgba(245, 158, 11, 0.3)',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '3px'
                               }} title={`Birthday: ${formatBirthday(staff.birthday, true)}`}>
-                                🎂 {formatBirthday(staff.birthday, false)}
+                                <Gift style={{ width: '10px', height: '10px' }} /> {formatBirthday(staff.birthday, false)}
                               </span>
                             )}
                           </div>
@@ -883,7 +898,7 @@ const AttendanceTracker = () => {
                               : 'transparent'
                           }}
                           title={isBirthdayCell
-                            ? `🎂 Birthday: ${staff.name} on Day ${day} (${MONTH_NAMES[selectedMonth - 1]})! 🎉 Status: ${cfg.label}. Click to cycle.`
+                            ? `Birthday: ${staff.name} on Day ${day} (${MONTH_NAMES[selectedMonth - 1]}). Status: ${cfg.label}. Click to cycle.`
                             : `${staff.name} on Day ${day}: ${cfg.label}. Click to cycle.`
                           }
                         >
@@ -906,7 +921,7 @@ const AttendanceTracker = () => {
                               : `1px solid ${cfg.color}35`,
                             boxShadow: isBirthdayCell ? '0 0 8px rgba(245, 158, 11, 0.4)' : 'none'
                           }}>
-                            {isBirthdayCell && <span style={{ fontSize: '0.62rem' }}>🎂</span>}
+                            {isBirthdayCell && <Gift style={{ width: '10px', height: '10px', color: '#fbbf24' }} />}
                             {status}
                           </span>
                         </td>

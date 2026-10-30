@@ -82,20 +82,28 @@ const LeadFormModal = ({ onClose }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!formData.name || !formData.email || !formData.company) return;
+    const contactName = (formData.name || '').trim();
+    const companyName = (formData.company || '').trim();
+    if (!contactName && !companyName) {
+      alert('Please provide at least a Contact Person Name or Company Name to capture the lead.');
+      return;
+    }
+
+    const resolvedName = contactName || companyName;
+    const resolvedCompany = companyName || contactName;
 
     addLead({
-      name: formData.name,
-      company: formData.company,
-      email: formData.email,
+      name: resolvedName,
+      company: resolvedCompany,
+      email: formData.email ? formData.email.trim() : '',
       phone: formData.phone || '',
-      source: formData.source,
+      source: formData.source || 'Website Forms',
       status: formData.status || 'Lead Intake',
       projectCategory: formData.projectCategory || 'Software Development',
       projectType: formData.projectType || 'One Time',
       productNeeded: formData.productNeeded || '',
       potentialValue: parseFloat(formData.potentialValue) || 0,
-      assignedTo: formData.assignedTo,
+      assignedTo: formData.assignedTo || currentUser?.name || 'Srinivas (Admin)',
       notes: formData.notes || '',
       tags: formData.tagsStr ? formData.tagsStr.split(',').map(t => t.trim()).filter(Boolean) : []
     });
@@ -118,7 +126,6 @@ const LeadFormModal = ({ onClose }) => {
               <label className="form-label">Contact Person Name</label>
               <input
                 type="text"
-                required
                 placeholder="e.g. Eleanor Vance"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -130,7 +137,6 @@ const LeadFormModal = ({ onClose }) => {
               <label className="form-label">Company Name</label>
               <input
                 type="text"
-                required
                 placeholder="e.g. Apex Global Tech"
                 value={formData.company}
                 onChange={(e) => setFormData({ ...formData, company: e.target.value })}
@@ -139,11 +145,10 @@ const LeadFormModal = ({ onClose }) => {
             </div>
 
             <div className="form-group">
-              <label className="form-label">Business Email</label>
+              <label className="form-label">Business Email <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', fontWeight: '400' }}>(Optional)</span></label>
               <input
-                type="email"
-                required
-                placeholder="eleanor@apex.io"
+                type="text"
+                placeholder="e.g. eleanor@apex.io (Optional)"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 className="form-input"

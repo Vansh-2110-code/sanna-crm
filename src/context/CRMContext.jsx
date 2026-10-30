@@ -272,9 +272,9 @@ export const SANNA_DEMO_ACCOUNTS = [
     username: "smitesh",
     email: "smitesh@sannainnovations.com",
     name: "Smitesh Pokharkar",
-    role: "Intern / Engineering Trainee",
-    roleId: "role-intern",
-    designation: "Intern",
+    role: "Lead Software Developer",
+    roleId: "role-dev",
+    designation: "Lead Developer",
     tenantId: "client-sanna",
     company: "Sanna Innovations Pvt Ltd",
     password: "smitesh123",
@@ -282,9 +282,9 @@ export const SANNA_DEMO_ACCOUNTS = [
     salary: 10000,
     birthday: "2002-04-14",
     avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&auto=format&fit=crop&q=80",
-    badge: "Intern",
+    badge: "Developer",
     color: "#38bdf8",
-    description: "Engineering internship and system analysis."
+    description: "Lead developer managing core architecture and frontend systems."
   }
 ];
 
@@ -487,7 +487,10 @@ export const CRMProvider = ({ children }) => {
     };
     setLocalAdTransactions(prev => [payload, ...prev]);
     try {
-      await api.post('/mis/adspent/transactions', payload);
+      const res = await api.post('/mis/adspent/transactions', payload);
+      if (res?.data?.id) {
+        setLocalAdTransactions(prev => prev.map(t => t.id === tempId ? { ...t, id: String(res.data.id) } : t));
+      }
       queryClient.invalidateQueries({ queryKey: ['mis_adspent_tx'] });
     } catch (e) {
       console.warn('API add ad transaction notice:', e.message);
@@ -633,8 +636,8 @@ export const CRMProvider = ({ children }) => {
         return [];
       }
     },
-    refetchInterval: 10000,
-    staleTime: 5000
+    refetchInterval: 4000,
+    staleTime: 2000
   });
 
   const resolvedDailyTasks = useMemo(() => {
@@ -645,6 +648,180 @@ export const CRMProvider = ({ children }) => {
     }
     return localDailyTasks || [];
   }, [dailyTasksQuery.data, localDailyTasks]);
+
+  // Live Software Development Matrix Projects (Central Real-Time Sync across Admin & Employees)
+  const DEFAULT_DEV_PROJECTS_CONTEXT = [
+    {
+      id: 'dev-proj-powertech',
+      projectName: 'Powertech CRM',
+      clientName: 'Powertech',
+      clientType: 'Custom Enterprise',
+      assignedLead: 'Smitesh Pokharkar',
+      targetDate: '2026-10-25',
+      status: 'Completed',
+      contractValue: '₹1,20,000',
+      milestones: [
+        { id: 'm-pt-1', title: 'Enterprise Core CRM Engine & Multi-Tenancy Architecture', assignee: 'Lead Dev', status: 'Completed', progress: 100, dueDate: '2026-10-15' },
+        { id: 'm-pt-2', title: 'PostgreSQL Database & Dynamic RBAC Roles', assignee: 'Backend Dev', status: 'Completed', progress: 100, dueDate: '2026-10-18' },
+        { id: 'm-pt-3', title: 'Real-Time Telemetry & Staff Work Diary', assignee: 'Full Stack Dev', status: 'Completed', progress: 100, dueDate: '2026-10-22' },
+        { id: 'm-pt-4', title: 'Production Staging, Testing & Final Deployment', assignee: 'QA & DevOps', status: 'Completed', progress: 100, dueDate: '2026-10-25' }
+      ]
+    },
+    {
+      id: 'dev-proj-edulateral',
+      projectName: 'Edulateral LMS Platform',
+      clientName: 'Edulateral LMS',
+      clientType: 'One-Time Dev',
+      assignedLead: 'Development Team',
+      targetDate: '2026-10-31',
+      status: 'In Progress',
+      contractValue: '₹60,000',
+      milestones: [
+        { id: 'm-1', title: 'LMS Course Architecture & Curriculum Engine', assignee: 'Full Stack Dev', status: 'Completed', progress: 100, dueDate: '2026-10-18' },
+        { id: 'm-2', title: 'Student & Instructor Role Authentication', assignee: 'Backend Dev', status: 'Completed', progress: 100, dueDate: '2026-10-20' },
+        { id: 'm-3', title: 'Video Streaming & Asset CDN Integration', assignee: 'Cloud Engineer', status: 'Completed', progress: 100, dueDate: '2026-10-22' },
+        { id: 'm-4', title: 'Quiz & Certificate Generator System', assignee: 'Frontend Dev', status: 'Completed', progress: 100, dueDate: '2026-10-26' },
+        { id: 'm-5', title: 'Payment Gateway Integration (Razorpay/Stripe)', assignee: 'Backend Dev', status: 'In Progress', progress: 85, dueDate: '2026-10-28' },
+        { id: 'm-6', title: 'End-to-End QA, Load Testing & Launch', assignee: 'QA Team', status: 'To Do', progress: 0, dueDate: '2026-10-31' }
+      ]
+    },
+    {
+      id: 'dev-proj-sanna-crm',
+      projectName: 'Sanna CRM v2 Enterprise Suite',
+      clientName: 'Sanna Innovations Pvt Ltd',
+      clientType: 'Internal Enterprise',
+      assignedLead: 'Architecture Lead',
+      targetDate: '2026-11-15',
+      status: 'In Progress',
+      contractValue: 'Enterprise Core',
+      milestones: [
+        { id: 'm-crm-1', title: 'Verion Matte Dark Design System & Micro-Interactions', assignee: 'UI/UX Specialist', status: 'Completed', progress: 100, dueDate: '2026-10-19' },
+        { id: 'm-crm-2', title: 'Central Database & Session Synchronization API', assignee: 'Backend Engineer', status: 'Completed', progress: 100, dueDate: '2026-10-21' },
+        { id: 'm-crm-3', title: 'Development Project Deliverables Engine & Trackers', assignee: 'Full Stack Dev', status: 'Completed', progress: 100, dueDate: '2026-10-23' },
+        { id: 'm-crm-4', title: 'Multi-Role Boss Review & Approval Sandbox', assignee: 'Lead Dev', status: 'In Progress', progress: 75, dueDate: '2026-10-25' }
+      ]
+    },
+    {
+      id: 'dev-proj-aistech',
+      projectName: 'Ais Tech AI Web Engine',
+      clientName: 'Ais Tech Solutions',
+      clientType: 'Client Retainer',
+      assignedLead: 'Naveen Kumar',
+      targetDate: '2026-11-05',
+      status: 'In Progress',
+      contractValue: '₹45,000',
+      milestones: [
+        { id: 'm-ais-1', title: 'Technical SEO Audit & Schema Mapping', assignee: 'SEO Lead', status: 'Completed', progress: 100, dueDate: '2026-10-14' },
+        { id: 'm-ais-2', title: 'Core Web Vitals & Speed Optimization (SSR)', assignee: 'Frontend Dev', status: 'Completed', progress: 100, dueDate: '2026-10-22' },
+        { id: 'm-ais-3', title: 'Automated AI Blog Pipeline & Indexing', assignee: 'DevOps / AI Team', status: 'In Progress', progress: 60, dueDate: '2026-10-28' }
+      ]
+    },
+    {
+      id: 'dev-proj-cloud',
+      projectName: 'Cloud Infrastructure & Auto-Scaling Cluster',
+      clientName: 'Sahara Transformers',
+      clientType: 'Hosting & Cloud',
+      assignedLead: 'DevOps Lead',
+      targetDate: '2026-11-20',
+      status: 'In Progress',
+      contractValue: '₹95,000',
+      milestones: [
+        { id: 'm-cld-1', title: 'AWS Multi-AZ VPC & Security Group Hardening', assignee: 'Cloud DevOps', status: 'Completed', progress: 100, dueDate: '2026-10-12' },
+        { id: 'm-cld-2', title: 'PostgreSQL Replication & Automated Backup Snapshots', assignee: 'DBA Engineer', status: 'Completed', progress: 100, dueDate: '2026-10-18' },
+        { id: 'm-cld-3', title: 'Kubernetes Cluster Provisioning & Docker Deployments', assignee: 'DevOps Specialist', status: 'In Progress', progress: 50, dueDate: '2026-10-30' }
+      ]
+    }
+  ];
+
+  const [localDevProjects, setLocalDevProjects] = useState(() => {
+    try {
+      const saved = localStorage.getItem('sanna_dev_deliverables_projects_v2');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {}
+    return DEFAULT_DEV_PROJECTS_CONTEXT;
+  });
+
+  const devProjectsQuery = useQuery({
+    queryKey: ['mis_dev_projects'],
+    queryFn: async () => {
+      try {
+        const res = await api.get('/mis/dev-projects');
+        return Array.isArray(res.data) ? res.data : [];
+      } catch (e) {
+        return [];
+      }
+    },
+    refetchInterval: 3000,
+    staleTime: 1500
+  });
+
+  const resolvedDevProjects = useMemo(() => {
+    if (Array.isArray(devProjectsQuery.data) && devProjectsQuery.data.length > 0) {
+      return devProjectsQuery.data;
+    }
+    return localDevProjects;
+  }, [devProjectsQuery.data, localDevProjects]);
+
+  const saveDevProjects = async (newProjects) => {
+    setLocalDevProjects(newProjects);
+    try { localStorage.setItem('sanna_dev_deliverables_projects_v2', JSON.stringify(newProjects)); } catch (e) {}
+    queryClient.setQueryData(['mis_dev_projects'], newProjects);
+    try {
+      await api.post('/mis/dev-projects', { projects: newProjects });
+      queryClient.invalidateQueries(['mis_dev_projects']);
+    } catch (err) {
+      console.warn("Dev projects API sync:", err);
+    }
+  };
+
+  const updateDevProjectMilestone = async (projectId, milestoneId, updates) => {
+    const updated = (resolvedDevProjects || []).map(proj => {
+      if (proj.id !== projectId) return proj;
+      return {
+        ...proj,
+        milestones: (proj.milestones || []).map(m => {
+          if (m.id !== milestoneId) return m;
+          return { ...m, ...updates };
+        })
+      };
+    });
+    await saveDevProjects(updated);
+  };
+
+  const addDevProjectMilestone = async (projectId, milestone) => {
+    const updated = (resolvedDevProjects || []).map(proj => {
+      if (proj.id !== projectId) return proj;
+      return {
+        ...proj,
+        milestones: [...(proj.milestones || []), milestone]
+      };
+    });
+    await saveDevProjects(updated);
+  };
+
+  const deleteDevProjectMilestone = async (projectId, milestoneId) => {
+    const updated = (resolvedDevProjects || []).map(proj => {
+      if (proj.id !== projectId) return proj;
+      return {
+        ...proj,
+        milestones: (proj.milestones || []).filter(m => m.id !== milestoneId)
+      };
+    });
+    await saveDevProjects(updated);
+  };
+
+  const createDevProject = async (project) => {
+    const updated = [project, ...(resolvedDevProjects || [])];
+    await saveDevProjects(updated);
+  };
+
+  const deleteDevProject = async (projectId) => {
+    const updated = (resolvedDevProjects || []).filter(p => p.id !== projectId);
+    await saveDevProjects(updated);
+  };
 
   // Live Sessions Fetch from SQLite Backend
   const sessionsQuery = useQuery({
@@ -657,23 +834,34 @@ export const CRMProvider = ({ children }) => {
         return [];
       }
     },
-    refetchInterval: 15000,
-    staleTime: 5000
+    refetchInterval: 10000,
+    staleTime: 3000
   });
 
   // Recorded Login Sessions & Live Work Clock State (Exact 14 Active Sanna Employees Today + Yesterday Completed + History)
   const [localLoginSessions, setLocalLoginSessions] = useState(() => {
+    const todayKey = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
     const saved = localStorage.getItem('astra_login_sessions_v14');
+    let list = INITIAL_LOGIN_SESSIONS;
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
         if (parsed.length >= 14) {
-          const hasMohana = parsed.some(s => s.userId === 'EMP-SANNA-023' || (s.userName && s.userName.includes('Mohana')));
-          if (hasMohana) return parsed;
+          list = parsed;
         }
       } catch (e) {}
     }
-    return INITIAL_LOGIN_SESSIONS;
+    return list.map(s => {
+      const sDate = s.date || (s.loginTime ? s.loginTime.split('T')[0] : '');
+      if (sDate && sDate < todayKey && s.status === 'Active') {
+        return {
+          ...s,
+          status: 'Logged Out',
+          punchOutTime: s.punchOutTime || '06:30 PM'
+        };
+      }
+      return s;
+    });
   });
   useEffect(() => {
     try {
@@ -697,12 +885,15 @@ export const CRMProvider = ({ children }) => {
         device: s.device || 'Desktop',
         location: s.location || 'Hyderabad, India',
         loginTime: s.login_time || s.loginTime,
+        date: s.date || (s.login_time ? s.login_time.split('T')[0] : null),
         status: s.status || 'Active',
         punchInTime: s.punch_in_time || s.punchInTime || '09:00 AM',
         punchOutTime: s.punch_out_time || s.punchOutTime || null,
         workMode: s.work_mode || s.workMode || 'Office Campus'
       }));
-      return dbSessions;
+      const dbIds = new Set(dbSessions.map(s => String(s.id)));
+      const extraLocals = (localLoginSessions || []).filter(loc => !dbIds.has(String(loc.id)));
+      return [...extraLocals, ...dbSessions];
     }
     return localLoginSessions;
   }, [sessionsQuery.data, localLoginSessions]);
@@ -723,7 +914,17 @@ export const CRMProvider = ({ children }) => {
 
   const resolvedDeliverables = useMemo(() => {
     if (Array.isArray(deliverablesQuery.data) && deliverablesQuery.data.length > 0) {
-      return deliverablesQuery.data;
+      const apiIds = new Set(deliverablesQuery.data.map(d => String(d.id || d.projectId)));
+      const extraLocals = (localDeliverables || []).filter(loc => {
+        if (apiIds.has(String(loc.id)) || apiIds.has(String(loc.projectId))) return false;
+        const exists = deliverablesQuery.data.some(apiD => {
+          const name1 = (apiD.clientName || apiD.projectName || '').trim().toLowerCase();
+          const name2 = (loc.clientName || loc.projectName || '').trim().toLowerCase();
+          return name1 === name2 && String(apiD.month) === String(loc.month) && String(apiD.year) === String(loc.year);
+        });
+        return !exists;
+      });
+      return [...deliverablesQuery.data, ...extraLocals];
     }
     return localDeliverables || [];
   }, [deliverablesQuery.data, localDeliverables]);
@@ -758,11 +959,16 @@ export const CRMProvider = ({ children }) => {
         return [];
       }
     },
+    refetchInterval: 10000,
     staleTime: 5000
   });
 
   const resolvedEditorAssignments = useMemo(() => {
-    if (Array.isArray(editorsQuery.data) && editorsQuery.data.length > 0) return editorsQuery.data;
+    if (Array.isArray(editorsQuery.data) && editorsQuery.data.length > 0) {
+      const apiIds = new Set(editorsQuery.data.map(e => String(e.id)));
+      const extraLocals = (localEditorAssignments || []).filter(e => !apiIds.has(String(e.id)));
+      return [...editorsQuery.data, ...extraLocals];
+    }
     return localEditorAssignments || [];
   }, [editorsQuery.data, localEditorAssignments]);
 
@@ -777,6 +983,7 @@ export const CRMProvider = ({ children }) => {
         return { servers: [], credentials: [] };
       }
     },
+    refetchInterval: 15000,
     staleTime: 5000
   });
 
@@ -801,12 +1008,54 @@ export const CRMProvider = ({ children }) => {
         return [];
       }
     },
+    refetchInterval: 10000,
     staleTime: 5000
   });
 
   const resolvedAdTransactions = useMemo(() => {
-    if (Array.isArray(adSpentTxQuery.data) && adSpentTxQuery.data.length > 0) return adSpentTxQuery.data;
-    return localAdTransactions || [];
+    if (Array.isArray(adSpentTxQuery.data) && adSpentTxQuery.data.length > 0) {
+      const apiIds = new Set(adSpentTxQuery.data.map(t => String(t.id)));
+      const extraLocals = (localAdTransactions || []).filter(loc => {
+        if (apiIds.has(String(loc.id))) return false;
+        const locClient = (loc.clientName || loc.client_name || '').trim().toLowerCase();
+        const locAmt = parseFloat(loc.amount) || 0;
+        const locDate = (loc.date || '').trim();
+        const locPurpose = (loc.purpose || '').trim().toLowerCase();
+
+        // Check if an entry with exact client, amount, and date already arrived from the API
+        const existsInApi = adSpentTxQuery.data.some(apiTx => {
+          const apiClient = (apiTx.clientName || apiTx.client_name || '').trim().toLowerCase();
+          const apiAmt = parseFloat(apiTx.amount) || 0;
+          const apiDate = (apiTx.date || '').trim();
+          const apiPurpose = (apiTx.purpose || '').trim().toLowerCase();
+          return locClient === apiClient && locAmt === apiAmt && locDate === apiDate && (!locPurpose || !apiPurpose || locPurpose === apiPurpose);
+        });
+        return !existsInApi;
+      });
+
+      const combined = [...adSpentTxQuery.data, ...extraLocals].map(tx => ({
+        ...tx,
+        clientName: tx.clientName || tx.client_name || 'Client',
+        paymentMode: tx.paymentMode || tx.mode_of_payment || 'UPI',
+        currency: (tx.currency === 'USD' || tx.currency === '$') ? 'USD' : 'INR'
+      }));
+
+      // Final deduplication safeguard
+      const seen = new Set();
+      return combined.filter(tx => {
+        const key = `${tx.id}-${tx.clientName}-${tx.date}-${tx.amount}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    }
+
+    return (localAdTransactions || []).map(tx => ({
+      ...tx,
+      clientName: tx.clientName || tx.client_name || 'Client',
+      paymentMode: tx.paymentMode || tx.mode_of_payment || 'UPI',
+      currency: (tx.currency === 'USD' || tx.currency === '$') ? 'USD' : 'INR'
+    }));
   }, [adSpentTxQuery.data, localAdTransactions]);
 
   // === NEW MIS MODULES STATE ===
@@ -936,6 +1185,28 @@ export const CRMProvider = ({ children }) => {
     return saved ? JSON.parse(saved) : [];
   });
   useEffect(() => { localStorage.setItem('astra_eotm', JSON.stringify(localEOTMNominations)); }, [localEOTMNominations]);
+
+  // Real-time Cross-Tab & Cross-Role Storage Synchronization
+  useEffect(() => {
+    const handleStorageSync = (e) => {
+      if (!e.key || !e.newValue) return;
+      try {
+        const parsed = JSON.parse(e.newValue);
+        if (!Array.isArray(parsed)) return;
+        if (e.key === 'astra_editor_assignments') {
+          setLocalEditorAssignments(parsed);
+        } else if (e.key === 'astra_ad_spend_transactions') {
+          setLocalAdTransactions(parsed);
+        } else if (e.key === 'astra_daily_tasks_v2' || e.key === 'astra_daily_tasks') {
+          setLocalDailyTasks(parsed);
+        } else if (e.key === 'astra_server_credentials') {
+          setLocalServerCredentials(parsed);
+        }
+      } catch (err) {}
+    };
+    window.addEventListener('storage', handleStorageSync);
+    return () => window.removeEventListener('storage', handleStorageSync);
+  }, []);
 
   // === CRUD HELPERS — NEW MODULES ===
 
@@ -1126,6 +1397,34 @@ export const CRMProvider = ({ children }) => {
     }
   }, [currentUser]);
 
+  // Automatic Active Login Presence & Periodic Live Heartbeat for Logged-In User
+  useEffect(() => {
+    if (!currentUser?.id && !currentUser?.email) return;
+
+    const todayKey = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+    let isPunchedOut = false;
+    try {
+      isPunchedOut = localStorage.getItem(`crm_punched_out_${currentUser.id}_${todayKey}`) === 'true';
+    } catch (e) {}
+    if (isPunchedOut) return;
+
+    const syncHeartbeat = async () => {
+      try {
+        await api.post('/mis/sessions/heartbeat', {
+          userId: currentUser.id,
+          userName: currentUser.name || currentUser.username,
+          userEmail: currentUser.email,
+          role: currentUser.role || currentUser.designation
+        });
+        queryClient.invalidateQueries(['mis_sessions']);
+      } catch (e) {}
+    };
+
+    syncHeartbeat();
+    const interval = setInterval(syncHeartbeat, 30000);
+    return () => clearInterval(interval);
+  }, [currentUser?.id, currentUser?.email]);
+
   // Sync active tenant id to sessionStorage
   useEffect(() => {
     if (activeTenantId) {
@@ -1202,6 +1501,8 @@ export const CRMProvider = ({ children }) => {
     queryKey: ['deals', activeTenantId],
     queryFn: () => api.get('/deals').then(res => res.data),
     enabled: isAuthenticated,
+    refetchInterval: 8000,
+    staleTime: 4000,
     retry: false
   });
 
@@ -1401,78 +1702,165 @@ export const CRMProvider = ({ children }) => {
     }
   ]);
   const [activeRoleId, setActiveRoleId] = useState(null);
-  const [roles, setRoles] = useState([
-    {
-      id: "role-admin",
-      name: "Super Admin / Org Admin",
-      description: "Executive strategic governance, company-wide operations, and financial oversight.",
-      permissions: ["super_admin", "view_all", "edit_all", "delete_all", "approve_quotes", "export_data", "security_admin", "manage_salary", "manage_employees", "manage_tickets", "manage_customers", "manage_leads"]
-    },
-    {
-      id: "role-mgr",
-      name: "Sales Manager",
-      description: "Team performance, sales targets, lead pipeline oversight, and quotations.",
-      permissions: ["view_sales", "edit_sales", "view_leads", "view_contacts", "view_pipeline", "view_products", "view_quotes", "approve_quotes", "view_orders", "view_marketing", "view_documents", "view_reports", "export_data"]
-    },
-    {
-      id: "role-exec",
-      name: "Sales Executive",
-      description: "Lead prospecting, customer communications, quote generation, and follow-ups.",
-      permissions: ["view_leads", "edit_own_leads", "view_contacts", "view_pipeline", "view_products", "create_quotes", "view_quotes", "log_activities"]
-    },
-    {
-      id: "role-dev",
-      name: "Software Developer",
-      description: "Project deliverables, code architecture, sprint feature delivery, daily task MIS logs, and work hours.",
-      permissions: ["view_projects", "view_mis", "log_attendance", "log_activities"]
-    },
-    {
-      id: "role-designer",
-      name: "Sr. Graphic Designer",
-      description: "Brand creatives, UI assets, marketing collateral, content calendar graphics, and social media deliverables.",
-      permissions: ["view_projects", "view_mis", "view_content_calendar", "log_attendance", "log_activities"]
-    },
-    {
-      id: "role-marketer",
-      name: "Digital Marketer",
-      description: "Marketing deliverables, ongoing campaigns, ROAS targets, daily MIS task logs, and attendance.",
-      permissions: ["view_projects", "view_mis", "log_attendance", "log_activities"]
-    },
-    {
-      id: "role-video",
-      name: "Video Editor",
-      description: "Video production, motion deliverables, color grading, content calendar, and daily logs.",
-      permissions: ["view_projects", "view_mis", "view_content_calendar", "log_attendance", "log_activities"]
-    },
-    {
-      id: "role-hr",
-      name: "HR / HR Manager",
-      description: "Employee records, attendance registers, payroll processing, salary configurations, and compliance.",
-      permissions: ["view_hr", "manage_employees", "manage_salary", "manage_attendance", "view_documents", "export_data", "log_activities", "view_reports"]
-    },
-    {
-      id: "role-ops",
-      name: "Operations Head",
-      description: "Sprint oversight, tickets resolution, customer satisfaction, deliverables audit, and throughput.",
-      permissions: ["view_ops", "manage_tickets", "manage_customers", "log_activities", "view_products", "view_contacts", "view_integrations", "view_reports"]
-    },
-    {
-      id: "role-intern",
-      name: "Software Intern / Trainee",
-      description: "Software engineering tasks, PR merges, code lint adherence, daily MIS task logs, and attendance tracking.",
-      permissions: ["view_tasks", "submit_logs", "view_attendance", "log_activities", "view_projects", "view_mis"]
-    },
-    {
-      id: "role-customer",
-      name: "Customer / Portal User",
-      description: "Client support tickets and quote reviews.",
-      permissions: ["view_tickets", "create_tickets", "view_quotes"]
+  const [roles, setRoles] = useState(() => {
+    const saved = localStorage.getItem('sanna_crm_roles');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      } catch (e) {}
     }
-  ]);
+    return [
+      {
+        id: "role-admin",
+        name: "Super Admin / Org Admin",
+        description: "Executive strategic governance, company-wide operations, and financial oversight.",
+        permissions: ["super_admin", "view_all", "edit_all", "delete_all", "approve_quotes", "export_data", "security_admin", "manage_salary", "manage_employees", "manage_tickets", "manage_customers", "manage_leads", "view_leads", "edit_own_leads"]
+      },
+      {
+        id: "role-mgr",
+        name: "Sales Manager",
+        description: "Team performance, sales targets, lead pipeline oversight, and quotations.",
+        permissions: ["view_sales", "edit_sales", "view_leads", "view_contacts", "view_pipeline", "view_products", "view_quotes", "approve_quotes", "view_orders", "view_marketing", "view_documents", "view_reports", "export_data"]
+      },
+      {
+        id: "role-exec",
+        name: "Sales Executive",
+        description: "Lead prospecting, customer communications, quote generation, and follow-ups.",
+        permissions: ["view_leads", "edit_own_leads", "view_contacts", "view_pipeline", "view_products", "create_quotes", "view_quotes", "log_activities"]
+      },
+      {
+        id: "role-dev",
+        name: "Software Developer",
+        description: "Project deliverables, code architecture, sprint feature delivery, daily task MIS logs, and work hours.",
+        permissions: ["view_projects", "view_mis", "log_attendance", "log_activities"]
+      },
+      {
+        id: "role-designer",
+        name: "Sr. Graphic Designer",
+        description: "Brand creatives, UI assets, marketing collateral, content calendar graphics, and social media deliverables.",
+        permissions: ["view_projects", "view_mis", "view_content_calendar", "log_attendance", "log_activities"]
+      },
+      {
+        id: "role-marketer",
+        name: "Digital Marketer",
+        description: "Marketing deliverables, ongoing campaigns, ROAS targets, daily MIS task logs, and attendance.",
+        permissions: ["view_projects", "view_mis", "view_leads", "edit_own_leads", "manage_leads", "log_attendance", "log_activities"]
+      },
+      {
+        id: "role-video",
+        name: "Video Editor",
+        description: "Video production, motion deliverables, color grading, content calendar, and daily logs.",
+        permissions: ["view_projects", "view_mis", "view_content_calendar", "log_attendance", "log_activities"]
+      },
+      {
+        id: "role-hr",
+        name: "HR / HR Manager",
+        description: "Employee records, attendance registers, payroll processing, salary configurations, and compliance.",
+        permissions: ["view_hr", "manage_employees", "manage_salary", "manage_attendance", "view_documents", "export_data", "log_activities", "view_reports"]
+      },
+      {
+        id: "role-ops",
+        name: "Operations Head",
+        description: "Sprint oversight, tickets resolution, customer satisfaction, deliverables audit, and throughput.",
+        permissions: ["view_ops", "manage_tickets", "manage_customers", "log_activities", "view_products", "view_contacts", "view_integrations", "view_reports"]
+      },
+      {
+        id: "role-intern",
+        name: "Software Intern / Trainee",
+        description: "Software engineering tasks, PR merges, code lint adherence, daily MIS task logs, and attendance tracking.",
+        permissions: ["view_tasks", "submit_logs", "view_attendance", "log_activities", "view_projects", "view_mis"]
+      },
+      {
+        id: "role-customer",
+        name: "Customer / Portal User",
+        description: "Client support tickets and quote reviews.",
+        permissions: ["view_tickets", "create_tickets", "view_quotes"]
+      }
+    ];
+  });
 
-  const activeRole = roles.find(r => r.id === (activeRoleId || currentUser?.roleId)) || 
-                     roles.find(r => r.name === currentUser?.role) || 
-                     roles[0];
+  const rolesQuery = useQuery({
+    queryKey: ['mis_roles'],
+    queryFn: async () => {
+      try {
+        const res = await api.get('/mis/roles');
+        return Array.isArray(res.data) && res.data.length > 0 ? res.data : null;
+      } catch (e) {
+        return null;
+      }
+    },
+    refetchInterval: 4000,
+    staleTime: 2000
+  });
+
+  const resolvedRoles = useMemo(() => {
+    if (Array.isArray(rolesQuery.data) && rolesQuery.data.length > 0) {
+      return rolesQuery.data;
+    }
+    return roles;
+  }, [rolesQuery.data, roles]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('sanna_crm_roles', JSON.stringify(roles));
+    } catch (e) {}
+  }, [roles]);
+
+  const updateRolePermissions = async (roleId, permission) => {
+    const currentRole = (resolvedRoles || []).find(r => r.id === roleId) || (roles || []).find(r => r.id === roleId);
+    const currentPerms = currentRole?.permissions || [];
+
+    const permMap = {
+      'view_all': ['view_all', 'view_leads', 'view_tickets', 'view_sales', 'view_projects', 'view_contacts', 'view_pipeline'],
+      'edit_all': ['edit_all', 'edit_own_leads', 'edit_sales', 'create_quotes', 'manage_leads'],
+      'delete_all': ['delete_all'],
+      'approve_quotes': ['approve_quotes', 'approve_discounts'],
+      'export_data': ['export_data', 'export_financials'],
+      'security_admin': ['security_admin', 'manage_employees', 'client_onboard']
+    };
+
+    const targetGroup = permMap[permission] || [permission];
+    const isCurrentlyChecked = targetGroup.some(p => currentPerms.includes(p));
+
+    let newPerms;
+    if (isCurrentlyChecked) {
+      newPerms = currentPerms.filter(p => !targetGroup.includes(p));
+    } else {
+      newPerms = Array.from(new Set([...currentPerms, ...targetGroup]));
+    }
+
+    setRoles(prevRoles => {
+      const updated = prevRoles.map(role => {
+        if (role.id !== roleId) return role;
+        return {
+          ...role,
+          permissions: newPerms
+        };
+      });
+
+      try {
+        localStorage.setItem('sanna_crm_roles', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+
+    queryClient.setQueryData(['mis_roles'], (old) => {
+      if (!Array.isArray(old)) return old;
+      return old.map(r => r.id === roleId ? { ...r, permissions: newPerms } : r);
+    });
+
+    try {
+      await api.put(`/mis/roles/${roleId}`, { permissions: newPerms });
+      queryClient.invalidateQueries(['mis_roles']);
+    } catch (err) {
+      console.warn('Sync role permissions to backend notice:', err.message);
+    }
+  };
+
+  const activeRole = resolvedRoles.find(r => r.id === (activeRoleId || currentUser?.roleId)) || 
+                     resolvedRoles.find(r => r.name === currentUser?.role) || 
+                     resolvedRoles[0];
 
   // AUTH ACTIONS
   const login = async (identifier, password) => {
@@ -2404,8 +2792,9 @@ export const CRMProvider = ({ children }) => {
 
     const now = new Date();
     const punchInTime = getCurrentISTTimeString(now);
+    const newSessionId = `SES-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
     const newSession = {
-      id: `SES-${now.getFullYear()}-${Math.floor(100 + Math.random() * 900)}`,
+      id: newSessionId,
       userId: targetUser.id || 'EMP-SANNA-001',
       userName: targetUser.name || 'User',
       userEmail: targetUser.email || '',
@@ -2426,9 +2815,14 @@ export const CRMProvider = ({ children }) => {
       ...prev.map(s => (s.userId === targetUser.id || s.userEmail === targetUser.email) && s.status === 'Active' ? { ...s, status: 'Logged Out', punchOutTime: punchInTime } : s)
     ]);
 
+    // Clear any manual punch-out lock for today so live heartbeat keeps user active
+    const todayKey = now.toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+    try { localStorage.removeItem(`crm_punched_out_${targetUser.id}_${todayKey}`); } catch (e) {}
+
     // Persist to backend database
     try {
       await api.post('/mis/sessions/punch-in', {
+        id: newSessionId,
         userId: targetUser.id,
         userName: targetUser.name,
         userEmail: targetUser.email,
@@ -2519,19 +2913,48 @@ export const CRMProvider = ({ children }) => {
 
   const addLoginSession = async (session) => {
     const now = new Date();
+    const todayKey = now.toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+    const targetDate = session.date || (session.loginTime ? session.loginTime.split('T')[0] : todayKey);
+    const sessionStatus = session.status || 'Active';
+    const isSessionActive = sessionStatus === 'Active';
+
     const newSession = {
-      id: `SES-${now.getFullYear()}-${Math.floor(100 + Math.random() * 900)}`,
+      id: session.id || `SES-${now.getFullYear()}-${Date.now().toString().slice(-4)}`,
       ipAddress: '103.21.144.92',
       device: 'Windows 11 · Chrome',
       location: 'Hyderabad, India',
-      loginTime: now.toISOString(),
-      status: 'Logged Out',
-      punchInTime: getCurrentISTTimeString(now),
-      punchOutTime: '06:00 PM',
-      workMode: 'Office Campus',
-      ...session
+      loginTime: session.loginTime || now.toISOString(),
+      date: targetDate,
+      status: sessionStatus,
+      punchInTime: session.punchInTime || getCurrentISTTimeString(now),
+      punchOutTime: isSessionActive ? null : (session.punchOutTime || '06:30 PM'),
+      workMode: session.workMode || 'Office Campus',
+      ...session,
+      date: targetDate,
+      status: sessionStatus,
+      punchOutTime: isSessionActive ? null : (session.punchOutTime || '06:30 PM')
     };
-    setLocalLoginSessions(prev => [newSession, ...prev]);
+
+    setLocalLoginSessions(prev => {
+      const filtered = prev.filter(s => {
+        const sDate = s.date || (s.loginTime ? s.loginTime.split('T')[0] : '');
+        const isSameDay = sDate === targetDate;
+        const isSameUser = (
+          (s.userId && newSession.userId && String(s.userId).toLowerCase() === String(newSession.userId).toLowerCase()) ||
+          (s.userEmail && newSession.userEmail && s.userEmail.toLowerCase() === newSession.userEmail.toLowerCase()) ||
+          (s.userName && newSession.userName && s.userName.toLowerCase() === newSession.userName.toLowerCase())
+        );
+        return !(isSameDay && isSameUser);
+      });
+      const updated = [newSession, ...filtered];
+      try {
+        localStorage.setItem('astra_login_sessions_v14', JSON.stringify(updated));
+        localStorage.setItem('astra_login_sessions_v12', JSON.stringify(updated));
+        localStorage.setItem('astra_login_sessions', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+
     try {
       await api.post('/mis/sessions', newSession);
       queryClient.invalidateQueries(['mis_sessions']);
@@ -2560,15 +2983,20 @@ export const CRMProvider = ({ children }) => {
     if (!currentUser) return;
     const now = new Date();
     const nowStr = getCurrentISTTimeString(now);
-    const todayDateStr = now.toISOString().split('T')[0];
+    const todayKey = now.toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+
+    // Mark manual punch-out lock for today so heartbeat does not override user's intentional punch out
+    try {
+      localStorage.setItem(`crm_punched_out_${currentUser.id}_${todayKey}`, 'true');
+    } catch (e) {}
 
     setLocalLoginSessions(prev => {
       const updated = prev.map(s => (s.userId === currentUser.id || s.userEmail === currentUser.email) && s.status === 'Active' ? { ...s, status: 'Logged Out', punchOutTime: nowStr } : s);
       try {
-        localStorage.setItem('astra_login_sessions_v11', JSON.stringify(updated));
+        localStorage.setItem('astra_login_sessions_v14', JSON.stringify(updated));
       } catch (e) {}
       if (autoMarkAttendanceFromSessions) {
-        autoMarkAttendanceFromSessions(currentUser.id, todayDateStr, updated);
+        autoMarkAttendanceFromSessions(currentUser.id, todayKey, updated);
       }
       return updated;
     });
@@ -2704,6 +3132,22 @@ export const CRMProvider = ({ children }) => {
   const leadDeals = (resolvedLeads || []).map(l => {
     const normStatus = (!l.status || l.status === 'Lead') ? 'Lead Intake' : l.status;
     const val = parseFloat(l.potentialValue || l.dealValue || l.value || 50000);
+
+    const dealMatch = (rawTenantDeals || []).find(d => 
+      String(d.id).toLowerCase() === String(l.id).toLowerCase() ||
+      String(d.id).toLowerCase() === `deal-${String(l.id).toLowerCase()}` ||
+      String(d.leadId || '').toLowerCase() === String(l.id).toLowerCase() ||
+      (d.company && l.company && String(d.company).trim().toLowerCase() === String(l.company).trim().toLowerCase())
+    ) || (localDeals || []).find(ld => 
+      String(ld.id).toLowerCase() === String(l.id).toLowerCase() ||
+      String(ld.id).toLowerCase() === `deal-${String(l.id).toLowerCase()}` ||
+      (ld.company && l.company && String(ld.company).trim().toLowerCase() === String(l.company).trim().toLowerCase())
+    );
+
+    const projectStatus = dealMatch?.projectStatus || l.projectStatus || 'In Progress';
+    const projectProgress = dealMatch?.projectProgress !== undefined ? dealMatch.projectProgress : (l.projectProgress !== undefined ? l.projectProgress : undefined);
+    const projectDeadline = dealMatch?.projectDeadline || l.projectDeadline || null;
+
     return {
       id: l.id,
       leadId: l.id,
@@ -2725,7 +3169,10 @@ export const CRMProvider = ({ children }) => {
       owner: l.assignedTo || currentUser?.name || 'Nikki',
       source: l.source || 'Direct Inbound',
       score: l.score || 80,
-      expectedCloseDate: l.expectedCloseDate || '2026-08-30'
+      expectedCloseDate: l.expectedCloseDate || '2026-08-30',
+      projectStatus,
+      projectProgress,
+      projectDeadline
     };
   });
 
@@ -3123,6 +3570,77 @@ export const CRMProvider = ({ children }) => {
     }
   });
 
+  const batchAddLeads = async (leadsList) => {
+    if (!Array.isArray(leadsList) || leadsList.length === 0) return [];
+    const addedLeads = [];
+    const addedDeals = [];
+
+    for (const leadData of leadsList) {
+      let leadId = `lead-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`;
+      const leadEntry = {
+        id: leadId,
+        clientId: activeTenantId,
+        name: leadData.name || leadData.company || 'New Lead',
+        company: leadData.company || leadData.name || 'Enterprise Client',
+        email: leadData.email ? leadData.email.trim() : '',
+        phone: leadData.phone || '',
+        source: leadData.source || 'Excel Import',
+        status: leadData.status || 'Lead Intake',
+        projectCategory: leadData.projectCategory || 'Software Development',
+        projectType: leadData.projectType || 'One Time',
+        productNeeded: leadData.productNeeded || '',
+        potentialValue: parseFloat(leadData.potentialValue || leadData.value || 50000),
+        assignedTo: leadData.assignedTo || currentUser?.name || 'Srinivas (Admin)',
+        notes: leadData.notes || '',
+        tags: leadData.tags || ['Imported']
+      };
+
+      try {
+        const res = await api.post('/leads', leadEntry);
+        if (res.data?.id) {
+          leadEntry.id = res.data.id;
+          leadId = res.data.id;
+        }
+      } catch (err) {
+        // Fallback local persistence
+      }
+
+      addedLeads.push(leadEntry);
+
+      addedDeals.push({
+        id: `deal-${leadId}`,
+        leadId,
+        clientId: activeTenantId,
+        title: `${leadEntry.company || leadEntry.name} Opportunity`,
+        company: leadEntry.company || leadEntry.name,
+        contactName: leadEntry.name,
+        dealValue: leadEntry.potentialValue,
+        probability: 25,
+        stage: leadEntry.status || 'Lead Intake',
+        pipelineId: 'pipe-enterprise',
+        owner: leadEntry.assignedTo,
+        productsInterested: leadEntry.productNeeded ? [leadEntry.productNeeded] : [],
+        expectedCloseDate: new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0]
+      });
+    }
+
+    setLocalLeads(prev => {
+      const updated = [...addedLeads, ...prev];
+      try { localStorage.setItem(isSannaCRM() ? 'sanna_leads_v6' : 'astra_clean_leads_v6', JSON.stringify(updated)); } catch (e) {}
+      return updated;
+    });
+
+    setLocalDeals(prev => {
+      const updated = [...addedDeals, ...prev];
+      try { localStorage.setItem('astra_deals', JSON.stringify(updated)); } catch (e) {}
+      return updated;
+    });
+
+    queryClient.invalidateQueries({ queryKey: ['leads', activeTenantId] });
+    queryClient.invalidateQueries({ queryKey: ['deals', activeTenantId] });
+    return addedLeads;
+  };
+
   const createDealMutation = useMutation({
     mutationFn: (dealData) => api.post('/deals', dealData),
     onSuccess: (resData, newDeal) => {
@@ -3150,15 +3668,25 @@ export const CRMProvider = ({ children }) => {
     onSuccess: (resData, { id, ...dealData }) => {
       queryClient.invalidateQueries({ queryKey: ['deals', activeTenantId] });
       setLocalDeals(prev => {
-        const updated = prev.map(d => d.id === id ? { ...d, ...dealData } : d);
-        try { localStorage.setItem('astra_deals', JSON.stringify(updated)); } catch (e) {}
+        const updated = prev.map(d => (d.id === id || `deal-${d.id}` === id || d.id === `deal-${id}` || (d.company && dealData.company && d.company.toLowerCase() === dealData.company.toLowerCase())) ? { ...d, ...dealData } : d);
+        try { localStorage.setItem(isSannaCRM() ? 'sanna_deals_v6' : 'astra_clean_deals_v6', JSON.stringify(updated)); } catch (e) {}
+        return updated;
+      });
+      setLocalLeads(prev => {
+        const updated = prev.map(l => (l.id === id || `lead-${l.id}` === id || l.id === `lead-${id}` || (l.company && dealData.company && l.company.toLowerCase() === dealData.company.toLowerCase())) ? { ...l, ...dealData } : l);
+        try { localStorage.setItem(isSannaCRM() ? 'sanna_leads_v6' : 'astra_clean_leads_v6', JSON.stringify(updated)); } catch (e) {}
         return updated;
       });
     },
     onError: (err, { id, ...dealData }) => {
       setLocalDeals(prev => {
-        const updated = prev.map(d => d.id === id ? { ...d, ...dealData } : d);
-        try { localStorage.setItem('astra_deals', JSON.stringify(updated)); } catch (e) {}
+        const updated = prev.map(d => (d.id === id || `deal-${d.id}` === id || d.id === `deal-${id}` || (d.company && dealData.company && d.company.toLowerCase() === dealData.company.toLowerCase())) ? { ...d, ...dealData } : d);
+        try { localStorage.setItem(isSannaCRM() ? 'sanna_deals_v6' : 'astra_clean_deals_v6', JSON.stringify(updated)); } catch (e) {}
+        return updated;
+      });
+      setLocalLeads(prev => {
+        const updated = prev.map(l => (l.id === id || `lead-${l.id}` === id || l.id === `lead-${id}` || (l.company && dealData.company && l.company.toLowerCase() === dealData.company.toLowerCase())) ? { ...l, ...dealData } : l);
+        try { localStorage.setItem(isSannaCRM() ? 'sanna_leads_v6' : 'astra_clean_leads_v6', JSON.stringify(updated)); } catch (e) {}
         return updated;
       });
     }
@@ -3172,11 +3700,16 @@ export const CRMProvider = ({ children }) => {
     }
   });
 
-  const handleDeleteDeal = async (id) => {
-    setLocalDeals(prev => prev.filter(d => d.id !== id && d.id !== `deal-${id}` && `deal-${d.id}` !== id));
-    queryClient.setQueryData(['deals', activeTenantId], old => (old || []).filter(d => d.id !== id && d.id !== `deal-${id}` && `deal-${d.id}` !== id));
+    const handleDeleteDeal = async (id) => {
+    const cleanId = String(id).replace('deal-', '');
+    setLocalDeals(prev => prev.filter(d => d.id !== id && d.id !== `deal-${id}` && `deal-${d.id}` !== id && String(d.id) !== cleanId));
+    setLocalLeads(prev => prev.filter(l => l.id !== id && l.id !== cleanId && `deal-${l.id}` !== id));
+    queryClient.setQueryData(['deals', activeTenantId], old => (old || []).filter(d => d.id !== id && d.id !== `deal-${id}` && `deal-${d.id}` !== id && String(d.id) !== cleanId));
+    queryClient.setQueryData(['leads', activeTenantId], old => (old || []).filter(l => l.id !== id && l.id !== cleanId && `deal-${l.id}` !== id));
     try {
-      await deleteDealMutation.mutateAsync(id);
+      await api.delete(`/deals/${id}`).catch(() => {});
+      await api.delete(`/deals/${cleanId}`).catch(() => {});
+      await api.delete(`/leads/${cleanId}`).catch(() => {});
     } catch (err) {
       console.warn("Delete deal backend sync completed or fallback:", err);
     }
@@ -3417,13 +3950,81 @@ export const CRMProvider = ({ children }) => {
     });
   };
 
+  const handleUpdateEmployeeRoleAndDesignation = async ({ id, designation, roleId, role, baseSalary, salary, birthday, dob }) => {
+    const ROLE_MAP = {
+      'role-admin': 'Super Admin / Org Admin',
+      'role-mgr': 'Sales Manager',
+      'role-exec': 'Sales Executive',
+      'role-dev': 'Software Developer',
+      'role-designer': 'Sr. Graphic Designer',
+      'role-marketer': 'Digital Marketer',
+      'role-video': 'Video Editor',
+      'role-hr': 'HR / HR Manager',
+      'role-ops': 'Operations Head',
+      'role-intern': 'Software Intern / Trainee',
+      'role-customer': 'Customer / Portal User'
+    };
+    const resolvedRole = role || ROLE_MAP[roleId] || roleId;
+    const bdayVal = birthday || dob;
+
+    queryClient.setQueryData(['employees', activeTenantId], old => {
+      if (!Array.isArray(old)) return old;
+      return old.map(e => (e.id === id || e.email === id || e.username === id) ? {
+        ...e,
+        designation: designation !== undefined ? designation : e.designation,
+        roleId: roleId !== undefined ? roleId : e.roleId,
+        role: resolvedRole || e.role,
+        baseSalary: (baseSalary !== undefined || salary !== undefined) ? parseInt(baseSalary || salary, 10) : e.baseSalary,
+        birthday: bdayVal !== undefined ? bdayVal : e.birthday
+      } : e);
+    });
+
+    setLocalEmployees(prev => {
+      const updated = prev.map(e => {
+        if (e.id === id || e.email === id || e.username === id) {
+          const up = { ...e };
+          if (designation !== undefined) up.designation = designation;
+          if (roleId !== undefined) {
+            up.roleId = roleId;
+            up.role = resolvedRole;
+          }
+          if (baseSalary !== undefined || salary !== undefined) up.baseSalary = parseInt(baseSalary || salary, 10);
+          if (bdayVal !== undefined) up.birthday = bdayVal;
+          return up;
+        }
+        return e;
+      });
+      try { localStorage.setItem('astra_local_employees', JSON.stringify(updated)); } catch (e) {}
+      return updated;
+    });
+
+    if (currentUser && (currentUser.id === id || currentUser.email === id || currentUser.username === id)) {
+      const updatedUser = {
+        ...currentUser,
+        designation: designation !== undefined ? designation : currentUser.designation,
+        roleId: roleId !== undefined ? roleId : currentUser.roleId,
+        role: resolvedRole || currentUser.role
+      };
+      setCurrentUser(updatedUser);
+      try { localStorage.setItem('astra_user', JSON.stringify(updatedUser)); } catch (e) {}
+    }
+
+    try {
+      await api.put(`/employees/${id}`, { designation, roleId, role: resolvedRole, baseSalary: baseSalary || salary, birthday: bdayVal, requesterRole: activeRole?.name });
+      queryClient.invalidateQueries({ queryKey: ['employees', activeTenantId] });
+    } catch (err) {
+      console.warn('API update employee notice (handled gracefully):', err.message);
+    }
+    return true;
+  };
+
   return (
     <CRMContext.Provider value={{
       theme, setTheme,
       isAuthenticated, currentUser, login, signup, logout, changeUserPassword,
       allClients: allClientsList, activeTenant, setActiveTenantId, clients: (REAL_CRM_DATA.clients || localClients), onboardNewClient: onboardNewClientMutation.mutateAsync, upgradeTenantPlan: upgradeTenantMutation.mutateAsync,
-      roles, activeRole, setActiveRoleId, updateRolePermissions: (roleId, permission) => {},
-      employees: resolvedEmployees, createEmployee: createEmployeeMutation.mutateAsync, updateEmployeeRoleAndDesignation: updateEmployeeMutation.mutateAsync, deleteEmployee: handleDeleteEmployee,
+      roles: resolvedRoles, activeRole, setActiveRoleId, updateRolePermissions,
+      employees: resolvedEmployees, createEmployee: createEmployeeMutation.mutateAsync, updateEmployeeRoleAndDesignation: handleUpdateEmployeeRoleAndDesignation, deleteEmployee: handleDeleteEmployee,
       securityConfig, setSecurityConfig,
       auditLogs: resolvedAuditLogs, logAudit: (action, resource, details, severity = 'INFO') => {
         const newLog = {
@@ -3440,7 +4041,7 @@ export const CRMProvider = ({ children }) => {
         };
         queryClient.setQueryData(['auditLogs', activeTenantId], old => [newLog, ...(old || [])]);
       },
-      leads: resolvedLeads, addLead: addLeadMutation.mutateAsync, updateLeadStatus: handleUpdateLeadStatus, deleteLead: handleDeleteLead, updateLeadNotes: handleUpdateLeadNotes,
+      leads: resolvedLeads, addLead: addLeadMutation.mutateAsync, batchAddLeads, updateLeadStatus: handleUpdateLeadStatus, deleteLead: handleDeleteLead, updateLeadNotes: handleUpdateLeadNotes,
       products: resolvedProducts, addProduct: (pData) => setLocalProducts(prev => [{ id: `prod-${Date.now()}`, clientId: activeTenantId, ...pData }, ...prev]), updateProduct: handleUpdateProduct, deleteProduct: handleDeleteProduct,
       deals: resolvedDeals, updateDealStage: handleUpdateDealStage, createDeal: createDealMutation.mutateAsync, updateDeal: (id, dealData) => updateDealMutation.mutateAsync({ id, ...dealData }), deleteDeal: handleDeleteDeal,
       quotes: resolvedQuotes, createQuote: createQuoteMutation.mutateAsync, approveQuote: (id) => {
@@ -3489,6 +4090,14 @@ export const CRMProvider = ({ children }) => {
       updateKYCDocument,
       deleteKYCDocument,
       verifyKYCDocument,
+      // Software Development Matrix (Live Multi-Role Engine)
+      devProjects: resolvedDevProjects,
+      updateDevProjectMilestone,
+      addDevProjectMilestone,
+      deleteDevProjectMilestone,
+      createDevProject,
+      deleteDevProject,
+      saveDevProjects,
     }}>
       {children}
     </CRMContext.Provider>

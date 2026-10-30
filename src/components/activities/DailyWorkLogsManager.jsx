@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useCRM } from '../../context/CRMContext';
 import exportToCSV from '../../utils/csvExporter';
 import {
@@ -25,7 +25,8 @@ import {
   Radio,
   Star,
   Layers,
-  Building
+  Building,
+  Lightbulb
 } from 'lucide-react';
 
 const SHIFT_MODES = ['Office Campus', 'Remote / Hybrid', 'Client Site / Field'];
@@ -57,6 +58,14 @@ const DailyWorkLogsManager = () => {
     currentUser,
     activeRole
   } = useCRM();
+
+  useEffect(() => {
+    const handleOpenSubmit = () => {
+      setShowSubmitModal(true);
+    };
+    window.addEventListener('open-submit-work-log', handleOpenSubmit);
+    return () => window.removeEventListener('open-submit-work-log', handleOpenSubmit);
+  }, []);
 
   const calculateRealActiveHours = (log) => {
     if (!loginSessions || !Array.isArray(loginSessions)) {
@@ -111,12 +120,15 @@ const DailyWorkLogsManager = () => {
   };
 
   const isManagerOrAdmin = (activeRole?.permissions || []).includes('super_admin') ||
+    (activeRole?.permissions || []).includes('security_admin') ||
+    (activeRole?.permissions || []).includes('view_all') ||
     activeRole?.id === 'role-admin' ||
     activeRole?.id === 'role-mgr' ||
     activeRole?.id === 'role-hr';
 
   const isAdmin = (activeRole?.permissions || []).includes('super_admin') ||
     (activeRole?.permissions || []).includes('security_admin') ||
+    (activeRole?.permissions || []).includes('view_all') ||
     activeRole?.id === 'role-admin' ||
     (activeRole?.name || '').toLowerCase().includes('admin') ||
     currentUser?.roleId === 'role-admin' ||
@@ -307,17 +319,17 @@ const DailyWorkLogsManager = () => {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       
       {/* Top Banner */}
-      <div className="glass-panel" style={{ padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+      <div className="ios-card" style={{ padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
         <div>
-          <div style={{ fontSize: '0.8rem', color: '#60a5fa', fontWeight: '700', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <div style={{ fontSize: '0.74rem', color: '#4E3EFF', fontWeight: '800', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '6px', letterSpacing: '0.06em' }}>
             <BookOpen style={{ width: '15px', height: '15px' }} />
             Workforce Activity & Daily Standup Center
           </div>
-          <h2 style={{ fontSize: '1.6rem', fontWeight: '900', margin: '4px 0 6px', background: 'linear-gradient(135deg, #fff 0%, #60a5fa 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-            Staff & Intern Daily Work Logs
+          <h2 style={{ fontSize: '1.6rem', fontWeight: '900', margin: '4px 0 6px', color: '#F9FAFB', letterSpacing: '-0.02em' }}>
+            Daily Work & Activity Logs
           </h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', margin: 0 }}>
-            Unified daily submission portal for <strong>employees & interns</strong> to record completed deliverables, skills learned, blockers faced, and supervisor reviews.
+          <p style={{ color: '#94A3B8', fontSize: '0.84rem', margin: 0 }}>
+            Unified daily submission portal for <strong>team members & interns</strong> to record completed deliverables, skills learned, blockers faced, and supervisor reviews.
           </p>
         </div>
 
@@ -392,81 +404,104 @@ const DailyWorkLogsManager = () => {
         </div>
       </div>
 
-      {/* Filter Tabs & Search Bar */}
-      <div className="glass-card" style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
-        
-        {/* Filter Pills */}
-        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+      {/* iOS Segmented Filter Tabs & Search Bar */}
+      <div style={{
+        background: 'rgba(20, 22, 31, 0.75)',
+        backdropFilter: 'blur(20px)',
+        border: '1px solid rgba(255, 255, 255, 0.08)',
+        borderRadius: '20px',
+        padding: '14px 18px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: '14px'
+      }}>
+        {/* iOS Segmented Pill Group */}
+        <div style={{
+          display: 'inline-flex',
+          background: 'rgba(255, 255, 255, 0.05)',
+          padding: '3px',
+          borderRadius: '14px',
+          border: '1px solid rgba(255, 255, 255, 0.08)',
+          gap: '3px',
+          flexWrap: 'wrap'
+        }}>
           {[
             { id: 'ALL', label: 'All Daily Logs', count: dailyTasks.length },
-            { id: 'EMPLOYEES', label: 'Employees Only', count: employeeLogsCount },
-            { id: 'INTERNS', label: 'Interns Only', count: internLogsCount },
+            { id: 'EMPLOYEES', label: 'Employees', count: employeeLogsCount },
+            { id: 'INTERNS', label: 'Interns', count: internLogsCount },
             { id: 'PENDING', label: 'Pending Review', count: pendingReviewsCount },
             { id: 'MY_LOGS', label: 'My Submissions', count: dailyTasks.filter(t => t.staffId === currentUser?.id || t.staffName === currentUser?.name).length }
-          ].map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setFilterType(tab.id)}
-              style={{
-                padding: '6px 12px',
-                borderRadius: '8px',
-                fontSize: '0.78rem',
-                fontWeight: filterType === tab.id ? '700' : '500',
-                border: filterType === tab.id ? '1px solid rgba(99, 102, 241, 0.4)' : '1px solid transparent',
-                background: filterType === tab.id ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.25) 0%, rgba(168, 85, 247, 0.15) 100%)' : 'transparent',
-                color: filterType === tab.id ? '#818cf8' : 'var(--text-secondary)',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px'
-              }}
-            >
-              <span>{tab.label}</span>
-              <span style={{
-                padding: '1px 5px',
-                borderRadius: '10px',
-                background: filterType === tab.id ? '#6366f1' : 'rgba(255,255,255,0.08)',
-                color: filterType === tab.id ? '#fff' : 'var(--text-muted)',
-                fontSize: '0.68rem',
-                fontWeight: '700'
-              }}>
-                {tab.count}
-              </span>
-            </button>
-          ))}
+          ].map(tab => {
+            const isActive = filterType === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setFilterType(tab.id)}
+                style={{
+                  padding: '7px 14px',
+                  borderRadius: '11px',
+                  fontSize: '0.78rem',
+                  fontWeight: isActive ? '700' : '500',
+                  border: 'none',
+                  background: isActive ? '#4E3EFF' : 'transparent',
+                  color: isActive ? '#FFFFFF' : '#94A3B8',
+                  boxShadow: isActive ? '0 4px 12px rgba(78, 62, 255, 0.35)' : 'none',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
+                }}
+              >
+                <span>{tab.label}</span>
+                <span style={{
+                  padding: '1px 6px',
+                  borderRadius: '10px',
+                  background: isActive ? 'rgba(255,255,255,0.22)' : 'rgba(255,255,255,0.08)',
+                  color: isActive ? '#FFFFFF' : '#94A3B8',
+                  fontSize: '0.68rem',
+                  fontWeight: '700'
+                }}>
+                  {tab.count}
+                </span>
+              </button>
+            );
+          })}
         </div>
 
         {/* Date Filter & Search */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Calendar style={{ width: '15px', height: '15px', color: '#818cf8' }} />
+            <Calendar style={{ width: '14px', height: '14px', color: '#818CF8' }} />
             <input
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
               className="form-input"
-              style={{ padding: '6px 10px', fontSize: '0.78rem', width: '135px' }}
+              style={{ padding: '6px 10px', fontSize: '0.78rem', width: '135px', borderRadius: '10px' }}
             />
             {selectedDate && (
               <button
                 onClick={() => setSelectedDate('')}
                 title="Clear date filter"
-                style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '2px' }}
+                style={{ background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer', padding: '2px' }}
               >
                 <X style={{ width: '14px', height: '14px' }} />
               </button>
             )}
           </div>
 
-          <div style={{ position: 'relative', width: '200px' }}>
-            <Search style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', width: '13px', height: '13px', color: 'var(--text-muted)' }} />
+          <div style={{ position: 'relative', width: '220px' }}>
+            <Search style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', width: '13px', height: '13px', color: '#94A3B8' }} />
             <input
               type="text"
               placeholder="Search logs & deliverables..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="form-input"
-              style={{ width: '100%', paddingLeft: '30px', fontSize: '0.78rem' }}
+              style={{ width: '100%', paddingLeft: '30px', fontSize: '0.78rem', borderRadius: '10px' }}
             />
           </div>
         </div>
@@ -626,7 +661,10 @@ const DailyWorkLogsManager = () => {
                     fontSize: '0.8rem',
                     color: '#e9d5ff'
                   }}>
-                    <strong style={{ color: '#c084fc' }}>💡 Key Learnings & Skills Explored: </strong>
+                    <strong style={{ color: '#c084fc', display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '4px' }}>
+                      <Lightbulb style={{ width: '14px', height: '14px' }} />
+                      <span>Key Learnings & Skills Explored:</span>
+                    </strong>
                     {log.learnings}
                   </div>
                 )}
@@ -740,8 +778,27 @@ const DailyWorkLogsManager = () => {
       {/* MODAL: SUBMIT DAILY WORK LOG                                              */}
       {/* ========================================================================= */}
       {showSubmitModal && (
-        <div className="modal-overlay" style={{ zIndex: 1000, padding: '16px' }}>
-          <div className="modal-content" style={{ maxWidth: '720px', width: '100%', maxHeight: '92vh', padding: '28px', borderRadius: '16px', background: '#0f172a', border: '1px solid rgba(255, 255, 255, 0.15)', boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.8)' }}>
+        <div
+          className="modal-overlay"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowSubmitModal(false);
+          }}
+        >
+          <div
+            className="modal-content"
+            style={{
+              maxWidth: '720px',
+              width: '100%',
+              margin: '0 auto',
+              maxHeight: 'calc(100vh - 120px)',
+              overflowY: 'auto',
+              padding: '26px 28px',
+              borderRadius: '20px',
+              background: '#0F121C',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
+              boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.9)'
+            }}
+          >
             
             {/* Modal Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', paddingBottom: '18px', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', marginBottom: '20px' }}>
@@ -912,7 +969,10 @@ const DailyWorkLogsManager = () => {
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '14px' }}>
                   <div className="form-group">
-                    <label className="form-label">💡 Key Learnings / Skills Acquired</label>
+                    <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                      <Lightbulb style={{ width: '13px', height: '13px', color: '#c084fc' }} />
+                      <span>Key Learnings / Skills Acquired</span>
+                    </label>
                     <textarea
                       rows={3}
                       placeholder="Technologies mastered, architecture insights learned..."

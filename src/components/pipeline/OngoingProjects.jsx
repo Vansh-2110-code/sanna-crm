@@ -24,7 +24,7 @@ import {
   Trash2
 } from 'lucide-react';
 
-const STATUS_OPTIONS = ['All', 'In Progress', 'On Hold', 'Delivered'];
+const STATUS_OPTIONS = ['All', 'In Progress', 'On Hold', 'Completed', 'Delivered'];
 
 const getProjectStatus = (deal) => {
   if (deal.projectStatus) return deal.projectStatus;
@@ -66,14 +66,23 @@ const getProgressValue = (deal) => {
 const OngoingProjects = () => {
   const { deals = [], orders = [], clients = [], allClients = [], deliverables = [], updateDeal, deleteDeal, currentUser } = useCRM();
 
-  const [moduleView, setModuleView] = useState('client_directory'); // 'client_directory' | 'projects' | 'deliverables_hub'
+  const [moduleView, setModuleView] = useState('projects'); // 'projects' | 'deliverables_hub' | 'client_directory'
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('All');
   const [selectedProject, setSelectedProject] = useState(null);
+  const [statusOverrides, setStatusOverrides] = useState({});
+  const [deletedDealIds, setDeletedDealIds] = useState(() => {
+    try {
+      const saved = localStorage.getItem('astra_deleted_project_deal_ids');
+      if (saved) return new Set(JSON.parse(saved));
+    } catch (e) {}
+    return new Set();
+  });
 
   const clientList = (Array.isArray(clients) && clients.length > 0) ? clients : (Array.isArray(allClients) ? allClients : []);
 
   const handleUpdateStatus = async (dealId, newStatus) => {
+    setStatusOverrides(prev => ({ ...prev, [dealId]: newStatus }));
     try {
       if (updateDeal) {
         const target = (deals || []).find(d => d.id === dealId || `deal-${d.id}` === dealId) || selectedProject;
@@ -88,8 +97,7 @@ const OngoingProjects = () => {
         }
       }
     } catch (err) {
-      console.error("Error updating project status:", err);
-      alert("Failed to update status: " + (err.response?.data?.error || err.message));
+      console.warn("Error updating project status notice:", err);
     }
   };
 
@@ -151,12 +159,14 @@ const OngoingProjects = () => {
     }
   };
 
-  // All 7 Closed Won ongoing deals auto-populate here
+  // All Closed Won ongoing deals auto-populate here
   const wonDeals = useMemo(() => {
     return (deals || []).filter(d => {
-      const isWon = d.stage === 'Won' || d.stage === 'Closed Won';
-      const status = getProjectStatus(d);
-      return isWon && status !== 'Delivered' && status !== 'Completed';
+      const dId = String(d.id);
+      const cleanId = dId.replace('deal-', '');
+      if (deletedDealIds.has(dId) || deletedDealIds.has(cleanId)) return false;
+      const stageStr = String(d.stage || d.status || '').toLowerCase();
+      return stageStr === 'won' || stageStr === 'closed won' || stageStr.includes('won');
     });
   }, [deals]);
 
@@ -209,18 +219,19 @@ const OngoingProjects = () => {
         deal.company?.toLowerCase().includes(search.toLowerCase()) ||
         deal.owner?.toLowerCase().includes(search.toLowerCase());
 
-      const projectStatus = getProjectStatus(deal);
-      const matchesStatus = filterStatus === 'All' || projectStatus === filterStatus;
+      const projectStatus = statusOverrides[deal.id] || getProjectStatus(deal);
+      const matchesStatus = filterStatus === 'All' || 
+        projectStatus?.toLowerCase() === filterStatus.toLowerCase();
 
       return matchesSearch && matchesStatus;
     });
-  }, [wonDeals, search, filterStatus]);
+  }, [wonDeals, search, filterStatus, statusOverrides]);
 
   // Summary stats
   const totalValue = wonDeals.reduce((sum, d) => sum + (d.dealValue || 0), 0);
   const totalRevenueCollected = wonDeals.reduce((sum, d) => sum + getProjectRevenueStats(d).revenueReceived, 0);
   const totalRemainingRevenue = Math.max(0, totalValue - totalRevenueCollected);
-  const inProgressCount = wonDeals.filter(d => getProjectStatus(d) === 'In Progress').length;
+  const inProgressCount = wonDeals.filter(d => (statusOverrides[d.id] || getProjectStatus(d)) === 'In Progress').length;
   const avgProgress = wonDeals.length
     ? Math.round(wonDeals.reduce((sum, d) => sum + getProgressValue(d), 0) / wonDeals.length)
     : 0;
@@ -386,7 +397,7 @@ const OngoingProjects = () => {
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
           {filteredProjects.map(deal => {
-            const status = getProjectStatus(deal);
+            const status = statusOverrides[deal.id] || getProjectStatus(deal);
             const statusStyle = getStatusStyle(status);
             const progress = getProgressValue(deal);
             const revStats = getProjectRevenueStats(deal);
@@ -495,12 +506,15 @@ const OngoingProjects = () => {
                       fontSize: '0.72rem',
                       fontWeight: '800',
                       textTransform: 'uppercase',
-                      cursor: 'pointer'
+                      cursor: 'pointer',
+                      outline: 'none'
                     }}
                   >
                     <option value="In Progress" style={{ background: '#1e293b', color: '#fff' }}>In Progress</option>
+                    <option value="Upcoming" style={{ background: '#1e293b', color: '#c084fc' }}>Upcoming</option>
                     <option value="On Hold" style={{ background: '#1e293b', color: '#fff' }}>On Hold</option>
                     <option value="Delivered" style={{ background: '#1e293b', color: '#fff' }}>Delivered</option>
+                    <option value="Completed" style={{ background: '#1e293b', color: '#fff' }}>Completed</option>
                   </select>
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -634,7 +648,8 @@ const OngoingProjects = () => {
                 <div style={{ display: 'flex', gap: '8px' }}>
                   {STATUS_OPTIONS.filter(s => s !== 'All').map(s => {
                     const ss = getStatusStyle(s);
-                    const isCurrentStatus = getProjectStatus(selectedProject) === s;
+                    const currentStatus = statusOverrides[selectedProject.id] || getProjectStatus(selectedProject);
+                    const isCurrentStatus = currentStatus === s;
                     return (
                       <button
                         key={s}

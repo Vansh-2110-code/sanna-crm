@@ -284,32 +284,32 @@ export function calculateEmployeePerformance(record, customBenchmark = null) {
   let tier = 'Silver AI Tier • Meets Expectations';
   let tierGrade = 'Meets Expectations';
   let badgeColor = '#f59e0b';
-  let tierIcon = '⭐';
+  let tierIcon = 'Star';
   let ribbon = 'Consistent Contributor';
 
   if (finalPercentage >= 98.0) {
     tier = 'Platinum AI Tier • Outstanding Legend';
     tierGrade = 'Outstanding (Top Performer)';
     badgeColor = '#10b981';
-    tierIcon = '🌟';
+    tierIcon = 'Sparkles';
     ribbon = 'Top Performer • EOTM Contender';
   } else if (finalPercentage >= 90.0) {
     tier = 'Gold AI Tier • High Impact Leader';
     tierGrade = 'Exceeds Expectations';
     badgeColor = '#3b82f6';
-    tierIcon = '🏆';
+    tierIcon = 'Trophy';
     ribbon = 'High Impact Leader';
   } else if (finalPercentage >= 78.0) {
     tier = 'Silver AI Tier • Meets Expectations';
     tierGrade = 'Meets Expectations';
     badgeColor = '#8b5cf6';
-    tierIcon = '⭐';
+    tierIcon = 'Star';
     ribbon = 'Core Pillar';
   } else {
     tier = 'Bronze AI Tier • Needs Improvement';
     tierGrade = 'Needs Improvement';
     badgeColor = '#f43f5e';
-    tierIcon = '⚠️';
+    tierIcon = 'AlertCircle';
     ribbon = 'Action Plan Required';
   }
 
@@ -371,6 +371,6 @@ export function rankEmployeesForEOTM(records) {
     rank: idx + 1,
     isWinner: idx === 0,
     isRunnerUp: idx === 1 || idx === 2,
-    podiumBadge: idx === 0 ? '👑 #1 EMPLOYEE OF THE MONTH' : idx === 1 ? '🥈 1st Runner Up' : idx === 2 ? '🥉 2nd Runner Up' : `#${idx + 1}`
+    podiumBadge: idx === 0 ? '#1 EMPLOYEE OF THE MONTH' : idx === 1 ? '1st Runner Up' : idx === 2 ? '2nd Runner Up' : `#${idx + 1}`
   }));
 }

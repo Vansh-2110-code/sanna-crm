@@ -215,6 +215,33 @@ const EmployeeKYCModal = ({ isOpen, onClose, onSubmitted }) => {
               </p>
             </div>
           </div>
+
+          {/* Close Modal Button */}
+          <button
+            type="button"
+            onClick={() => {
+              sessionStorage.setItem('kyc_dismissed_session', 'true');
+              if (onClose) onClose();
+            }}
+            title="Remind me later"
+            aria-label="Close KYC modal"
+            style={{
+              background: 'rgba(255, 255, 255, 0.05)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              borderRadius: '10px',
+              color: '#94a3b8',
+              padding: '8px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 0.15s ease'
+            }}
+            onMouseEnter={e => { e.currentTarget.style.color = '#fff'; e.currentTarget.style.background = 'rgba(255,255,255,0.12)'; }}
+            onMouseLeave={e => { e.currentTarget.style.color = '#94a3b8'; e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}
+          >
+            <X size={18} />
+          </button>
         </div>
 
         {/* 3-Step Progress Navigation Header */}
@@ -363,7 +390,18 @@ const EmployeeKYCModal = ({ isOpen, onClose, onSubmitted }) => {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    sessionStorage.setItem('kyc_dismissed_session', 'true');
+                    if (onClose) onClose();
+                  }}
+                  className="btn btn-secondary"
+                  style={{ padding: '12px 18px', fontSize: '0.82rem', color: '#94a3b8' }}
+                >
+                  Remind Me Later
+                </button>
                 <button
                   type="button"
                   onClick={() => {

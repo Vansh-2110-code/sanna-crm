@@ -1,7 +1,60 @@
-// Auto-generated full MIS Client Directory, Credentials, and Servers dataset
-// 57 Clients, 94 Credentials, 8 Servers from MIS Production Database
+// 60 Clients, 94 Credentials, 8 Servers from MIS Production Database
 
 export const MIS_CLIENTS_DATA = [
+  {
+    "id": 60,
+    "name": "Powertech CRM",
+    "client_name": "Powertech CRM",
+    "client_type": "one_time",
+    "is_dm": 0,
+    "billing_cycle": "One-Time",
+    "ticket_size": 120000,
+    "advance_payment": 0,
+    "payment_status": "Unpaid",
+    "status": "active",
+    "onboarded_date": "2026-10-29",
+    "deadline": null,
+    "assigned_lead": "Smitesh Pokharkar",
+    "contact_person": "Powertech",
+    "contact_email": "powertech@sannainbound.com",
+    "created_at": "2026-10-29 10:00:00"
+  },
+  {
+    "id": 59,
+    "name": "Whitehorse Manpower ATS",
+    "client_name": "Whitehorse Manpower ATS",
+    "client_type": "one_time",
+    "is_dm": 0,
+    "billing_cycle": "One-Time",
+    "ticket_size": 30000,
+    "advance_payment": 0,
+    "payment_status": "Unpaid",
+    "status": "active",
+    "onboarded_date": "2026-10-01",
+    "deadline": null,
+    "assigned_lead": "Smitesh Pokharkar",
+    "contact_person": "Whitehorse Manpower",
+    "contact_email": "whitehorse@sannainbound.com",
+    "created_at": "2026-10-01 10:00:00"
+  },
+  {
+    "id": 58,
+    "name": "Edulateral LMS",
+    "client_name": "Edulateral LMS",
+    "client_type": "one_time",
+    "is_dm": 0,
+    "billing_cycle": "One-Time",
+    "ticket_size": 60000,
+    "advance_payment": 0,
+    "payment_status": "Unpaid",
+    "status": "active",
+    "onboarded_date": "2026-10-17",
+    "deadline": null,
+    "assigned_lead": "Smitesh Pokharkar",
+    "contact_person": "Edulateral",
+    "contact_email": "edulateral@sannainbound.com",
+    "created_at": "2026-10-17 10:00:00"
+  },
   {
     "id": 1,
     "name": "Nirmal",

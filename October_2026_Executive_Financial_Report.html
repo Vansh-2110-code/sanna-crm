@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SANNA Innovations - Financial Audit & Revenue Ledger (October 2026)</title>
+  <style>
+    :root {
+      --primary: #4E3EFF;
+      --primary-dark: #3728D1;
+      --success: #059669;
+      --success-bg: #ECFDF5;
+      --danger: #E11D48;
+      --danger-bg: #FFF1F2;
+      --warning: #D97706;
+      --warning-bg: #FFFBEB;
+      --purple: #7C3AED;
+      --purple-bg: #F5F3FF;
+      --text-main: #0F172A;
+      --text-muted: #64748B;
+      --border: #E2E8F0;
+      --card-bg: #FFFFFF;
+      --bg: #F8FAFC;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text-main);
+      line-height: 1.5;
+      padding: 24px;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 40px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+      border: 1px solid var(--border);
+    }
+
+    /* Print action bar */
+    .action-bar {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--primary);
+      color: #FFFFFF;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.15s ease;
+    }
+
+    .btn:hover {
+      background: var(--primary-dark);
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 24px;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .company-title {
+      font-size: 1.6rem;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      color: #0F172A;
+      margin-bottom: 4px;
+    }
+
+    .doc-subtitle {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .meta-box {
+      text-align: right;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .meta-box strong {
+      color: var(--text-main);
+    }
+
+    /* KPI Grid */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .kpi-card {
+      padding: 20px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--card-bg);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .kpi-label {
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+    }
+
+    .kpi-value {
+      font-size: 1.7rem;
+      font-weight: 900;
+      line-height: 1.1;
+      margin-bottom: 6px;
+    }
+
+    .kpi-sub {
+      font-size: 0.74rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .card-green {
+      background: var(--success-bg);
+      border-color: #A7F3D0;
+    }
+
+    .card-green .kpi-label,
+    .card-green .kpi-value {
+      color: var(--success);
+    }
+
+    .card-red {
+      background: var(--danger-bg);
+      border-color: #FECDD3;
+    }
+
+    .card-red .kpi-label,
+    .card-red .kpi-value {
+      color: var(--danger);
+    }
+
+    .card-blue {
+      background: #EEF2FF;
+      border-color: #C7D2FE;
+    }
+
+    .card-blue .kpi-label,
+    .card-blue .kpi-value {
+      color: var(--primary);
+    }
+
+    .card-amber {
+      background: var(--warning-bg);
+      border-color: #FDE68A;
+    }
+
+    .card-amber .kpi-label,
+    .card-amber .kpi-value {
+      color: var(--warning);
+    }
+
+    .card-purple {
+      background: var(--purple-bg);
+      border-color: #DDD6FE;
+    }
+
+    .card-purple .kpi-label,
+    .card-purple .kpi-value {
+      color: var(--purple);
+    }
+
+    /* Section Headings */
+    .section-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--text-main);
+      margin: 32px 0 14px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+    }
+
+    .section-title span.badge {
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 9999px;
+      background: #E2E8F0;
+      color: #334155;
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+      margin-bottom: 24px;
+    }
+
+    th {
+      background: #F1F5F9;
+      color: #475569;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 10px 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #F1F5F9;
+      color: #334155;
+    }
+
+    tr:nth-child(even) td {
+      background: #FAFAFA;
+    }
+
+    tr.total-row td {
+      font-weight: 800;
+      background: #F8FAFC;
+      border-top: 2px solid var(--border);
+      border-bottom: 2px solid var(--border);
+      color: var(--text-main);
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .badge-paid {
+      background: #DCFCE7;
+      color: #15803D;
+    }
+
+    .badge-unpaid {
+      background: #FEE2E2;
+      color: #B91C1C;
+    }
+
+    .badge-pending {
+      background: #FEF3C7;
+      color: #B45309;
+    }
+
+    .badge-upcoming {
+      background: #EDE9FE;
+      color: #6D28D9;
+    }
+
+    .badge-hold {
+      background: #F1F5F9;
+      color: #475569;
+    }
+
+    .text-right {
+      text-align: right;
+    }
+
+    .text-center {
+      text-align: center;
+    }
+
+    /* Notes Box */
+    .callout {
+      background: #F8FAFC;
+      border-left: 4px solid var(--primary);
+      padding: 16px 20px;
+      border-radius: 0 8px 8px 0;
+      margin: 20px 0;
+      font-size: 0.84rem;
+      line-height: 1.6;
+      color: #334155;
+    }
+
+    .callout strong {
+      color: var(--text-main);
+    }
+
+    /* Outflow Split Grid */
+    .outflow-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+      margin: 16px 0 28px 0;
+    }
+
+    .outflow-card {
+      border: 1px solid var(--border);
+      padding: 14px 18px;
+      border-radius: 10px;
+      background: #FFFFFF;
+    }
+
+    .outflow-card .cat {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .outflow-card .amt {
+      font-size: 1.25rem;
+      font-weight: 900;
+      color: var(--danger);
+      margin: 4px 0;
+    }
+
+    .outflow-card .desc {
+      font-size: 0.72rem;
+      color: #64748B;
+    }
+
+    /* Sign-off */
+    .signoff-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      margin-top: 48px;
+      padding-top: 32px;
+      border-top: 2px solid var(--border);
+    }
+
+    .signoff-box {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      line-height: 1.7;
+    }
+
+    .signoff-line {
+      height: 1px;
+      background: #CBD5E1;
+      margin: 40px 0 10px 0;
+    }
+
+    /* Print Rules */
+    @media print {
+      body {
+        background: #FFFFFF;
+        padding: 0;
+      }
+
+      .container {
+        border: none;
+        box-shadow: none;
+        padding: 0;
+        max-width: 100%;
+      }
+
+      .action-bar {
+        display: none !important;
+      }
+
+      .kpi-card {
+        border: 1px solid #CBD5E1 !important;
+      }
+
+      @page {
+        size: A4;
+        margin: 14mm;
+      }
+
+      table {
+        page-break-inside: auto;
+      }
+
+      tr {
+        page-break-inside: avoid;
+        page-break-after: auto;
+      }
+
+      thead {
+        display: table-header-group;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+
+    <!-- Top Action Toolbar -->
+    <div class="action-bar">
+      <button class="btn" onclick="window.print()">
+        <span>Print Document / Save as PDF</span>
+      </button>
+    </div>
+
+    <!-- Header Section -->
+    <div class="header">
+      <div>
+        <div class="company-title">SANNA INNOVATIONS PVT LTD</div>
+        <div class="doc-subtitle">Executive Financial Audit & Client Payment Ledger — October 2026</div>
+      </div>
+      <div class="meta-box">
+        <div><strong>Report ID:</strong> SANNA-FIN-OCT2026-V1</div>
+        <div><strong>Generation Date:</strong> October 30, 2026</div>
+        <div><strong>Prepared By:</strong> Smitesh Pokharkar ( Developer / Operations)</div>
+        <div><strong>Classification:</strong> Confidential — Executive Board</div>
+      </div>
+    </div>
+
+    <!-- 5 Pastel Top KPI Cards -->
+    <div class="kpi-grid">
+      <div class="kpi-card card-green">
+        <div class="kpi-label">Gross Inflow (Collected)</div>
+        <div class="kpi-value">&#8377;5,64,977</div>
+        <div class="kpi-sub">Realized Advances & Retainers</div>
+      </div>
+
+      <div class="kpi-card card-red">
+        <div class="kpi-label">Total Outflow</div>
+        <div class="kpi-value">&#8377;3,69,000</div>
+        <div class="kpi-sub">Salaries + Ads + Cloud + Tools</div>
+      </div>
+
+      <div class="kpi-card card-blue">
+        <div class="kpi-label">Net Operating Profit</div>
+        <div class="kpi-value">&#8377;1,95,977</div>
+        <div class="kpi-sub">Net Profit Margin: 34.7%</div>
+      </div>
+
+      <div class="kpi-card card-amber">
+        <div class="kpi-label">Pending Receivables</div>
+        <div class="kpi-value">&#8377;4,17,000</div>
+        <div class="kpi-sub">Uncollected Milestones & Dues</div>
+      </div>
+
+      <div class="kpi-card card-purple">
+        <div class="kpi-label">Upcoming Pipeline</div>
+        <div class="kpi-value">&#8377;1,20,000</div>
+        <div class="kpi-sub">Powertech CRM (1 Deal)</div>
+      </div>
+    </div>
+
+    <!-- Callout Box -->
+    <div class="callout">
+      <strong>Executive Financial Audit Notice:</strong> All figures presented herein are directly synchronized with the
+      live CRM production database (<code>unified_sanna_crm.db</code>). Booked revenue commitments total
+      <strong>&#8377;9,81,977</strong> across 67 client organizations. 8 legacy mock leads have been permanently
+      removed, leaving the upcoming pipeline at strictly <strong>&#8377;1,20,000</strong> (Powertech CRM) scheduled for
+      November forward.
+    </div>
+
+    <!-- Agency Outflow Breakdown -->
+    <div class="section-title">
+      <span>1. Operational Expense & Agency Outflow Breakdown</span>
+      <span class="badge">&#8377;3,69,000 Monthly Burn</span>
+    </div>
+
+    <div class="outflow-grid">
+      <div class="outflow-card">
+        <div class="cat">Staff Salaries & Payroll</div>
+        <div class="amt">&#8377;3,10,000</div>
+        <div class="desc">12 full-time staff, devs & operations (84.0% share)</div>
+      </div>
+      <div class="outflow-card">
+        <div class="cat">Client Ad Spend Burn</div>
+        <div class="amt">&#8377;28,500</div>
+        <div class="desc">Meta Ads, Google Ads & Boosting (7.7% share)</div>
+      </div>
+      <div class="outflow-card">
+        <div class="cat">Cloud Servers & Hosting</div>
+        <div class="amt">&#8377;18,500</div>
+        <div class="desc">AWS, HostPapa, VPS & SSL certificates (5.0% share)</div>
+      </div>
+      <div class="outflow-card">
+        <div class="cat">SaaS & Software Tools</div>
+        <div class="amt">&#8377;12,000</div>
+        <div class="desc">Canva, Semrush, Google Workspace & APIs (3.3% share)</div>
+      </div>
+    </div>
+
+    <!-- Stream 1: One-Time Tech & Development Projects -->
+    <div class="section-title">
+      <span>2. One-Time Tech & Web Development Projects</span>
+      <span class="badge">16 Client Organizations</span>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 5%;">#</th>
+          <th style="width: 25%;">Client Organization</th>
+          <th style="width: 14%;">Billing Cycle</th>
+          <th class="text-right" style="width: 14%;">Contract Value</th>
+          <th class="text-right" style="width: 14%;">Collected</th>
+          <th class="text-right" style="width: 14%;">Amount Due</th>
+          <th class="text-center" style="width: 14%;">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td><strong>Edulateral LMS</strong></td>
+          <td>One-Time</td>
+          <td class="text-right">&#8377;60,000</td>
+          <td class="text-right">&#8377;0</td>
+          <td class="text-right" style="color: var(--danger); font-weight: 700;">&#8377;60,000</td>
+          <td class="text-center"><span class="status-badge badge-unpaid">Unpaid</span></td>
+        </tr>
+        <tr>
+          <td>2</td>
+          <td><strong>Whitehorse Manpower ATS</strong></td>
+          <td>One-Time</td>
+          <td class="text-right">&#8377;30,000</td>
+          <td class="text-right" style="color: var(--success); font-weight: 700;">&#8377;30,000</td>
+          <td class="text-right">&#8377;0</td>
+          <td class="text-center"><span class="status-badge badge-paid">Paid</span></td>
+        </tr>
+        <tr>
+          <td>3</td>
+          <td><strong>Vishal Infinity</strong></td>
+          <td>One-Time</td>
+          <td class="text-right">&#8377;30,000</td>
+          <td class="text-right" style="color: var(--success); font-weight: 700;">&#8377;30,000</td>
+          <td class="text-right">&#8377;0</td>
+          <td class="text-center"><span class="status-badge badge-paid">Paid</span></td>
+        </tr>
+        <tr>
+          <td>4</td>
+          <td><strong>Proflex Sheet brochure</strong></td>
+          <td>One-Time</td>
+          <td class="text-right">&#8377;10,000</td>
+          <td class="text-right">&#8377;0</td>
+          <td class="text-right" style="color: var(--danger); font-weight: 700;">&#8377;10,000</td>
+          <td class="text-center"><span class="status-badge badge-unpaid">Unpaid</span></td>
+        </tr>
+        <tr>
+          <td>5</td>
+          <td><strong>Pumec Interiors</strong></td>
+          <td>One-Time</td>
+          <td class="text-right">&#8377;60,000</td>
+          <td class="text-right" style="color: var(--success); font-weight: 700;">&#8377;30,000</td>
+          <td class="text-right" style="color: var(--danger); font-weight: 700;">&#8377;30,000</td>
+          <td class="text-center"><span class="status-badge badge-pending">Part-Paid</span></td>
+        </tr>
+        <tr>
+          <td>6</td>
+          <td><strong>Basavanagudi</strong></td>
+          <td>One-Time</td>
+          <td class="text-right">&#8377;30,000</td>
+          <td class="text-right" style="color: var(--success); font-weight: 700;">&#8377;17,000</td>
+          <td class="text-right" style="color: var(--danger); font-weight: 700;">&#8377;13,000</td>
+          <td class="text-center"><span class="status-badge badge-pending">Part-Paid</span></td>
+        </tr>
+        <tr>
+          <td>7</td>
+          <td><strong>Task media solutions</strong></td>
+          <td>One-Time</td>
+          <td class="text-right">&#8377;20,000</td>
+          <td class="text-right" style="color: var(--success); font-weight: 700;">&#8377;20,000</td>
+          <td class="text-right">&#8377;0</td>
+          <td class="text-center"><span class="status-badge badge-paid">Paid</span></td>
+        </tr>
+        <tr>
+          <td>8</td>
+          <td><strong>MedRx (Branding & Web)</strong></td>
+          <td>One-Time</td>
+          <td class="text-right">&#8377;30,000</td>
+          <td class="text-right" style="color: var(--success); font-weight: 700;">&#8377;30,000</td>
+          <td class="text-right">&#8377;0</td>
+          <td class="text-center"><span class="status-badge badge-paid">Paid</span></td>
+        </tr>
+        <tr>
+          <td>9</td>
+          <td><strong>IV Ran</strong></td>
+          <td>One-Time</td>
+          <td class="text-right">&#8377;20,000</td>
+          <td class="text-right" style="color: var(--success); font-weight: 700;">&#8377;20,000</td>
+          <td class="text-right">&#8377;0</td>
+          <td class="text-center"><span class="status-badge badge-paid">Paid</span></td>
+        </tr>
+        <tr>
+          <td>10</td>
+          <td><strong>SM Baliga brochure & logo</strong></td>
+          <td>One-Time</td>
+          <td class="text-right">&#8377;12,000</td>
+          <td class="text-right" style="color: var(--success); font-weight: 700;">&#8377;12,000</td>
+          <td class="text-right">&#8377;0</td>
+          <td class="text-center"><span class="status-badge badge-paid">Paid</span></td>
+        </tr>
+        <tr>
+          <td>11</td>
+          <td><strong>Delta Sales Corporation</strong></td>
+          <td>One-Time</td>
+          <td class="text-right">&#8377;6,000</td>
+          <td class="text-right" style="color: var(--success); font-weight: 700;">&#8377;6,000</td>
+          <td class="text-right">&#8377;0</td>
+          <td class="text-center"><span class="status-badge badge-paid">Paid</span></td>
+        </tr>
+        <tr>
+          <td>12</td>
+          <td><strong>Billing Ledger</strong></td>
+          <td>One-Time</td>
+          <td class="text-right">&#8377;25,000</td>
+          <td class="text-right">&#8377;0</td>
+          <td class="text-right" style="color: var(--danger); font-weight: 700;">&#8377;25,000</td>
+          <td class="text-center"><span class="status-badge badge-unpaid">Unpaid</span></td>
+        </tr>
+        <tr>
+          <td>13</td>
+          <td>Accurate (Completed)</td>
+          <td>One-Time</td>
+          <td class="text-right">&#8377;20,000</td>
+          <td class="text-right">&#8377;20,000</td>
+          <td class="text-right">&#8377;0</td>
+          <td class="text-center"><span class="status-badge badge-paid">Paid</span></td>
+        </tr>
+        <tr>
+          <td>14</td>
+          <td>Myscira (Completed)</td>
+          <td>One-Time</td>
+          <td class="text-right">&#8377;30,000</td>
+          <td class="text-right">&#8377;30,000</td>
+          <td class="text-right">&#8377;0</td>
+          <td class="text-center"><span class="status-badge badge-paid">Paid</span></td>
+        </tr>
+        <tr>
+          <td>15</td>
+          <td>Pumec (Completed)</td>
+          <td>One-Time</td>
+          <td class="text-right">&#8377;55,000</td>
+          <td class="text-right">&#8377;55,000</td>
+          <td class="text-right">&#8377;0</td>
+          <td class="text-center"><span class="status-badge badge-paid">Paid</span></td>
+        </tr>
+        <tr>
+          <td>16</td>
+          <td>Tanu Tools Solution</td>
+          <td>One-Time</td>
+          <td class="text-right">&#8377;30,000</td>
+          <td class="text-right">&#8377;30,000</td>
+          <td class="text-right">&#8377;0</td>
+          <td class="text-center"><span class="status-badge badge-paid">Paid</span></td>
+        </tr>
+        <tr class="total-row">
+          <td colspan="3"><strong>TOTAL ONE-TIME STREAM</strong></td>
+          <td class="text-right">&#8377;4,18,000</td>
+          <td class="text-right" style="color: var(--success);">&#8377;2,80,000</td>
+          <td class="text-right" style="color: var(--danger);">&#8377;1,38,000</td>
+          <td class="text-center">67.0% Coll. Rate</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Stream 2: Hosting & Cloud Infrastructure -->
+    <div class="section-title">
+      <span>3. Hosting & Cloud Infrastructure</span>
+      <span class="badge">22 Client Domains</span>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 5%;">#</th>
+          <th style="width: 35%;">Domain Name / Client Project</th>
+          <th style="width: 15%;">Billing Cycle</th>
+          <th class="text-right" style="width: 15%;">Annual Ticket</th>
+          <th class="text-right" style="width: 15%;">Collected</th>
+          <th class="text-right" style="width: 15%;">Amount Due</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td><code>stonefortress.in</code></td>
+          <td>Yearly</td>
+          <td class="text-right">&#8377;8,000</td>
+          <td class="text-right" style="color: var(--success);">&#8377;8,000</td>
+          <td class="text-right">&#8377;0</td>
+        </tr>
+        <tr>
+          <td>2</td>
+          <td><code>raayapropertiesandconstructions.in</code></td>
+          <td>Yearly</td>
+          <td class="text-right">&#8377;8,000</td>
+          <td class="text-right" style="color: var(--success);">&#8377;8,000</td>
+          <td class="text-right">&#8377;0</td>
+        </tr>
+        <tr>
+          <td>3</td>
+          <td><code>jyothifabtechnology.com</code></td>
+          <td>Yearly</td>
+          <td class="text-right">&#8377;7,996</td>
+          <td class="text-right" style="color: var(--success);">&#8377;7,996</td>
+          <td class="text-right">&#8377;0</td>
+        </tr>
+        <tr>
+          <td>4</td>
+          <td><code>vansiiem.com</code></td>
+          <td>Yearly</td>
+          <td class="text-right">&#8377;8,000</td>
+          <td class="text-right" style="color: var(--success);">&#8377;8,000</td>
+          <td class="text-right">&#8377;0</td>
+        </tr>
+        <tr>
+          <td>5</td>
+          <td><code>careclinicthanisandra.com</code></td>
+          <td>Yearly</td>
+          <td class="text-right">&#8377;7,997</td>
+          <td class="text-right" style="color: var(--success);">&#8377;7,997</td>
+          <td class="text-right">&#8377;0</td>
+        </tr>
+        <tr>
+          <td>6</td>
+          <td><code>diamondpvd.com</code></td>
+          <td>Yearly</td>
+          <td class="text-right">&#8377;8,000</td>
+          <td class="text-right" style="color: var(--success);">&#8377;8,000</td>
+          <td class="text-right">&#8377;0</td>
+        </tr>
+        <tr>
+          <td>7</td>
+          <td><code>bengalurubulletclub.com</code></td>
+          <td>Yearly</td>
+          <td class="text-right">&#8377;2,000</td>
+          <td class="text-right" style="color: var(--success);">&#8377;2,000</td>
+          <td class="text-right">&#8377;0</td>
+        </tr>
+        <tr>
+          <td>8</td>
+          <td><code>xerxesinfra.in</code></td>
+          <td>Yearly</td>
+          <td class="text-right">&#8377;7,996</td>
+          <td class="text-right" style="color: var(--success);">&#8377;7,996</td>
+          <td class="text-right">&#8377;0</td>
+        </tr>
+        <tr>
+          <td>9</td>
+          <td><code>medrxhealthcare.com</code></td>
+          <td>Yearly</td>
+          <td class="text-right">&#8377;7,996</td>
+          <td class="text-right" style="color: var(--success);">&#8377;7,996</td>
+          <td class="text-right">&#8377;0</td>
+        </tr>
+        <tr>
+          <td>10</td>
+          <td><code>galaxypvd.com</code></td>
+          <td>Yearly</td>
+          <td class="text-right">&#8377;8,000</td>
+          <td class="text-right" style="color: var(--success);">&#8377;8,000</td>
+          <td class="text-right">&#8377;0</td>
+        </tr>
+        <tr>
+          <td>11</td>
+          <td><code>taskmediasolutions.in</code></td>
+          <td>Yearly</td>
+          <td class="text-right">&#8377;8,000</td>
+          <td class="text-right" style="color: var(--success);">&#8377;8,000</td>
+          <td class="text-right">&#8377;0</td>
+        </tr>
+        <tr>
+          <td>12</td>
+          <td><code>artikelinox.com</code></td>
+          <td>Yearly</td>
+          <td class="text-right">&#8377;8,000</td>
+          <td class="text-right" style="color: var(--success);">&#8377;8,000</td>
+          <td class="text-right">&#8377;0</td>
+        </tr>
+        <tr>
+          <td>13</td>
+          <td><code>jap.bio</code></td>
+          <td>Yearly</td>
+          <td class="text-right">&#8377;8,000</td>
+          <td class="text-right" style="color: var(--success);">&#8377;8,000</td>
+          <td class="text-right">&#8377;0</td>
+        </tr>
+        <tr>
+          <td>14</td>
+          <td><code>agrinexmachinery.com</code></td>
+          <td>Yearly</td>
+          <td class="text-right">&#8377;7,996</td>
+          <td class="text-right" style="color: var(--success);">&#8377;7,996</td>
+          <td class="text-right">&#8377;0</td>
+        </tr>
+        <tr>
+          <td>15</td>
+          <td><code>powertechlaser.in</code></td>
+          <td>Yearly</td>
+          <td class="text-right">&#8377;8,000</td>
+          <td class="text-right" style="color: var(--success);">&#8377;8,000</td>
+          <td class="text-right">&#8377;0</td>
+        </tr>
+        <tr>
+          <td>16</td>
+          <td><code>rainbowpvd.com</code></td>
+          <td>Yearly</td>
+          <td class="text-right">&#8377;8,000</td>
+          <td class="text-right" style="color: var(--success);">&#8377;8,000</td>
+          <td class="text-right">&#8377;0</td>
+        </tr>
+        <tr>
+          <td>17</td>
+          <td><code>n3rich.com</code></td>
+          <td>Yearly</td>
+          <td class="text-right">&#8377;8,000</td>
+          <td class="text-right" style="color: var(--success);">&#8377;8,000</td>
+          <td class="text-right">&#8377;0</td>
+        </tr>
+        <tr>
+          <td>18</td>
+          <td><code>evvallet.com</code></td>
+          <td>Yearly</td>
+          <td class="text-right">&#8377;7,996</td>
+          <td class="text-right" style="color: var(--success);">&#8377;7,996</td>
+          <td class="text-right">&#8377;0</td>
+        </tr>
+        <tr>
+          <td>19</td>
+          <td><code>alokmetals</code></td>
+          <td>Yearly</td>
+          <td class="text-right">&#8377;8,000</td>
+          <td class="text-right" style="color: var(--success);">&#8377;8,000</td>
+          <td class="text-right">&#8377;0</td>
+        </tr>
+        <tr>
+          <td>20</td>
+          <td><code>Sm Finishes pvt ltd</code></td>
+          <td>Yearly</td>
+          <td class="text-right">&#8377;8,000</td>
+          <td class="text-right" style="color: var(--success);">&#8377;8,000</td>
+          <td class="text-right">&#8377;0</td>
+        </tr>
+        <tr>
+          <td>21</td>
+          <td><strong>Eshwari</strong></td>
+          <td>Yearly</td>
+          <td class="text-right">&#8377;8,000</td>
+          <td class="text-right">&#8377;0</td>
+          <td class="text-right" style="color: var(--danger); font-weight: 700;">&#8377;8,000</td>
+        </tr>
+        <tr>
+          <td>22</td>
+          <td><strong>GI Eventz</strong></td>
+          <td>Yearly</td>
+          <td class="text-right">&#8377;6,000</td>
+          <td class="text-right">&#8377;0</td>
+          <td class="text-right" style="color: var(--danger); font-weight: 700;">&#8377;6,000</td>
+        </tr>
+        <tr class="total-row">
+          <td colspan="3"><strong>TOTAL HOSTING STREAM</strong></td>
+          <td class="text-right">&#8377;1,67,977</td>
+          <td class="text-right" style="color: var(--success);">&#8377;1,53,977</td>
+          <td class="text-right" style="color: var(--danger);">&#8377;14,000</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Stream 3: Monthly DM Retainers -->
+    <div class="section-title">
+      <span>4. Monthly Digital Marketing Retainers</span>
+      <span class="badge">21 Active + 1 Hold</span>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 5%;">#</th>
+          <th style="width: 30%;">Client Name</th>
+          <th style="width: 15%;">Billing Cycle</th>
+          <th class="text-right" style="width: 15%;">Retainer Ticket</th>
+          <th class="text-right" style="width: 15%;">Collected in DB</th>
+          <th class="text-right" style="width: 20%;">Pending Due in DB</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td><strong>Bharadwaj Enterprises</strong></td>
+          <td>Monthly</td>
+          <td class="text-right">&#8377;20,000</td>
+          <td class="text-right" style="color: var(--success); font-weight: 700;">&#8377;20,000</td>
+          <td class="text-right">&#8377;0</td>
+        </tr>
+        <tr>
+          <td>2</td>
+          <td><strong>Jalmahal</strong></td>
+          <td>1st of month</td>
+          <td class="text-right">&#8377;25,000</td>
+          <td class="text-right">&#8377;0</td>
+          <td class="text-right" style="color: var(--danger); font-weight: 700;">&#8377;25,000</td>
+        </tr>
+        <tr>
+          <td>3</td>
+          <td><strong>Tiffanies</strong></td>
+          <td>1st of month</td>
+          <td class="text-right">&#8377;18,000</td>
+          <td class="text-right">&#8377;0</td>
+          <td class="text-right" style="color: var(--danger); font-weight: 700;">&#8377;18,000</td>
+        </tr>
+        <tr>
+          <td>4</td>
+          <td><strong>Matha</strong></td>
+          <td>Monthly</td>
+          <td class="text-right">&#8377;20,000</td>
+          <td class="text-right">&#8377;0</td>
+          <td class="text-right" style="color: var(--danger); font-weight: 700;">&#8377;20,000</td>
+        </tr>
+        <tr>
+          <td>5</td>
+          <td><strong>Greenpath</strong></td>
+          <td>Monthly</td>
+          <td class="text-right">&#8377;18,000</td>
+          <td class="text-right">&#8377;0</td>
+          <td class="text-right" style="color: var(--danger); font-weight: 700;">&#8377;18,000</td>
+        </tr>
+        <tr>
+          <td>6</td>
+          <td><strong>Nova</strong></td>
+          <td>Monthly</td>
+          <td class="text-right">&#8377;40,000</td>
+          <td class="text-right">&#8377;0</td>
+          <td class="text-right" style="color: var(--danger); font-weight: 700;">&#8377;40,000</td>
+        </tr>
+        <tr>
+          <td>7</td>
+          <td><strong>Ashirwada</strong></td>
+          <td>Monthly</td>
+          <td class="text-right">&#8377;40,000</td>
+          <td class="text-right">&#8377;0</td>
+          <td class="text-right" style="color: var(--danger); font-weight: 700;">&#8377;40,000</td>
+        </tr>
+        <tr>
+          <td>8</td>
+          <td><strong>Solution nest</strong></td>
+          <td>Monthly</td>
+          <td class="text-right">&#8377;40,000</td>
+          <td class="text-right">&#8377;0</td>
+          <td class="text-right" style="color: var(--danger); font-weight: 700;">&#8377;40,000</td>
+        </tr>
+        <tr>
+          <td>9</td>
+          <td><strong>galaxy PVD</strong></td>
+          <td>Monthly</td>
+          <td class="text-right">&#8377;30,000</td>
+          <td class="text-right">&#8377;0</td>
+          <td class="text-right" style="color: var(--danger); font-weight: 700;">&#8377;30,000</td>
+        </tr>
+        <tr>
+          <td>10</td>
+          <td><strong>Alis</strong></td>
+          <td>Monthly</td>
+          <td class="text-right">&#8377;30,000</td>
+          <td class="text-right">&#8377;0</td>
+          <td class="text-right" style="color: var(--danger); font-weight: 700;">&#8377;30,000</td>
+        </tr>
+        <tr>
+          <td>11</td>
+          <td><strong>Sampada</strong></td>
+          <td>Monthly</td>
+          <td class="text-right">&#8377;18,333</td>
+          <td class="text-right">&#8377;0</td>
+          <td class="text-right" style="color: var(--danger); font-weight: 700;">&#8377;18,333</td>
+        </tr>
+        <tr>
+          <td>12</td>
+          <td><strong>Dr.Manjunath</strong></td>
+          <td>Monthly</td>
+          <td class="text-right">&#8377;10,000</td>
+          <td class="text-right">&#8377;0</td>
+          <td class="text-right" style="color: var(--danger); font-weight: 700;">&#8377;10,000</td>
+        </tr>
+        <tr>
+          <td>13</td>
+          <td><strong>Agrinex</strong></td>
+          <td>Monthly</td>
+          <td class="text-right">&#8377;10,000</td>
+          <td class="text-right">&#8377;0</td>
+          <td class="text-right" style="color: var(--danger); font-weight: 700;">&#8377;10,000</td>
+        </tr>
+        <tr>
+          <td>14-21</td>
+          <td><em>Internal / Bundled Packages (Sanna, Diamond, Hipapa, Astra AI, etc.)</em></td>
+          <td>Internal</td>
+          <td class="text-right">&#8377;0</td>
+          <td class="text-right">&#8377;0</td>
+          <td class="text-right">&#8377;0</td>
+        </tr>
+        <tr>
+          <td>22</td>
+          <td><strong>Nirmal</strong> (On-Hold account)</td>
+          <td>On Hold</td>
+          <td class="text-right">&#8377;40,000</td>
+          <td class="text-right">&#8377;0</td>
+          <td class="text-right" style="color: var(--text-muted);">&#8377;0 (Hold excluded)</td>
+        </tr>
+        <tr class="total-row">
+          <td colspan="3"><strong>TOTAL ACTIVE DM RETAINERS</strong></td>
+          <td class="text-right">&#8377;3,29,333</td>
+          <td class="text-right" style="color: var(--success);">&#8377;20,000</td>
+          <td class="text-right" style="color: var(--danger);">&#8377;2,65,000</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Stream 4 & 5 Summary -->
+    <div class="section-title">
+      <span>5. Creative Design & Upcoming Pipeline</span>
+      <span class="badge">Reconciled Streams</span>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 35%;">Stream Category</th>
+          <th style="width: 15%;">Orgs / Count</th>
+          <th class="text-right" style="width: 25%;">Gross Value</th>
+          <th class="text-right" style="width: 25%;">Collected Inflow</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Creative & Graphic Design</strong> (Print & Social Assets)</td>
+          <td>7 Projects</td>
+          <td class="text-right">&#8377;73,500</td>
+          <td class="text-right" style="color: var(--success); font-weight: 700;">&#8377;73,500</td>
+        </tr>
+        <tr>
+          <td><strong>Upcoming Pipeline</strong> (Powertech CRM — November forward)</td>
+          <td>1 Deal</td>
+          <td class="text-right" style="color: var(--purple); font-weight: 800;">&#8377;1,20,000</td>
+          <td class="text-right">&#8377;0 (Commences Nov)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Sign-off Block -->
+    <div class="signoff-grid">
+      <div class="signoff-box">
+        <div><strong>PREPARED BY:</strong></div>
+        <div style="font-weight: 800; color: var(--text-main); font-size: 0.95rem;">Smitesh Pokharkar</div>
+        <div>Developer & Operations Lead</div>
+        <div>Sanna Innovations Pvt Ltd</div>
+        <div class="signoff-line"></div>
+        <div>Signature / Date: 30-10-2026</div>
+      </div>
+
+      <div class="signoff-box">
+        <div><strong>REVIEWED & APPROVED BY:</strong></div>
+        <div style="font-weight: 800; color: var(--text-main); font-size: 0.95rem;">Srinivas</div>
+        <div>Chief Executive Officer (CEO)</div>
+        <div>Sanna Innovations Pvt Ltd</div>
+        <div class="signoff-line"></div>
+        <div>Signature / Date: ___________________</div>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+
+</html>

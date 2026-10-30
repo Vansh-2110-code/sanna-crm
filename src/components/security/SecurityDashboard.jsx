@@ -16,7 +16,9 @@ import {
   Search,
   Filter,
   Trash2,
-  Download
+  Download,
+  Zap,
+  Gift
 } from 'lucide-react';
 
 import PricingPlansModal from '../billing/PricingPlansModal';
@@ -32,8 +34,26 @@ const SecurityDashboard = () => {
   const [showAddEmpModal, setShowAddEmpModal] = useState(false);
   const [showPricingModal, setShowPricingModal] = useState(false);
   const [seatLimitAlert, setSeatLimitAlert] = useState(false);
+  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [selectedRoleForAssign, setSelectedRoleForAssign] = useState(null);
   const [newEmp, setNewEmp] = useState({ name: '', email: '', designation: '', roleId: 'role-exec', baseSalary: 50000, username: '', password: '', birthday: '' });
   const [showNewEmpPassword, setShowNewEmpPassword] = useState(false);
+
+  const handleToggleUserRoleAssignment = async (emp, targetRole) => {
+    if (!updateEmployeeRoleAndDesignation) return;
+    const isCurrentlyAssigned = emp.roleId === targetRole.id || emp.role === targetRole.name;
+    const newRoleId = isCurrentlyAssigned ? 'role-exec' : targetRole.id;
+    const newRoleName = isCurrentlyAssigned ? 'Sales Executive' : targetRole.name;
+
+    await updateEmployeeRoleAndDesignation({
+      id: emp.id,
+      roleId: newRoleId,
+      role: newRoleName,
+      designation: emp.designation,
+      baseSalary: emp.baseSalary,
+      birthday: emp.birthday
+    });
+  };
 
   const handleCreateEmployeeSubmit = async (e) => {
     e.preventDefault();
@@ -437,71 +457,106 @@ const SecurityDashboard = () => {
                 </tr>
               </thead>
               <tbody>
-                {roles.map(r => (
-                  <tr key={r.id}>
-                    <td>
-                      <div style={{ fontWeight: '800', color: '#c084fc' }}>{r.name}</div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{r.description}</div>
-                    </td>
-                    <td>
-                      <span className="badge badge-blue">{r.usersCount} Active Users</span>
-                    </td>
-                    <td>
-                      <input
-                        type="checkbox"
-                        checked={r.permissions.includes('view_all') || r.permissions.includes('view_leads') || r.permissions.includes('view_tickets')}
-                        disabled={!isSecurityAdmin}
-                        onChange={() => updateRolePermissions(r.id, 'view_all')}
-                        style={{ width: '18px', height: '18px', cursor: isSecurityAdmin ? 'pointer' : 'not-allowed' }}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="checkbox"
-                        checked={r.permissions.includes('edit_all') || r.permissions.includes('edit_own_leads') || r.permissions.includes('create_quotes')}
-                        disabled={!isSecurityAdmin}
-                        onChange={() => updateRolePermissions(r.id, 'edit_all')}
-                        style={{ width: '18px', height: '18px', cursor: isSecurityAdmin ? 'pointer' : 'not-allowed' }}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="checkbox"
-                        checked={r.permissions.includes('delete_all')}
-                        disabled={!isSecurityAdmin}
-                        onChange={() => updateRolePermissions(r.id, 'delete_all')}
-                        style={{ width: '18px', height: '18px', cursor: isSecurityAdmin ? 'pointer' : 'not-allowed' }}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="checkbox"
-                        checked={r.permissions.includes('approve_quotes') || r.permissions.includes('approve_discounts')}
-                        disabled={!isSecurityAdmin}
-                        onChange={() => updateRolePermissions(r.id, 'approve_quotes')}
-                        style={{ width: '18px', height: '18px', cursor: isSecurityAdmin ? 'pointer' : 'not-allowed' }}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="checkbox"
-                        checked={r.permissions.includes('export_data') || r.permissions.includes('export_financials')}
-                        disabled={!isSecurityAdmin}
-                        onChange={() => updateRolePermissions(r.id, 'export_data')}
-                        style={{ width: '18px', height: '18px', cursor: isSecurityAdmin ? 'pointer' : 'not-allowed' }}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="checkbox"
-                        checked={r.permissions.includes('security_admin') || r.permissions.includes('client_onboard')}
-                        disabled={!isSecurityAdmin}
-                        onChange={() => updateRolePermissions(r.id, 'security_admin')}
-                        style={{ width: '18px', height: '18px', cursor: isSecurityAdmin ? 'pointer' : 'not-allowed' }}
-                      />
-                    </td>
-                  </tr>
-                ))}
+                {roles.map(r => {
+                  const assignedEmployees = (employees || []).filter(e => 
+                    e.roleId === r.id || 
+                    e.role === r.name || 
+                    (r.id === 'role-admin' && (e.role?.includes('Admin') || e.roleId === 'role-admin')) ||
+                    (r.id === 'role-marketer' && (e.role?.toLowerCase().includes('marketer') || e.roleId === 'role-marketer')) ||
+                    (r.id === 'role-dev' && (e.role?.toLowerCase().includes('developer') || e.roleId === 'role-dev')) ||
+                    (r.id === 'role-video' && (e.role?.toLowerCase().includes('video') || e.roleId === 'role-video')) ||
+                    (r.id === 'role-hr' && (e.role?.toLowerCase().includes('hr') || e.roleId === 'role-hr'))
+                  );
+
+                  return (
+                    <tr key={r.id}>
+                      <td>
+                        <div style={{ fontWeight: '800', color: '#c084fc' }}>{r.name}</div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{r.description}</div>
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                          <span className="badge badge-blue" style={{ fontWeight: '700' }}>
+                            {assignedEmployees.length} Active {assignedEmployees.length === 1 ? 'User' : 'Users'}
+                          </span>
+                          {isSecurityAdmin && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedRoleForAssign(r);
+                                setShowAssignModal(true);
+                              }}
+                              className="btn btn-secondary"
+                              style={{ padding: '3px 8px', fontSize: '0.7rem', borderRadius: '6px', fontWeight: '700', color: '#a855f7', borderColor: 'rgba(168, 85, 247, 0.4)' }}
+                              title="Assign users to this role"
+                            >
+                              + Assign
+                            </button>
+                          )}
+                        </div>
+                        {assignedEmployees.length > 0 && (
+                          <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '4px', maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {assignedEmployees.map(e => e.name || e.username).join(', ')}
+                          </div>
+                        )}
+                      </td>
+                      <td>
+                        <input
+                          type="checkbox"
+                          checked={r.permissions.includes('view_all') || r.permissions.includes('view_leads') || r.permissions.includes('view_tickets')}
+                          disabled={!isSecurityAdmin}
+                          onChange={() => updateRolePermissions && updateRolePermissions(r.id, 'view_all')}
+                          style={{ width: '18px', height: '18px', cursor: isSecurityAdmin ? 'pointer' : 'not-allowed' }}
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="checkbox"
+                          checked={r.permissions.includes('edit_all') || r.permissions.includes('edit_own_leads') || r.permissions.includes('create_quotes')}
+                          disabled={!isSecurityAdmin}
+                          onChange={() => updateRolePermissions && updateRolePermissions(r.id, 'edit_all')}
+                          style={{ width: '18px', height: '18px', cursor: isSecurityAdmin ? 'pointer' : 'not-allowed' }}
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="checkbox"
+                          checked={r.permissions.includes('delete_all')}
+                          disabled={!isSecurityAdmin}
+                          onChange={() => updateRolePermissions && updateRolePermissions(r.id, 'delete_all')}
+                          style={{ width: '18px', height: '18px', cursor: isSecurityAdmin ? 'pointer' : 'not-allowed' }}
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="checkbox"
+                          checked={r.permissions.includes('approve_quotes') || r.permissions.includes('approve_discounts')}
+                          disabled={!isSecurityAdmin}
+                          onChange={() => updateRolePermissions && updateRolePermissions(r.id, 'approve_quotes')}
+                          style={{ width: '18px', height: '18px', cursor: isSecurityAdmin ? 'pointer' : 'not-allowed' }}
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="checkbox"
+                          checked={r.permissions.includes('export_data') || r.permissions.includes('export_financials')}
+                          disabled={!isSecurityAdmin}
+                          onChange={() => updateRolePermissions && updateRolePermissions(r.id, 'export_data')}
+                          style={{ width: '18px', height: '18px', cursor: isSecurityAdmin ? 'pointer' : 'not-allowed' }}
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="checkbox"
+                          checked={r.permissions.includes('security_admin') || r.permissions.includes('client_onboard')}
+                          disabled={!isSecurityAdmin}
+                          onChange={() => updateRolePermissions && updateRolePermissions(r.id, 'security_admin')}
+                          style={{ width: '18px', height: '18px', cursor: isSecurityAdmin ? 'pointer' : 'not-allowed' }}
+                        />
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -571,7 +626,9 @@ const SecurityDashboard = () => {
               >
                 <Users style={{ width: '14px', height: '14px' }} />
                 <span>Seats: <strong style={{ color: '#fff' }}>{(employees || []).length} / {activeTenant?.maxSeats || 15}</strong> Used</span>
-                <span style={{ color: '#34d399', fontSize: '0.7rem' }}>⚡ Upgrade</span>
+                <span style={{ color: '#34d399', fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                  <Zap style={{ width: '12px', height: '12px' }} /> Upgrade
+                </span>
               </div>
 
               {isSecurityAdmin && (
@@ -765,6 +822,94 @@ const SecurityDashboard = () => {
         </div>
       )}
 
+      {/* Assign Users to Role Modal */}
+      {showAssignModal && selectedRoleForAssign && (
+        <div className="modal-overlay" style={{ zIndex: 1200, position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
+          <div className="modal-content" style={{ width: '100%', maxWidth: '520px', maxHeight: '85vh', overflowY: 'auto', background: '#0f172a', border: '1px solid #334155', borderRadius: '16px', padding: '24px', boxShadow: '0 20px 50px rgba(0,0,0,0.6)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid #1e293b', paddingBottom: '12px' }}>
+              <div>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: '800', margin: 0, color: '#c084fc' }}>
+                  Assign Users to {selectedRoleForAssign.name}
+                </h3>
+                <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: '4px 0 0' }}>
+                  Check users who should have this role and its associated permissions.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => { setShowAssignModal(false); setSelectedRoleForAssign(null); }}
+                className="btn btn-secondary"
+                style={{ padding: '6px 8px' }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '360px', overflowY: 'auto', paddingRight: '4px' }}>
+              {(employees || []).map(emp => {
+                const isAssigned = emp.roleId === selectedRoleForAssign.id || emp.role === selectedRoleForAssign.name;
+                return (
+                  <div
+                    key={emp.id}
+                    onClick={() => handleToggleUserRoleAssignment(emp, selectedRoleForAssign)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '10px 14px',
+                      borderRadius: '10px',
+                      background: isAssigned ? 'rgba(168, 85, 247, 0.15)' : 'rgba(255,255,255,0.03)',
+                      border: isAssigned ? '1px solid rgba(168, 85, 247, 0.4)' : '1px solid rgba(255,255,255,0.06)',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <input
+                        type="checkbox"
+                        checked={isAssigned}
+                        onChange={() => {}}
+                        style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                      />
+                      <div>
+                        <div style={{ fontWeight: '700', fontSize: '0.85rem', color: '#fff' }}>
+                          {emp.name || emp.full_name || emp.username}
+                        </div>
+                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                          {emp.email || emp.username} • <span style={{ color: '#818cf8' }}>{emp.designation || emp.role}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <span style={{
+                      fontSize: '0.7rem',
+                      fontWeight: '800',
+                      padding: '2px 8px',
+                      borderRadius: '9999px',
+                      background: isAssigned ? '#a855f7' : 'rgba(255,255,255,0.08)',
+                      color: isAssigned ? '#fff' : 'var(--text-muted)'
+                    }}>
+                      {isAssigned ? '✓ Assigned' : 'Click to Assign'}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px' }}>
+              <button
+                type="button"
+                onClick={() => { setShowAssignModal(false); setSelectedRoleForAssign(null); }}
+                className="btn gradient-btn-primary"
+                style={{ padding: '8px 18px', fontSize: '0.82rem', fontWeight: '800' }}
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Pricing Plans & Razorpay Modal */}
       <PricingPlansModal
         isOpen={showPricingModal}
@@ -884,8 +1029,13 @@ const EmployeeRow = ({ emp, roles, isSecurityAdmin, updateEmployeeRoleAndDesigna
             style={{ fontSize: '0.78rem', padding: '5px 8px', width: '135px' }}
           />
         ) : (
-          <span style={{ fontSize: '0.8rem', color: emp.birthday ? '#fbbf24' : 'var(--text-muted)' }}>
-            {emp.birthday ? `🎂 ${emp.birthday}` : '—'}
+          <span style={{ fontSize: '0.8rem', color: emp.birthday ? '#fbbf24' : 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            {emp.birthday ? (
+              <>
+                <Gift style={{ width: '12px', height: '12px', color: '#fbbf24' }} />
+                <span>{emp.birthday}</span>
+              </>
+            ) : '—'}
           </span>
         )}
       </td>

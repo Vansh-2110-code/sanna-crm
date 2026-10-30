@@ -62,12 +62,15 @@ const LoginSessionsVault = () => {
   } = useCRM();
 
   const isManagerOrAdmin = (activeRole?.permissions || []).includes('super_admin') ||
+    (activeRole?.permissions || []).includes('security_admin') ||
+    (activeRole?.permissions || []).includes('view_all') ||
     activeRole?.id === 'role-admin' ||
     activeRole?.id === 'role-mgr' ||
     activeRole?.id === 'role-hr';
 
   const isAdmin = (activeRole?.permissions || []).includes('super_admin') ||
     (activeRole?.permissions || []).includes('security_admin') ||
+    (activeRole?.permissions || []).includes('view_all') ||
     activeRole?.id === 'role-admin' ||
     (activeRole?.name || '').toLowerCase().includes('admin') ||
     currentUser?.roleId === 'role-admin' ||
@@ -82,6 +85,7 @@ const LoginSessionsVault = () => {
   const [collapsedDates, setCollapsedDates] = useState({});
   const [liveElapsedSeconds, setLiveElapsedSeconds] = useState(0);
   const [syncFeedback, setSyncFeedback] = useState(null);
+  const [vaultView, setVaultView] = useState('all'); // 'all' | 'live' | 'tools'
 
   // Club / Merge Sessions State
   const [selectedSessionIds, setSelectedSessionIds] = useState([]);
@@ -94,20 +98,24 @@ const LoginSessionsVault = () => {
   const [editingSession, setEditingSession] = useState(null);
 
   // Add Manual Punch Form State
-  const [addPunchForm, setAddPunchForm] = useState({
-    userId: employees[0]?.id || 'EMP-SANNA-001',
-    userName: employees[0]?.name || 'Srinivas (Admin)',
-    userEmail: employees[0]?.email || 'admin@sannainnovations.com',
-    role: employees[0]?.designation || 'Chief Executive Officer (CEO)',
-    staffType: 'Employee',
-    date: new Date().toISOString().split('T')[0],
-    punchInTime: '09:00 AM',
-    punchOutTime: '06:00 PM',
-    workMode: 'Office Campus',
-    status: 'Logged Out',
-    ipAddress: '103.21.144.92 (Office Wi-Fi)',
-    device: 'Windows 11 · Chrome (Desktop)',
-    location: 'Hyderabad, India (Asia/Kolkata)'
+  const [addPunchForm, setAddPunchForm] = useState(() => {
+    const todayIST = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+    const firstStaff = employees[0] || {};
+    return {
+      userId: firstStaff.id || 'EMP-SANNA-001',
+      userName: firstStaff.name || 'Srinivas (Admin)',
+      userEmail: firstStaff.email || 'admin@sannainnovations.com',
+      role: firstStaff.designation || 'Chief Executive Officer (CEO)',
+      staffType: firstStaff.type || 'Employee',
+      date: todayIST,
+      punchInTime: getCurrentISTTimeString(new Date()),
+      punchOutTime: '',
+      workMode: 'Office Campus',
+      status: 'Active',
+      ipAddress: '103.21.144.92 (Office Wi-Fi)',
+      device: 'Windows 11 · Chrome (Desktop)',
+      location: 'Hyderabad, India (Asia/Kolkata)'
+    };
   });
 
   // Edit Punch Form State
@@ -250,7 +258,11 @@ const LoginSessionsVault = () => {
     const currentISTMins = parseTimeToMinutes(currentISTStr);
     const inM = parseTimeToMinutes(session.punchInTime || '09:00 AM');
 
-    if (session.status === 'Active') {
+    const todayKey = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+    const sessionDate = getSessionDateKey(session.loginTime) || safeToISODate(session.loginTime) || session.date;
+    const isPastSession = sessionDate && sessionDate < todayKey;
+
+    if (session.status === 'Active' && !isPastSession) {
       if (session.punchInTime) {
         let diff = currentISTMins - inM;
         if (diff < 0) diff += 1440; // overnight handling
@@ -266,7 +278,7 @@ const LoginSessionsVault = () => {
       return 0;
     }
 
-    const outM = session.punchOutTime ? parseTimeToMinutes(session.punchOutTime) : currentISTMins;
+    const outM = session.punchOutTime ? parseTimeToMinutes(session.punchOutTime) : (isPastSession ? parseTimeToMinutes('06:30 PM') : currentISTMins);
     let diff = outM - inM;
     if (diff < 0) diff += 1440; // overnight handling
     return Math.max(0, diff);
@@ -286,6 +298,10 @@ const LoginSessionsVault = () => {
       );
     }
 
+    const todayKey = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+    const sessionDate = getSessionDateKey(session.loginTime) || safeToISODate(session.loginTime) || session.date;
+    const isPastSession = sessionDate && sessionDate < todayKey;
+
     const totalMins = getSessionDurationMinutes(session);
     const hrs = Math.floor(totalMins / 60);
     const mins = totalMins % 60;
@@ -293,7 +309,7 @@ const LoginSessionsVault = () => {
 
     const formattedTime = hrs > 0 ? `${hrs}h ${mins}m` : `${mins}m`;
 
-    if (session.status === 'Active') {
+    if (session.status === 'Active' && !isPastSession) {
       return (
         <span style={{ color: '#34d399', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '6px' }}>
           <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981', display: 'inline-block', boxShadow: '0 0 8px #10b981' }}></span>
@@ -379,7 +395,16 @@ const LoginSessionsVault = () => {
     const candidateEmail = selectedStaff?.email || addPunchForm.userEmail;
     const candidateType = selectedStaff?.type || addPunchForm.staffType;
 
-    const dateISO = addPunchForm.date ? new Date(addPunchForm.date).toISOString() : new Date().toISOString();
+    const todayIST = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+    const targetDate = addPunchForm.date || todayIST;
+    const inTime = addPunchForm.punchInTime || getCurrentISTTimeString(new Date());
+    const inMins = parseTimeToMinutes(inTime);
+
+    // Build Date in local time cleanly avoiding timezone date shifts
+    const [year, month, day] = targetDate.split('-').map(Number);
+    const sessionDate = new Date(year, (month || 1) - 1, day || 1, Math.floor(inMins / 60), inMins % 60, 0, 0);
+
+    const isActive = addPunchForm.status === 'Active';
 
     const newPunchPayload = {
       userId: addPunchForm.userId,
@@ -387,14 +412,15 @@ const LoginSessionsVault = () => {
       userEmail: candidateEmail,
       role: candidateRole,
       staffType: candidateType,
-      loginTime: dateISO,
-      punchInTime: addPunchForm.punchInTime || '09:00 AM',
-      punchOutTime: addPunchForm.punchOutTime || getCurrentISTTimeString(new Date()),
-      workMode: addPunchForm.workMode,
+      date: targetDate,
+      loginTime: sessionDate.toISOString(),
+      punchInTime: inTime,
+      punchOutTime: isActive ? null : (addPunchForm.punchOutTime || '06:30 PM'),
+      workMode: addPunchForm.workMode || 'Office Campus',
       status: addPunchForm.status,
-      ipAddress: addPunchForm.ipAddress,
-      device: addPunchForm.device,
-      location: addPunchForm.location
+      ipAddress: addPunchForm.ipAddress || '103.21.144.92 (Office Wi-Fi)',
+      device: addPunchForm.device || 'Windows 11 · Chrome (Desktop)',
+      location: addPunchForm.location || 'Hyderabad, India (Asia/Kolkata)'
     };
 
     if (addLoginSession) {
@@ -495,7 +521,7 @@ const LoginSessionsVault = () => {
 
     if (clubLoginSessions) {
       await clubLoginSessions(s1Id, s2Id);
-      setSyncFeedback('🔗 Sessions successfully clubbed together! Both logs were merged and their total added work time has been calculated.');
+      setSyncFeedback('Sessions successfully clubbed together! Both logs were merged and their total added work time has been calculated.');
       setTimeout(() => setSyncFeedback(null), 5000);
     }
 
@@ -540,6 +566,7 @@ const LoginSessionsVault = () => {
   const filteredSessions = useMemo(() => {
     return visibleSessions.filter(s => {
       // Status Filter
+      if (vaultView === 'live' && s.status !== 'Active') return false;
       if (filterStatus !== 'All' && s.status !== filterStatus) return false;
 
       // Staff Type Filter
@@ -568,7 +595,7 @@ const LoginSessionsVault = () => {
 
       return true;
     });
-  }, [visibleSessions, filterStatus, filterStaffType, selectedDate, searchQuery]);
+  }, [visibleSessions, filterStatus, filterStaffType, selectedDate, searchQuery, vaultView]);
 
   // Available unique dates in visibleSessions for Quick Navigation Tabs
   const availableDays = useMemo(() => {
@@ -639,7 +666,18 @@ const LoginSessionsVault = () => {
     }
 
     return Object.keys(groups).sort((a, b) => b.localeCompare(a)).map(dKey => {
-      const list = [...groups[dKey]];
+      const isPastDay = dKey < todayKey;
+      const rawList = groups[dKey] || [];
+      const list = rawList.map(s => {
+        if (isPastDay && s.status === 'Active') {
+          return {
+            ...s,
+            status: 'Logged Out',
+            punchOutTime: s.punchOutTime || '06:30 PM'
+          };
+        }
+        return s;
+      });
       const info = formatDayTitle(dKey);
 
       // If Admin and viewing Today (or specific date), include all registered staff from directory who haven't logged in yet
@@ -890,101 +928,112 @@ const LoginSessionsVault = () => {
         </div>
       </div>
 
-      {/* Toolbar: Search, Filters & Action Buttons */}
-      <div className="glass-card" style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
-        
-        {/* Search */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, minWidth: '220px' }}>
-          <Search style={{ width: '16px', height: '16px', color: 'var(--text-muted)' }} />
-          <input
-            type="text"
-            placeholder="Search employee, intern, IP address, device..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="form-input"
-            style={{ width: '100%', fontSize: '0.82rem' }}
-          />
-        </div>
-
-        {/* Filters */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-          
-          {/* Staff Type */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '600' }}>Type:</span>
-            <select
-              value={filterStaffType}
-              onChange={(e) => setFilterStaffType(e.target.value)}
-              className="form-input"
-              style={{ width: '120px', padding: '6px 10px', fontSize: '0.78rem' }}
-            >
-              <option value="All">All Staff</option>
-              <option value="Employee">Employees</option>
-              <option value="Intern">Interns</option>
-            </select>
-          </div>
-
-          {/* Status */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '600' }}>Status:</span>
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className="form-input"
-              style={{ width: '120px', padding: '6px 10px', fontSize: '0.78rem' }}
-            >
-              <option value="All">All Statuses</option>
-              <option value="Active">Active Online</option>
-              <option value="Logged Out">Logged Out</option>
-              <option value="Terminated">Terminated</option>
-            </select>
-          </div>
-
-          {/* Date Picker */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Calendar style={{ width: '14px', height: '14px', color: '#818cf8' }} />
-            <input
-              type="date"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="form-input"
-              style={{ width: '130px', padding: '6px 10px', fontSize: '0.78rem' }}
-            />
-            {selectedDate && (
-              <button
-                onClick={() => setSelectedDate('')}
-                title="Clear date filter"
-                style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '2px' }}
-              >
-                <X style={{ width: '14px', height: '14px' }} />
-              </button>
-            )}
-          </div>
-
-          {/* Action Buttons */}
+      {/* iOS Segmented View Control */}
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: '12px'
+      }}>
+        <div style={{
+          display: 'inline-flex',
+          background: 'rgba(255, 255, 255, 0.05)',
+          padding: '4px',
+          borderRadius: '16px',
+          border: '1px solid rgba(255, 255, 255, 0.08)',
+          gap: '4px',
+          backdropFilter: 'blur(20px)'
+        }}>
           <button
-            onClick={handleManualSyncAttendance}
-            className="btn btn-secondary"
+            onClick={() => setVaultView('all')}
             style={{
-              padding: '7px 14px',
-              fontSize: '0.78rem',
+              padding: '8px 18px',
+              borderRadius: '12px',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: '0.8rem',
+              fontWeight: '700',
+              transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+              background: vaultView === 'all' ? '#4E3EFF' : 'transparent',
+              color: vaultView === 'all' ? '#FFFFFF' : '#94A3B8',
+              boxShadow: vaultView === 'all' ? '0 4px 14px rgba(78, 62, 255, 0.35)' : 'none',
               display: 'flex',
               alignItems: 'center',
-              gap: '6px',
-              borderColor: 'rgba(16, 185, 129, 0.4)',
-              background: 'rgba(16, 185, 129, 0.12)',
-              color: '#34d399'
+              gap: '6px'
             }}
-            title="Automatically mark all employees who worked 9+ hours as Present (P) in Attendance Register"
           >
-            <Zap style={{ width: '14px', height: '14px', color: '#34d399' }} />
-            <span>⚡ Sync 9h+ to Attendance</span>
+            <span>All Sessions</span>
+            <span style={{ fontSize: '0.7rem', padding: '1px 6px', borderRadius: '10px', background: vaultView === 'all' ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.08)' }}>
+              {loginSessions.length}
+            </span>
+          </button>
+          
+          <button
+            onClick={() => setVaultView('live')}
+            style={{
+              padding: '8px 18px',
+              borderRadius: '12px',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: '0.8rem',
+              fontWeight: '700',
+              transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+              background: vaultView === 'live' ? '#10B981' : 'transparent',
+              color: vaultView === 'live' ? '#FFFFFF' : '#94A3B8',
+              boxShadow: vaultView === 'live' ? '0 4px 14px rgba(16, 185, 129, 0.35)' : 'none',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
+          >
+            <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: vaultView === 'live' ? '#FFFFFF' : '#10B981', display: 'inline-block' }} />
+            <span>Active Now</span>
+            <span style={{ fontSize: '0.7rem', padding: '1px 6px', borderRadius: '10px', background: vaultView === 'live' ? 'rgba(255,255,255,0.2)' : 'rgba(16, 185, 129, 0.2)', color: vaultView === 'live' ? '#FFFFFF' : '#34D399' }}>
+              {activeSessionsCount}
+            </span>
           </button>
 
           <button
+            onClick={() => setVaultView('tools')}
+            style={{
+              padding: '8px 18px',
+              borderRadius: '12px',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: '0.8rem',
+              fontWeight: '700',
+              transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+              background: vaultView === 'tools' ? 'rgba(255, 255, 255, 0.16)' : 'transparent',
+              color: vaultView === 'tools' ? '#FFFFFF' : '#94A3B8',
+              boxShadow: vaultView === 'tools' ? '0 4px 14px rgba(0, 0, 0, 0.25)' : 'none',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
+          >
+            <Zap style={{ width: '13px', height: '13px' }} />
+            <span>Admin Tools & Sync</span>
+          </button>
+        </div>
+
+        {/* Quick Actions (Export & Manual Punch) */}
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button
             onClick={handleExportCSV}
-            className="btn btn-secondary"
-            style={{ padding: '7px 12px', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '6px' }}
+            style={{
+              padding: '8px 14px',
+              borderRadius: '12px',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              background: 'rgba(255, 255, 255, 0.05)',
+              color: '#F8FAFC',
+              fontSize: '0.78rem',
+              fontWeight: '600',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
           >
             <FileSpreadsheet style={{ width: '14px', height: '14px' }} />
             <span>Export CSV</span>
@@ -992,39 +1041,204 @@ const LoginSessionsVault = () => {
 
           {isAdmin && (
             <button
-              onClick={() => setShowAddPunchModal(true)}
-              className="btn gradient-btn-primary"
-              style={{ padding: '7px 14px', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '6px' }}
+              onClick={() => {
+                const todayIST = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+                const firstStaff = allStaff[0] || employees[0] || {};
+                setAddPunchForm({
+                  userId: firstStaff.id || 'EMP-SANNA-001',
+                  userName: firstStaff.name || 'Srinivas (Admin)',
+                  userEmail: firstStaff.email || 'admin@sannainnovations.com',
+                  role: firstStaff.designation || 'Chief Executive Officer (CEO)',
+                  staffType: firstStaff.type || 'Employee',
+                  date: todayIST,
+                  punchInTime: getCurrentISTTimeString(new Date()),
+                  punchOutTime: '',
+                  workMode: 'Office Campus',
+                  status: 'Active',
+                  ipAddress: '103.21.144.92 (Office Wi-Fi)',
+                  device: 'Windows 11 · Chrome (Desktop)',
+                  location: 'Hyderabad, India (Asia/Kolkata)'
+                });
+                setShowAddPunchModal(true);
+              }}
+              style={{
+                padding: '8px 16px',
+                borderRadius: '12px',
+                border: 'none',
+                background: 'linear-gradient(135deg, #4E3EFF 0%, #3728D4 100%)',
+                color: '#FFFFFF',
+                fontSize: '0.78rem',
+                fontWeight: '700',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                boxShadow: '0 4px 14px rgba(78, 62, 255, 0.35)'
+              }}
             >
               <Plus style={{ width: '14px', height: '14px' }} />
-              <span>+ Manual Punch</span>
+              <span>Manual Punch</span>
             </button>
           )}
         </div>
       </div>
 
+      {/* Admin Tools Panel (Shown only when Tools Tab selected) */}
+      {vaultView === 'tools' ? (
+        <div style={{
+          background: 'rgba(20, 22, 31, 0.75)',
+          backdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255, 255, 255, 0.08)',
+          borderRadius: '20px',
+          padding: '24px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '16px'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+            <div>
+              <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: '800', color: '#FFFFFF', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Zap style={{ width: '18px', height: '18px', color: '#818CF8' }} />
+                <span>Attendance Sync & Automation Hub</span>
+              </h4>
+              <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem', color: '#94A3B8' }}>
+                Automate attendance marking from daily logged session hours across all staff.
+              </p>
+            </div>
+
+            <button
+              onClick={handleManualSyncAttendance}
+              style={{
+                padding: '10px 20px',
+                fontSize: '0.82rem',
+                fontWeight: '700',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                border: '1px solid rgba(16, 185, 129, 0.4)',
+                background: 'rgba(16, 185, 129, 0.15)',
+                color: '#34D399',
+                borderRadius: '12px',
+                cursor: 'pointer'
+              }}
+            >
+              <Zap style={{ width: '16px', height: '16px' }} />
+              <span>Sync 9h+ to Attendance Matrix</span>
+            </button>
+          </div>
+
+          <div style={{
+            padding: '14px 18px',
+            background: 'rgba(99, 102, 241, 0.08)',
+            border: '1px solid rgba(99, 102, 241, 0.2)',
+            borderRadius: '14px',
+            fontSize: '0.8rem',
+            color: '#CBD5E1',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px'
+          }}>
+            <Clock style={{ width: '16px', height: '16px', color: '#818CF8', flexShrink: 0 }} />
+            <span>
+              <strong style={{ color: '#FFFFFF' }}>Active Company Policy:</strong> When staff accumulate <strong>9.0+ logged hours</strong> in a single calendar day, their status is automatically recorded as <strong>Present (P)</strong> in the official register.
+            </span>
+          </div>
+        </div>
+      ) : (
+        /* Toolbar: Search & Filters (Clean iOS Capsule) */
+        <div style={{
+          background: 'rgba(20, 22, 31, 0.75)',
+          backdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255, 255, 255, 0.08)',
+          borderRadius: '18px',
+          padding: '14px 18px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '12px'
+        }}>
+          {/* Search */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, minWidth: '220px' }}>
+            <Search style={{ width: '15px', height: '15px', color: '#94A3B8' }} />
+            <input
+              type="text"
+              placeholder="Search employee, IP, device, or role..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="form-input"
+              style={{ width: '100%', fontSize: '0.82rem', background: 'transparent', border: 'none', padding: '6px 0', color: '#FFFFFF' }}
+            />
+          </div>
+
+          {/* Filters */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+            {/* Staff Type */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontSize: '0.75rem', color: '#94A3B8', fontWeight: '600' }}>Staff:</span>
+              <select
+                value={filterStaffType}
+                onChange={(e) => setFilterStaffType(e.target.value)}
+                className="form-input"
+                style={{ width: '115px', padding: '6px 10px', fontSize: '0.78rem', borderRadius: '10px' }}
+              >
+                <option value="All">All Staff</option>
+                <option value="Employee">Employees</option>
+                <option value="Intern">Interns</option>
+              </select>
+            </div>
+
+            {/* Status (Only when not in Live tab) */}
+            {vaultView !== 'live' && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ fontSize: '0.75rem', color: '#94A3B8', fontWeight: '600' }}>Status:</span>
+                <select
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value)}
+                  className="form-input"
+                  style={{ width: '120px', padding: '6px 10px', fontSize: '0.78rem', borderRadius: '10px' }}
+                >
+                  <option value="All">All Statuses</option>
+                  <option value="Active">Active Online</option>
+                  <option value="Logged Out">Logged Out</option>
+                  <option value="Terminated">Terminated</option>
+                </select>
+              </div>
+            )}
+
+            {/* Date Picker */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Calendar style={{ width: '14px', height: '14px', color: '#818CF8' }} />
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="form-input"
+                style={{ width: '130px', padding: '6px 10px', fontSize: '0.78rem', borderRadius: '10px' }}
+              />
+              {selectedDate && (
+                <button
+                  onClick={() => setSelectedDate('')}
+                  title="Clear date filter"
+                  style={{ background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer', padding: '2px' }}
+                >
+                  <X style={{ width: '14px', height: '14px' }} />
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Sync Feedback Banner */}
       {syncFeedback && (
-        <div className="glass-card" style={{ padding: '12px 18px', background: 'rgba(16, 185, 129, 0.15)', borderLeft: '4px solid #10b981', display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ padding: '12px 18px', background: 'rgba(16, 185, 129, 0.15)', borderLeft: '4px solid #10b981', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '10px' }}>
           <CheckCircle2 style={{ width: '18px', height: '18px', color: '#10b981' }} />
           <span style={{ fontSize: '0.85rem', fontWeight: '700', color: '#34d399' }}>
             {syncFeedback}
           </span>
         </div>
       )}
-
-      {/* Auto Attendance Rule Banner */}
-      <div className="glass-card" style={{ padding: '12px 18px', background: 'rgba(99, 102, 241, 0.08)', border: '1px solid rgba(99, 102, 241, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <Zap style={{ width: '18px', height: '18px', color: '#818cf8' }} />
-          <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-            <strong style={{ color: 'var(--text-primary)' }}>Automatic Attendance Rule:</strong> When an employee or intern's daily session logs accumulate to <strong>9.0+ hours</strong>, they are <strong>automatically marked as Present (P)</strong> in the 31-Day Attendance Matrix.
-          </span>
-        </div>
-        <span style={{ fontSize: '0.72rem', color: '#34d399', fontWeight: '700', background: 'rgba(16, 185, 129, 0.15)', padding: '3px 8px', borderRadius: '6px' }}>
-          ✓ Active Policy
-        </span>
-      </div>
 
       {/* Admin Club Logs Interactive Banner */}
       {isAdmin && selectedSessionIds.length > 0 && (
@@ -1057,7 +1271,7 @@ const LoginSessionsVault = () => {
               ) : (
                 <div>
                   <div style={{ fontWeight: '800', color: 'var(--text-primary)', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span>🔗 2 Logs Ready to Club:</span>
+                    <span>2 Logs Ready to Club:</span>
                     <span style={{ color: '#38bdf8' }}>{clubCalculation?.s1?.userName || 'Employee'}</span>
                   </div>
                   <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
@@ -1090,7 +1304,7 @@ const LoginSessionsVault = () => {
                 }}
               >
                 <Link2 style={{ width: '15px', height: '15px' }} />
-                <span>🔗 Club Both Logs (Add Times)</span>
+                <span>Club Both Logs (Add Times)</span>
               </button>
             )}
 
@@ -2126,6 +2340,9 @@ const LoginSessionsVault = () => {
                       setAddPunchForm({
                         ...addPunchForm,
                         userId: e.target.value,
+                        userName: selected?.name || addPunchForm.userName,
+                        userEmail: selected?.email || addPunchForm.userEmail,
+                        role: selected?.designation || addPunchForm.role,
                         staffType: selected?.type || 'Employee'
                       });
                     }}
@@ -2177,14 +2394,18 @@ const LoginSessionsVault = () => {
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Punch-Out Time *</label>
+                  <label className="form-label">
+                    Punch-Out Time {addPunchForm.status === 'Logged Out' ? '*' : '(Online Now)'}
+                  </label>
                   <input
                     type="text"
-                    required
-                    placeholder="06:30 PM"
-                    value={addPunchForm.punchOutTime}
+                    required={addPunchForm.status === 'Logged Out'}
+                    disabled={addPunchForm.status === 'Active'}
+                    placeholder={addPunchForm.status === 'Active' ? "Online Now (No punch-out)" : "06:30 PM"}
+                    value={addPunchForm.status === 'Active' ? '' : addPunchForm.punchOutTime}
                     onChange={(e) => setAddPunchForm({ ...addPunchForm, punchOutTime: e.target.value })}
                     className="form-input"
+                    style={addPunchForm.status === 'Active' ? { opacity: 0.65, cursor: 'not-allowed' } : {}}
                   />
                 </div>
               </div>
@@ -2205,11 +2426,18 @@ const LoginSessionsVault = () => {
                   <label className="form-label">Session Status</label>
                   <select
                     value={addPunchForm.status}
-                    onChange={(e) => setAddPunchForm({ ...addPunchForm, status: e.target.value })}
+                    onChange={(e) => {
+                      const newStatus = e.target.value;
+                      setAddPunchForm({
+                        ...addPunchForm,
+                        status: newStatus,
+                        punchOutTime: newStatus === 'Active' ? '' : (addPunchForm.punchOutTime || '06:30 PM')
+                      });
+                    }}
                     className="form-input"
                   >
-                    <option value="Logged Out">Logged Out (Completed Shift)</option>
-                    <option value="Active">Active Online</option>
+                    <option value="Active">🟢 Active Online (Punch In Live Now)</option>
+                    <option value="Logged Out">⚪ Logged Out (Completed Shift Log)</option>
                   </select>
                 </div>
               </div>

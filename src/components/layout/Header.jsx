@@ -4,8 +4,7 @@ import { getAppConfig } from '../../utils/appMode';
 import {
   getMonthBirthdays,
   getTodayBirthdays,
-  MONTH_NAMES,
-  formatBirthday
+  MONTH_NAMES
 } from '../../utils/birthdayUtils';
 import {
   Search,
@@ -17,15 +16,17 @@ import {
   Lock,
   Menu,
   Clock,
-  Radio,
   LogIn,
   LogOut,
+  CalendarDays,
+  Gift,
   PartyPopper,
-  Gift
+  Sparkles,
+  ChevronDown
 } from 'lucide-react';
 
 const TAB_TITLES = {
-  'dashboard': { title: 'Executive Performance Cockpit', category: 'Analytics' },
+  'dashboard': { title: 'Executive Dashboard', category: 'Analytics' },
   'reports': { title: 'Reports & Intelligence Vault', category: 'Analytics' },
   'security': { title: 'Security & Access Control', category: 'Administration' },
   'leads': { title: 'Lead Pipeline & Acquisition', category: 'Sales' },
@@ -51,19 +52,14 @@ const TAB_TITLES = {
   'integrations': { title: 'Integrations & Webhooks', category: 'Growth' },
   'salary': { title: 'Attendance, Salary & Payroll', category: 'Human Resources' },
   'kyc': { title: 'KYC & Verification Vault', category: 'Human Resources' },
-  'performance-board': { title: 'Performance Board & Birthdays', category: 'Human Resources' },
+  'performance-board': { title: 'Performance Board & Celebrations', category: 'Human Resources' },
   'gst-invoices': { title: 'GST Invoices & Billing', category: 'Finance' },
   'financial-ledger': { title: 'Corporate Financial Ledger', category: 'Finance' }
 };
 
 const Header = ({ activeTab = 'dashboard', onNavigate, onOpenQuickCreate, onToggleSidebar, sidebarCollapsed = false }) => {
   const {
-    allClients,
     activeTenant,
-    setActiveTenantId,
-    roles,
-    activeRole,
-    setActiveRoleId,
     globalSearch,
     setGlobalSearch,
     notifications,
@@ -72,7 +68,8 @@ const Header = ({ activeTab = 'dashboard', onNavigate, onOpenQuickCreate, onTogg
     punchInSession,
     punchOutSession,
     currentUser,
-    employees = []
+    employees = [],
+    theme
   } = useCRM();
 
   const currentActiveSession = (loginSessions || []).find(s => 
@@ -90,6 +87,13 @@ const Header = ({ activeTab = 'dashboard', onNavigate, onOpenQuickCreate, onTogg
 
   const today = new Date();
   const currentMonthNum = today.getMonth() + 1; // 1-12
+
+  // Format today date: e.g. "Mon, 19 Oct"
+  const formattedTodayDate = today.toLocaleDateString('en-US', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short'
+  });
 
   // Live timer for active punch-in session
   useEffect(() => {
@@ -136,115 +140,184 @@ const Header = ({ activeTab = 'dashboard', onNavigate, onOpenQuickCreate, onTogg
   const currentTabMeta = TAB_TITLES[activeTab] || { title: 'Executive CRM', category: 'Main' };
 
   return (
-    <header className="app-header" style={{
-      position: 'fixed',
-      top: 0,
-      left: sidebarCollapsed ? '78px' : 'var(--sidebar-width)',
-      right: 0,
-      height: 'var(--header-height)',
-      background: 'rgba(13, 18, 31, 0.85)',
-      backdropFilter: 'blur(20px)',
-      WebkitBackdropFilter: 'blur(20px)',
-      borderBottom: '1px solid var(--border-color)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      padding: '0 28px',
-      zIndex: 90,
-      gap: '16px',
-      transition: 'left 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-    }}>
-      {/* Left side: Hamburger + Breadcrumb */}
+    <header
+      className="app-header"
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: sidebarCollapsed ? '80px' : '260px',
+        right: 0,
+        height: '70px',
+        background: theme === 'dark' ? '#121216' : '#FFFFFF',
+        borderBottom: theme === 'dark' ? '1px solid #23232b' : '1px solid #EEF2F6',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '0 28px',
+        zIndex: 90,
+        gap: '16px',
+        transition: 'left 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+        boxShadow: '0 2px 10px rgba(0, 0, 0, 0.05)'
+      }}
+    >
+      {/* Left side: Mobile Toggle + Breadcrumb */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '14px', minWidth: 0 }}>
         <button
           className="mobile-menu-btn"
           onClick={onToggleSidebar}
           aria-label="Toggle navigation menu"
+          style={{
+            background: 'none',
+            border: 'none',
+            color: '#64748B',
+            cursor: 'pointer',
+            padding: '4px'
+          }}
         >
           <Menu style={{ width: '22px', height: '22px' }} />
         </button>
 
         <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          <div style={{ fontSize: '0.66rem', fontWeight: '800', color: '#818cf8', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+          <div
+            style={{
+              fontSize: '0.66rem',
+              fontWeight: '800',
+              color: '#4E3EFF',
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em'
+            }}
+          >
             {currentTabMeta.category}
           </div>
-          <h2 style={{ fontSize: '0.98rem', fontWeight: '800', margin: 0, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <h2
+            style={{
+              fontSize: '1rem',
+              fontWeight: '800',
+              margin: 0,
+              color: theme === 'dark' ? '#F9FAFB' : '#1E1F24',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              letterSpacing: '-0.02em'
+            }}
+          >
             {currentTabMeta.title}
           </h2>
         </div>
       </div>
 
-      {/* Global Search & Spotlight Launcher */}
+      {/* VERION Rounded Pill Search Box (Matching Reference Clean Layout) */}
       <div
         onClick={onOpenQuickCreate}
         style={{
           position: 'relative',
-          flex: '1',
-          maxWidth: '420px',
-          minWidth: '150px',
+          width: '280px',
+          maxWidth: '320px',
+          flex: '0 1 280px',
           cursor: 'pointer'
         }}
       >
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          background: 'rgba(255, 255, 255, 0.03)',
-          border: '1px solid rgba(255, 255, 255, 0.09)',
-          borderRadius: '12px',
-          padding: '8px 14px',
-          color: 'var(--text-secondary)',
-          fontSize: '0.825rem',
-          transition: 'all 0.15s ease',
-          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <Search style={{ width: '15px', height: '15px', color: '#818cf8' }} />
-            <span style={{ color: 'var(--text-muted)' }}>Search modules, records or actions...</span>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            background: theme === 'dark' ? '#1c1c22' : '#F1F4F9',
+            border: theme === 'dark' ? '1px solid rgba(255, 255, 255, 0.08)' : '1px solid transparent',
+            borderRadius: '9999px',
+            padding: '8px 14px',
+            color: '#64748B',
+            fontSize: '0.8rem',
+            transition: 'all 0.18s ease'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.borderColor = '#4E3EFF';
+            if (theme !== 'dark') e.currentTarget.style.background = '#FFFFFF';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.borderColor = theme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'transparent';
+            if (theme !== 'dark') e.currentTarget.style.background = '#F1F4F9';
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
+            <Search style={{ width: '14px', height: '14px', color: '#94A3B8', flexShrink: 0 }} />
+            <span style={{ color: '#94A3B8', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              Search...
+            </span>
           </div>
-          <div style={{
-            background: 'rgba(99, 102, 241, 0.15)',
-            border: '1px solid rgba(99, 102, 241, 0.3)',
-            padding: '2px 7px',
-            borderRadius: '6px',
-            fontSize: '0.68rem',
-            fontWeight: '700',
-            color: '#a5b4fc',
-            userSelect: 'none'
-          }}>
+          <div
+            style={{
+              background: theme === 'dark' ? '#23232b' : '#FFFFFF',
+              border: theme === 'dark' ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid #E2E8F0',
+              padding: '2px 7px',
+              borderRadius: '6px',
+              fontSize: '0.66rem',
+              fontWeight: '700',
+              color: '#94A3B8',
+              userSelect: 'none',
+              flexShrink: 0
+            }}
+          >
             ⌘K
           </div>
         </div>
       </div>
 
       {/* Right Header Actions */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
 
-        {/* Live Login Session & Work Clock Pill */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          background: currentActiveSession ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-          border: currentActiveSession ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid rgba(239, 68, 68, 0.3)',
-          padding: '6px 12px',
-          borderRadius: '10px',
-          boxShadow: currentActiveSession ? '0 0 12px rgba(16, 185, 129, 0.15)' : 'none'
-        }}>
-          <span style={{
-            width: '8px',
-            height: '8px',
-            borderRadius: '50%',
-            background: currentActiveSession ? '#10b981' : '#ef4444',
-            boxShadow: currentActiveSession ? '0 0 10px #10b981' : 'none',
-            animation: currentActiveSession ? 'floatGlow 2s ease-in-out infinite alternate' : 'none'
-          }} />
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span style={{ fontSize: '0.68rem', fontWeight: '800', color: currentActiveSession ? '#34d399' : '#f87171', textTransform: 'uppercase' }}>
-              {currentActiveSession ? 'Active Session' : 'Offline'}
-            </span>
-            <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>
-              {currentActiveSession?.punchInTime ? `In: ${currentActiveSession.punchInTime} ${elapsedTime ? `(${elapsedTime})` : ''}` : 'Punched Out'}
+        {/* Date Pill Badge (e.g. Today, Mon 19 Oct) */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            background: theme === 'dark' ? '#1c1c22' : '#EFF6FF',
+            border: theme === 'dark' ? '1px solid rgba(255, 255, 255, 0.08)' : '1px solid #DBEAFE',
+            padding: '7px 12px',
+            borderRadius: '9999px',
+            color: theme === 'dark' ? '#93FEBF' : '#2563EB',
+            fontSize: '0.74rem',
+            fontWeight: '700',
+            whiteSpace: 'nowrap'
+          }}
+        >
+          <CalendarDays style={{ width: '13px', height: '13px', color: theme === 'dark' ? '#93FEBF' : '#3B82F6' }} />
+          <span>{formattedTodayDate}</span>
+        </div>
+
+        {/* Live Login Session & Work Clock Pill - Sleek Merged iOS Capsule */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            background: theme === 'dark' ? '#1c1c22' : '#F8FAFC',
+            border: theme === 'dark' ? '1px solid rgba(255, 255, 255, 0.08)' : '1px solid #E2E8F0',
+            padding: '4px 6px 4px 10px',
+            borderRadius: '9999px',
+            whiteSpace: 'nowrap'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span
+              style={{
+                width: '7px',
+                height: '7px',
+                borderRadius: '50%',
+                background: currentActiveSession ? '#10B981' : '#94A3B8',
+                boxShadow: currentActiveSession ? '0 0 6px rgba(16, 185, 129, 0.6)' : 'none',
+                flexShrink: 0
+              }}
+            />
+            <span
+              style={{
+                fontSize: '0.72rem',
+                fontWeight: '700',
+                color: currentActiveSession ? (theme === 'dark' ? '#93FEBF' : '#059669') : '#94A3B8'
+              }}
+            >
+              {currentActiveSession ? (elapsedTime ? elapsedTime : 'Active') : 'Offline'}
             </span>
           </div>
 
@@ -252,45 +325,51 @@ const Header = ({ activeTab = 'dashboard', onNavigate, onOpenQuickCreate, onTogg
             onClick={currentActiveSession ? punchOutSession : punchInSession}
             title={currentActiveSession ? 'Punch out current session' : 'Punch in and record session'}
             style={{
-              background: currentActiveSession ? 'rgba(239, 68, 68, 0.2)' : 'rgba(16, 185, 129, 0.2)',
-              border: 'none',
-              borderRadius: '6px',
-              padding: '4px 8px',
-              cursor: 'pointer',
-              color: currentActiveSession ? '#f87171' : '#34d399',
-              fontSize: '0.72rem',
+              background: currentActiveSession ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.15)',
+              border: currentActiveSession ? '1px solid rgba(239, 68, 68, 0.3)' : '1px solid rgba(16, 185, 129, 0.3)',
+              color: currentActiveSession ? '#EF4444' : '#10B981',
+              borderRadius: '9999px',
+              padding: '3px 9px',
+              fontSize: '0.68rem',
               fontWeight: '800',
+              cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               gap: '4px',
-              transition: 'all 0.2s ease'
+              transition: 'all 0.15s ease'
             }}
           >
-            {currentActiveSession ? <LogOut style={{ width: '12px', height: '12px' }} /> : <LogIn style={{ width: '12px', height: '12px' }} />}
-            <span>{currentActiveSession ? 'Out' : 'In'}</span>
+            {currentActiveSession ? <LogOut style={{ width: '11px', height: '11px' }} /> : <LogIn style={{ width: '11px', height: '11px' }} />}
+            <span>{currentActiveSession ? 'Punch Out' : 'Punch In'}</span>
           </button>
         </div>
 
-        {/* Tenant Badge */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '6px',
-          background: 'var(--bg-primary)',
-          padding: '6px 10px',
-          borderRadius: '10px',
-          border: '1px solid var(--border-color)',
-          whiteSpace: 'nowrap'
-        }}>
-          <Building style={{ width: '14px', height: '14px', color: '#60a5fa', flexShrink: 0 }} />
-          <span style={{ fontSize: '0.7rem', fontWeight: '700', color: 'var(--text-muted)' }}>Tenant:</span>
-          <span style={{ fontSize: '0.78rem', fontWeight: '700', color: 'var(--text-primary)' }}>
-            {activeTenant?.name && !activeTenant.name.includes('(Admin)') ? activeTenant.name : getAppConfig().companyName}
+        {/* Tenant Organization Pill - Compact Logo + Name */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            background: theme === 'dark' ? '#1c1c22' : '#F8FAFC',
+            padding: '6px 11px',
+            borderRadius: '9999px',
+            border: theme === 'dark' ? '1px solid rgba(255, 255, 255, 0.08)' : '1px solid #E2E8F0',
+            whiteSpace: 'nowrap'
+          }}
+        >
+          <Building style={{ width: '13px', height: '13px', color: '#4E3EFF', flexShrink: 0 }} />
+          <span
+            style={{
+              fontSize: '0.72rem',
+              fontWeight: '700',
+              color: theme === 'dark' ? '#F9FAFB' : '#1E1F24'
+            }}
+          >
+            {activeTenant?.name && !activeTenant.name.includes('(Admin)') ? activeTenant.name : 'Sanna Innovations'}
           </span>
-          <Lock style={{ width: '11px', height: '11px', color: '#a5b4fc' }} title="Locked to organization" />
         </div>
 
-        {/* 🎂 Birthday Celebrations Popover */}
+        {/* Celebrations Popover (100% Zero-Emoji with Lucide Gift) */}
         <div style={{ position: 'relative' }}>
           <button
             onClick={() => {
@@ -301,93 +380,150 @@ const Header = ({ activeTab = 'dashboard', onNavigate, onOpenQuickCreate, onTogg
             style={{
               position: 'relative',
               background: todayBirthdays.length > 0
-                ? 'linear-gradient(135deg, rgba(245, 158, 11, 0.25) 0%, rgba(236, 72, 153, 0.25) 100%)'
-                : 'var(--bg-primary)',
-              border: todayBirthdays.length > 0 ? '1.5px solid #f59e0b' : '1px solid var(--border-color)',
+                ? 'linear-gradient(135deg, #F96E65 0%, #FFD144 100%)'
+                : (theme === 'dark' ? '#1c1c22' : '#F8FAFC'),
+              border: todayBirthdays.length > 0 ? 'none' : (theme === 'dark' ? '1px solid rgba(255, 255, 255, 0.08)' : '1px solid #E2E8F0'),
               width: '38px',
               height: '38px',
-              borderRadius: '10px',
+              borderRadius: '12px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               cursor: 'pointer',
               flexShrink: 0,
-              boxShadow: todayBirthdays.length > 0 ? '0 0 10px rgba(245, 158, 11, 0.35)' : 'none',
-              fontSize: '1.1rem'
+              boxShadow: todayBirthdays.length > 0 ? '0 4px 12px rgba(249, 110, 101, 0.35)' : 'none',
+              color: todayBirthdays.length > 0 ? '#FFFFFF' : '#64748B'
             }}
           >
-            🎂
+            <Gift style={{ width: '17px', height: '17px' }} />
             {monthBirthdays.length > 0 && (
-              <span style={{
-                position: 'absolute',
-                top: '-4px',
-                right: '-4px',
-                background: todayBirthdays.length > 0 ? 'linear-gradient(135deg, #f59e0b, #ec4899)' : '#8b5cf6',
-                color: '#fff',
-                fontSize: '0.65rem',
-                fontWeight: '800',
-                width: '18px',
-                height: '18px',
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 2px 8px rgba(245, 158, 11, 0.5)'
-              }}>
-                {todayBirthdays.length > 0 ? '🎉' : monthBirthdays.length}
+              <span
+                style={{
+                  position: 'absolute',
+                  top: '-4px',
+                  right: '-4px',
+                  background: '#4E3EFF',
+                  color: '#FFFFFF',
+                  fontSize: '0.62rem',
+                  fontWeight: '800',
+                  width: '18px',
+                  height: '18px',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 2px 6px rgba(78, 62, 255, 0.4)'
+                }}
+              >
+                {monthBirthdays.length}
               </span>
             )}
           </button>
 
           {showBirthdayMenu && (
-            <div style={{
-              position: 'absolute',
-              top: '48px',
-              right: 0,
-              width: '320px',
-              background: 'var(--bg-secondary)',
-              border: '1px solid var(--border-color)',
-              borderRadius: '12px',
-              boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
-              padding: '16px',
-              zIndex: 200
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', borderBottom: '1px solid var(--border-color)', paddingBottom: '8px' }}>
+            <div
+              style={{
+                position: 'absolute',
+                top: '48px',
+                right: 0,
+                width: '320px',
+                background: theme === 'dark' ? '#1F2937' : '#FFFFFF',
+                border: theme === 'dark' ? '1px solid #374151' : '1px solid #EEF2F6',
+                borderRadius: '16px',
+                boxShadow: '0 12px 36px rgba(0, 0, 0, 0.12)',
+                padding: '16px',
+                zIndex: 200
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: '12px',
+                  borderBottom: theme === 'dark' ? '1px solid #374151' : '1px solid #F1F4F9',
+                  paddingBottom: '8px'
+                }}
+              >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span style={{ fontSize: '1.1rem' }}>🎂</span>
-                  <h4 style={{ fontSize: '0.85rem', fontWeight: '800', margin: 0, color: 'var(--text-primary)' }}>
-                    {MONTH_NAMES[currentMonthNum - 1]} Birthdays
+                  <PartyPopper style={{ width: '16px', height: '16px', color: '#4E3EFF' }} />
+                  <h4
+                    style={{
+                      fontSize: '0.85rem',
+                      fontWeight: '800',
+                      margin: 0,
+                      color: theme === 'dark' ? '#F9FAFB' : '#1E1F24'
+                    }}
+                  >
+                    {MONTH_NAMES[currentMonthNum - 1]} Celebrations
                   </h4>
                 </div>
-                <span style={{ fontSize: '0.7rem', padding: '2px 6px', borderRadius: '10px', background: 'rgba(245, 158, 11, 0.15)', color: '#fbbf24', fontWeight: '700' }}>
-                  {monthBirthdays.length} Celebrations
+                <span
+                  style={{
+                    fontSize: '0.68rem',
+                    padding: '2px 8px',
+                    borderRadius: '9999px',
+                    background: '#EFF6FF',
+                    color: '#2563EB',
+                    fontWeight: '800'
+                  }}
+                >
+                  {monthBirthdays.length} Active
                 </span>
               </div>
 
               {todayBirthdays.length > 0 && (
-                <div style={{
-                  padding: '10px',
-                  borderRadius: '8px',
-                  background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.25) 0%, rgba(236, 72, 153, 0.25) 100%)',
-                  border: '1px solid #f59e0b',
-                  marginBottom: '10px'
-                }}>
-                  <div style={{ fontSize: '0.72rem', fontWeight: '800', color: '#fbbf24', textTransform: 'uppercase' }}>
-                    🎉 Today's Birthday!
+                <div
+                  style={{
+                    padding: '10px 12px',
+                    borderRadius: '10px',
+                    background: 'linear-gradient(135deg, rgba(78, 62, 255, 0.1) 0%, rgba(147, 254, 191, 0.2) 100%)',
+                    border: '1px solid #4E3EFF',
+                    marginBottom: '10px'
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      fontSize: '0.72rem',
+                      fontWeight: '800',
+                      color: '#4E3EFF',
+                      textTransform: 'uppercase'
+                    }}
+                  >
+                    <Sparkles style={{ width: '13px', height: '13px' }} />
+                    <span>Today's Milestone</span>
                   </div>
-                  <div style={{ fontSize: '0.85rem', fontWeight: '800', color: '#fff', marginTop: '2px' }}>
+                  <div
+                    style={{
+                      fontSize: '0.85rem',
+                      fontWeight: '800',
+                      color: theme === 'dark' ? '#F9FAFB' : '#1E1F24',
+                      marginTop: '2px'
+                    }}
+                  >
                     {todayBirthdays.map(b => b.name).join(' & ')}
                   </div>
-                  <div style={{ fontSize: '0.7rem', color: '#cbd5e1' }}>
-                    Wish them a wonderful year ahead! 🥳
+                  <div style={{ fontSize: '0.7rem', color: '#64748B' }}>
+                    Send executive greetings from team!
                   </div>
                 </div>
               )}
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '240px', overflowY: 'auto' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '8px',
+                  maxHeight: '240px',
+                  overflowY: 'auto'
+                }}
+              >
                 {monthBirthdays.length === 0 ? (
-                  <div style={{ textAlign: 'center', padding: '16px', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
-                    No employee birthdays in {MONTH_NAMES[currentMonthNum - 1]}.
+                  <div style={{ textAlign: 'center', padding: '16px', color: '#94A3B8', fontSize: '0.8rem' }}>
+                    No staff milestones in {MONTH_NAMES[currentMonthNum - 1]}.
                   </div>
                 ) : (
                   monthBirthdays.map(emp => {
@@ -397,9 +533,11 @@ const Header = ({ activeTab = 'dashboard', onNavigate, onOpenQuickCreate, onTogg
                         key={emp.id}
                         style={{
                           padding: '8px 10px',
-                          borderRadius: '8px',
-                          background: isToday ? 'rgba(245, 158, 11, 0.12)' : 'var(--bg-primary)',
-                          border: isToday ? '1px solid rgba(245, 158, 11, 0.35)' : '1px solid var(--border-color)',
+                          borderRadius: '10px',
+                          background: isToday
+                            ? (theme === 'dark' ? 'rgba(78, 62, 255, 0.2)' : '#EFF6FF')
+                            : (theme === 'dark' ? '#1F2937' : '#F8FAFC'),
+                          border: isToday ? '1px solid #4E3EFF' : '1px solid #E2E8F0',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'space-between',
@@ -413,22 +551,43 @@ const Header = ({ activeTab = 'dashboard', onNavigate, onOpenQuickCreate, onTogg
                             style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover' }}
                           />
                           <div style={{ overflow: 'hidden' }}>
-                            <div style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            <div
+                              style={{
+                                fontSize: '0.78rem',
+                                fontWeight: '700',
+                                color: theme === 'dark' ? '#F9FAFB' : '#1E1F24',
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis'
+                              }}
+                            >
                               {emp.name}
                             </div>
-                            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
+                            <div style={{ fontSize: '0.66rem', color: '#64748B' }}>
                               {emp.designation || emp.role}
                             </div>
                           </div>
                         </div>
 
                         <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                          <div style={{ fontSize: '0.75rem', fontWeight: '800', color: isToday ? '#fbbf24' : '#818cf8' }}>
+                          <div
+                            style={{
+                              fontSize: '0.74rem',
+                              fontWeight: '800',
+                              color: isToday ? '#4E3EFF' : '#64748B'
+                            }}
+                          >
                             {MONTH_NAMES[currentMonthNum - 1].slice(0, 3)} {emp.birthdayData?.day}
                           </div>
                           {isToday && (
-                            <span style={{ fontSize: '0.62rem', fontWeight: '800', color: '#f59e0b' }}>
-                              Today!
+                            <span
+                              style={{
+                                fontSize: '0.62rem',
+                                fontWeight: '800',
+                                color: '#10B981'
+                              }}
+                            >
+                              Today
                             </span>
                           )}
                         </div>
@@ -441,88 +600,143 @@ const Header = ({ activeTab = 'dashboard', onNavigate, onOpenQuickCreate, onTogg
           )}
         </div>
 
-        {/* Notifications */}
+        {/* Notifications Pill */}
         <div style={{ position: 'relative' }}>
           <button
             onClick={() => {
               setShowNotifications(!showNotifications);
               if (showBirthdayMenu) setShowBirthdayMenu(false);
             }}
+            title="System Notifications"
             style={{
               position: 'relative',
-              background: 'var(--bg-primary)',
-              border: '1px solid var(--border-color)',
+              background: theme === 'dark' ? '#1F2937' : '#F8FAFC',
+              border: theme === 'dark' ? '1px solid #374151' : '1px solid #E2E8F0',
               width: '38px',
               height: '38px',
-              borderRadius: '10px',
+              borderRadius: '12px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               cursor: 'pointer',
-              flexShrink: 0
+              flexShrink: 0,
+              color: '#64748B'
             }}
           >
-            <Bell style={{ width: '18px', height: '18px', color: 'var(--text-primary)' }} />
+            <Bell style={{ width: '17px', height: '17px' }} />
             {unreadCount > 0 && (
-              <span style={{
-                position: 'absolute',
-                top: '-4px',
-                right: '-4px',
-                background: '#f43f5e',
-                color: '#fff',
-                fontSize: '0.65rem',
-                fontWeight: '800',
-                width: '18px',
-                height: '18px',
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 2px 8px rgba(244, 63, 94, 0.5)'
-              }}>
+              <span
+                style={{
+                  position: 'absolute',
+                  top: '-4px',
+                  right: '-4px',
+                  background: '#EF4444',
+                  color: '#FFFFFF',
+                  fontSize: '0.62rem',
+                  fontWeight: '800',
+                  width: '18px',
+                  height: '18px',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 2px 6px rgba(239, 68, 68, 0.4)'
+                }}
+              >
                 {unreadCount}
               </span>
             )}
           </button>
 
           {showNotifications && (
-            <div style={{
-              position: 'absolute',
-              top: '48px',
-              right: 0,
-              width: '300px',
-              background: 'var(--bg-secondary)',
-              border: '1px solid var(--border-color)',
-              borderRadius: '12px',
-              boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
-              padding: '16px',
-              zIndex: 200
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                <h4 style={{ fontSize: '0.85rem', fontWeight: '700' }}>Notifications</h4>
+            <div
+              style={{
+                position: 'absolute',
+                top: '48px',
+                right: 0,
+                width: '320px',
+                background: theme === 'dark' ? '#1F2937' : '#FFFFFF',
+                border: theme === 'dark' ? '1px solid #374151' : '1px solid #EEF2F6',
+                borderRadius: '16px',
+                boxShadow: '0 12px 36px rgba(0,0,0,0.12)',
+                padding: '16px',
+                zIndex: 200
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: '12px'
+                }}
+              >
+                <h4
+                  style={{
+                    fontSize: '0.85rem',
+                    fontWeight: '800',
+                    margin: 0,
+                    color: theme === 'dark' ? '#F9FAFB' : '#1E1F24'
+                  }}
+                >
+                  Notifications
+                </h4>
                 {unreadCount > 0 && (
-                  <button onClick={markAllRead} style={{ background: 'none', border: 'none', color: '#60a5fa', fontSize: '0.75rem', cursor: 'pointer' }}>
-                    Mark read
+                  <button
+                    onClick={markAllRead}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: '#4E3EFF',
+                      fontSize: '0.72rem',
+                      fontWeight: '700',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Mark all read
                   </button>
                 )}
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '250px', overflowY: 'auto' }}>
+
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '8px',
+                  maxHeight: '250px',
+                  overflowY: 'auto'
+                }}
+              >
                 {notifications.map(n => (
-                  <div key={n.id} style={{
-                    padding: '10px',
-                    borderRadius: '8px',
-                    background: n.unread ? 'rgba(59, 130, 246, 0.1)' : 'var(--bg-primary)',
-                    border: '1px solid var(--border-color)',
-                    fontSize: '0.8rem'
-                  }}>
+                  <div
+                    key={n.id}
+                    style={{
+                      padding: '10px 12px',
+                      borderRadius: '10px',
+                      background: n.unread
+                        ? (theme === 'dark' ? 'rgba(78, 62, 255, 0.12)' : '#F1F4F9')
+                        : (theme === 'dark' ? '#1F2937' : '#FAFAFA'),
+                      border: theme === 'dark' ? '1px solid #374151' : '1px solid #E2E8F0',
+                      fontSize: '0.8rem'
+                    }}
+                  >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
-                      {n.unread
-                        ? <AlertTriangle style={{ width: '13px', height: '13px', color: '#f59e0b' }} />
-                        : <CheckCircle2 style={{ width: '13px', height: '13px', color: '#10b981' }} />}
-                      <span style={{ fontWeight: '700', color: n.unread ? '#60a5fa' : 'var(--text-primary)' }}>{n.title}</span>
+                      {n.unread ? (
+                        <AlertTriangle style={{ width: '13px', height: '13px', color: '#F59E0B' }} />
+                      ) : (
+                        <CheckCircle2 style={{ width: '13px', height: '13px', color: '#10B981' }} />
+                      )}
+                      <span
+                        style={{
+                          fontWeight: '800',
+                          color: n.unread ? '#4E3EFF' : (theme === 'dark' ? '#F9FAFB' : '#1E1F24')
+                        }}
+                      >
+                        {n.title}
+                      </span>
                     </div>
-                    <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem' }}>{n.message}</div>
-                    <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: '4px' }}>{n.time}</div>
+                    <div style={{ color: '#64748B', fontSize: '0.72rem' }}>{n.message}</div>
+                    <div style={{ fontSize: '0.64rem', color: '#94A3B8', marginTop: '4px' }}>{n.time}</div>
                   </div>
                 ))}
               </div>
@@ -530,13 +744,35 @@ const Header = ({ activeTab = 'dashboard', onNavigate, onOpenQuickCreate, onTogg
           )}
         </div>
 
-        {/* Quick Create */}
+        {/* Quick Create: VERION Electric Blue Pill Button */}
         <button
           onClick={onOpenQuickCreate}
-          className="btn gradient-btn-primary"
-          style={{ borderRadius: '10px', flexShrink: 0 }}
+          style={{
+            background: '#4E3EFF',
+            color: '#FFFFFF',
+            border: 'none',
+            borderRadius: '9999px',
+            padding: '8px 16px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            fontSize: '0.78rem',
+            fontWeight: '800',
+            cursor: 'pointer',
+            transition: 'all 0.18s ease',
+            boxShadow: '0 4px 14px rgba(78, 62, 255, 0.3)',
+            flexShrink: 0
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translateY(-1px)';
+            e.currentTarget.style.boxShadow = '0 6px 18px rgba(78, 62, 255, 0.4)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = '0 4px 14px rgba(78, 62, 255, 0.3)';
+          }}
         >
-          <Plus style={{ width: '16px', height: '16px' }} />
+          <Plus style={{ width: '15px', height: '15px' }} />
           <span>Quick Create</span>
         </button>
 

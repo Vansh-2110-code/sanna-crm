@@ -137,6 +137,48 @@ function updateUserPasswordInDb(userId, newHash, newPlain) {
   });
 }
 
+function recordUserLoginSessionInDb(user) {
+  return new Promise((resolve) => {
+    const db = new sqlite3.Database(dbPath, (err) => {
+      if (err) return resolve(false);
+    });
+    const now = new Date();
+    const sessionId = `SES-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
+    const punchInTime = now.toLocaleTimeString('en-US', {
+      timeZone: 'Asia/Kolkata',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+    const loginTime = now.toISOString();
+
+    db.run(
+      `UPDATE sessions SET status = 'Logged Out', punch_out_time = ? WHERE (user_id = ? OR email = ?) AND status = 'Active'`,
+      [punchInTime, user.id, user.email],
+      () => {
+        db.run(
+          `INSERT OR REPLACE INTO sessions (id, user_id, user_name, email, role, staff_type, login_time, punch_in_time, status, work_mode, ip_address, device, location)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Active', 'Office Campus', '103.21.144.92 (Office Fiber)', 'Desktop / Web App', 'Hyderabad, India (Asia/Kolkata)')`,
+          [
+            sessionId,
+            user.id || 'EMP-SANNA-001',
+            user.name || user.username || 'Staff Member',
+            user.email || '',
+            user.role || 'Staff Member',
+            user.role?.includes('Intern') ? 'Intern' : 'Employee',
+            loginTime,
+            punchInTime
+          ],
+          (err) => {
+            db.close();
+            resolve(!err);
+          }
+        );
+      }
+    );
+  });
+}
+
 class AuthService {
   async login(identifier, password) {
     let employee = await findUserFromUsersTable(identifier);
@@ -280,6 +322,13 @@ class AuthService {
 
     // Check if employee has submitted KYC documents
     const kycStatus = await checkKycStatusForUser(employee.id);
+
+    // Record active login session in SQLite DB
+    try {
+      await recordUserLoginSessionInDb(employee);
+    } catch (e) {
+      console.warn('Direct session DB insert notice:', e.message);
+    }
 
     return {
       user: {

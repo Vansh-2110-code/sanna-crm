@@ -186,28 +186,42 @@ const ProjectDeliverablesHub = () => {
   });
 
   // Ad Spend Filters & Quick Add State
-  const [selectedAdMonth, setSelectedAdMonth] = useState(6); // default June
+  const [selectedAdMonth, setSelectedAdMonth] = useState(10); // default October
   const [selectedAdYear, setSelectedAdYear] = useState(2026);
-  const [txDate, setTxDate] = useState('2026-08-14');
+  const [adSummaryActiveOnly, setAdSummaryActiveOnly] = useState(true);
+  const [adSummarySearch, setAdSummarySearch] = useState('');
+  const [txDate, setTxDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [txClientId, setTxClientId] = useState('');
   const [txAmount, setTxAmount] = useState('');
   const [txCurrency, setTxCurrency] = useState('INR'); // 'INR' (₹) or 'USD' ($)
   const [txPurpose, setTxPurpose] = useState('Meta Ads');
   const [txPaymentMode, setTxPaymentMode] = useState('UPI');
 
+  // Video Editor Search & Filter State
+  const [editorSearchQuery, setEditorSearchQuery] = useState('');
+  const [editorStageFilter, setEditorStageFilter] = useState('ALL');
+  const [editorViewMode, setEditorViewMode] = useState('cards'); // 'cards' | 'table'
+
   const handleQuickAddTx = (e) => {
     e.preventDefault();
     if (!txClientId || !txAmount) return;
+    const parts = (txDate || '').split('-');
+    const derivedYear = parts.length >= 1 ? (parseInt(parts[0], 10) || selectedAdYear || 2026) : (selectedAdYear || 2026);
+    const derivedMonth = parts.length >= 2 ? (parseInt(parts[1], 10) || selectedAdMonth || 10) : (selectedAdMonth || 10);
+
+    const isAlis = (txClientId || '').toLowerCase().includes('alis');
+    const finalCurrency = txCurrency || (isAlis ? 'USD' : 'INR');
+
     if (addAdTransaction) {
       addAdTransaction({
         clientName: txClientId,
-        date: txDate,
+        date: txDate || new Date().toISOString().split('T')[0],
         amount: parseFloat(txAmount) || 0,
-        currency: txCurrency || 'INR',
+        currency: finalCurrency,
         purpose: txPurpose,
         paymentMode: txPaymentMode,
-        month: selectedAdMonth || 8,
-        year: selectedAdYear || 2026
+        month: derivedMonth,
+        year: derivedYear
       });
     }
     setTxAmount('');
@@ -274,13 +288,16 @@ const ProjectDeliverablesHub = () => {
   });
 
   const [newEditorForm, setNewEditorForm] = useState({
+    projectName: 'Acme Corporation Cloud',
+    clientProject: 'Acme Corporation Cloud',
     editorName: 'Karan Johal',
     email: 'karan.edits@creatives.io',
-    clientProject: 'Acme Corporation',
     taskDescription: 'Edit 4x 60-second 4K Instagram Reels on Cloud Security Best Practices',
+    taskAssignedDate: new Date().toISOString().split('T')[0],
     assignedDate: new Date().toISOString().split('T')[0],
+    status: 'Editing in Progress',
+    completedDate: '',
     submissionDate: new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0],
-    status: 'In Progress',
     amount: 12000,
     paymentStatus: 'Pending',
     deliverableUrl: ''
@@ -341,8 +358,20 @@ const ProjectDeliverablesHub = () => {
 
   const handleCreateEditor = (e) => {
     e.preventDefault();
+    const status = newEditorForm.status || 'Editing in Progress';
+    const isCompleted = status === 'Approved & Completed';
+    const completedDate = isCompleted ? (newEditorForm.completedDate || new Date().toISOString().split('T')[0]) : (newEditorForm.completedDate || '');
+    const pName = newEditorForm.projectName || newEditorForm.clientProject || 'General Project';
+    const assigned = newEditorForm.taskAssignedDate || newEditorForm.assignedDate || new Date().toISOString().split('T')[0];
+
     addEditorAssignment({
       ...newEditorForm,
+      projectName: pName,
+      clientProject: pName,
+      taskAssignedDate: assigned,
+      assignedDate: assigned,
+      status,
+      completedDate,
       amount: parseFloat(newEditorForm.amount) || 0
     });
     setShowAddEditorModal(false);
@@ -402,8 +431,20 @@ const ProjectDeliverablesHub = () => {
   const handleSaveEditEditor = (e) => {
     e.preventDefault();
     if (!editingEditor) return;
+    const status = editingEditor.status || 'Editing in Progress';
+    const isCompleted = status === 'Approved & Completed';
+    const completedDate = isCompleted ? (editingEditor.completedDate || new Date().toISOString().split('T')[0]) : (editingEditor.completedDate || '');
+    const pName = editingEditor.projectName || editingEditor.clientProject || 'General Project';
+    const assigned = editingEditor.taskAssignedDate || editingEditor.assignedDate || '';
+
     updateEditorAssignment(editingEditor.id, {
       ...editingEditor,
+      projectName: pName,
+      clientProject: pName,
+      taskAssignedDate: assigned,
+      assignedDate: assigned,
+      status,
+      completedDate,
       amount: parseFloat(editingEditor.amount) || 0
     });
     setEditingEditor(null);
@@ -435,8 +476,20 @@ const ProjectDeliverablesHub = () => {
   const totalRevenue = wonDeals.reduce((s, d) => s + (parseFloat(d.dealValue || d.value || d.amount || 0)), 0);
   const totalPipelineValue = deals.reduce((s, d) => s + (parseFloat(d.dealValue || d.value || d.amount || 0)), 0);
   const winRate = deals.length > 0 ? Math.round((wonDeals.length / deals.length) * 100) : 0;
-  const editorsActive = editorAssignments.filter(e => e.status === 'In Progress').length;
-  const editorsCompleted = editorAssignments.filter(e => e.status === 'Completed' || e.status === 'Delivered').length;
+
+  // Video Editor 4 Workflow Stages Breakdown
+  const editorsEditingInProgress = editorAssignments.filter(e => {
+    const s = (e.status || '').toLowerCase();
+    return s.includes('progress') && !s.includes('complete') && !s.includes('approved');
+  }).length;
+  const editorsInternalReview = editorAssignments.filter(e => (e.status || '').toLowerCase().includes('review')).length;
+  const editorsClientFeedback = editorAssignments.filter(e => (e.status || '').toLowerCase().includes('feedback') || (e.status || '').toLowerCase().includes('revision')).length;
+  const editorsApprovedCompleted = editorAssignments.filter(e => {
+    const s = (e.status || '').toLowerCase();
+    return s.includes('approved') || s.includes('complete') || s.includes('delivered');
+  }).length;
+  const editorsActive = editorsEditingInProgress + editorsInternalReview + editorsClientFeedback;
+  const editorsCompleted = editorsApprovedCompleted;
   const serversHealthy = serverCredentials.filter(s => (s.status || '').toLowerCase().includes('active') || (s.status || '').toLowerCase().includes('healthy')).length;
   const totalFollowers = deliverables.reduce((s, d) => {
     const f = String(d.totalFollowers || '0').replace(/[^0-9.]/g, '');
@@ -665,9 +718,10 @@ const ProjectDeliverablesHub = () => {
               </div>
               <div className="glass-card" style={{ padding: '18px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {[
-                  { label: 'In Progress', count: editorsActive, color: '#f59e0b', bg: 'rgba(245,158,11,0.12)' },
-                  { label: 'Completed / Delivered', count: editorsCompleted, color: '#34d399', bg: 'rgba(52,211,153,0.12)' },
-                  { label: 'Total Assignments', count: editorAssignments.length, color: '#818cf8', bg: 'rgba(129,140,248,0.12)' },
+                  { label: 'Editing in Progress', count: editorsEditingInProgress, color: '#f59e0b', bg: 'rgba(245,158,11,0.12)' },
+                  { label: 'Internal Review', count: editorsInternalReview, color: '#818cf8', bg: 'rgba(129,140,248,0.12)' },
+                  { label: 'Client Feedback / Revisions', count: editorsClientFeedback, color: '#f43f5e', bg: 'rgba(244,63,94,0.12)' },
+                  { label: 'Approved & Completed', count: editorsApprovedCompleted, color: '#34d399', bg: 'rgba(52,211,153,0.12)' },
                   { label: 'Total Paid to Editors', count: `₹${editorAssignments.reduce((s,e) => s + (parseFloat(e.amount)||0), 0).toLocaleString()}`, color: '#60a5fa', bg: 'rgba(96,165,250,0.12)' },
                 ].map(row => (
                   <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', borderRadius: '8px', background: row.bg }}>
@@ -837,45 +891,156 @@ const ProjectDeliverablesHub = () => {
           return true;
         });
 
-        const clientList = REAL_CRM_DATA.clients || [];
+        // Build unified list of clients from context clients, REAL_CRM_DATA, and adSpendTransactions
+        const clientMap = new Map();
+        (allClients || []).forEach(c => {
+          const name = c.name || c.clientName || c.client_name;
+          if (name) clientMap.set(name.trim().toLowerCase(), { id: c.id, name: name.trim() });
+        });
+        (REAL_CRM_DATA.clients || []).forEach(c => {
+          const name = c.name || c.clientName || c.client_name;
+          if (name && !clientMap.has(name.trim().toLowerCase())) {
+            clientMap.set(name.trim().toLowerCase(), { id: c.id, name: name.trim() });
+          }
+        });
+        (adSpendTransactions || []).forEach(tx => {
+          const name = tx.clientName || tx.client_name;
+          if (name && !clientMap.has(name.trim().toLowerCase())) {
+            clientMap.set(name.trim().toLowerCase(), { id: `tx-c-${name.trim().toLowerCase()}`, name: name.trim() });
+          }
+        });
+        (adSpendLedger || []).forEach(ad => {
+          const name = ad.clientName || ad.client_name || ad.clientProject || ad.project_name;
+          if (name && !clientMap.has(name.trim().toLowerCase())) {
+            clientMap.set(name.trim().toLowerCase(), { id: ad.projectId || `ad-${name}`, name: name.trim() });
+          }
+        });
+        const clientList = Array.from(clientMap.values());
 
-        // Build list of all 57 clients merged with their ad spend report for the selected month
+        // Build list of clients merged with their ad spend report and ad spend transactions for the selected month
         const summaryRows = clientList.map(client => {
-          const cId = parseInt(String(client.id || client.projectId || '').replace(/\D/g, ''), 10);
-          const cName = (client.name || client.clientName || client.client_name || '').trim().toLowerCase();
+          const cId = parseInt(String(client.id || '').replace(/\D/g, ''), 10);
+          const cName = (client.name || '').trim().toLowerCase();
 
+          // 1. Static/ledger report for selected month/year
           const report = filteredSummaryReports.find(r => {
             const rId = parseInt(String(r.projectId || r.project_id || '').replace(/\D/g, ''), 10);
             const rName = (r.clientName || r.client_name || r.clientProject || r.project_name || '').trim().toLowerCase();
-            return (rId && rId === cId) || (rName && (rName === cName || cName.includes(rName) || rName.includes(cName)));
+            if (rId && cId && rId === cId) return true;
+            if (rName && cName) {
+              if (rName === cName) return true;
+              if (cName.length > 3 && rName.length > 3 && (cName.includes(rName) || rName.includes(cName))) return true;
+            }
+            return false;
           }) || {};
 
-          const meta = parseFloat(report.metaAdsSpent || report.meta_ads_spent) || 0;
-          const insta = parseFloat(report.instaBoostingSpent || report.insta_boosting_spent) || 0;
-          const google = parseFloat(report.googleAdsSpent || report.google_ads_spent) || 0;
-          const linkedin = parseFloat(report.linkedinAdsSpent || report.linkedin_ads_spent) || 0;
+          let meta = parseFloat(report.metaAdsSpent || report.meta_ads_spent) || 0;
+          let insta = parseFloat(report.instaBoostingSpent || report.insta_boosting_spent) || 0;
+          let google = parseFloat(report.googleAdsSpent || report.google_ads_spent) || 0;
+          let linkedin = parseFloat(report.linkedinAdsSpent || report.linkedin_ads_spent) || 0;
           const allotted = parseFloat(report.amountAllotted || report.amount_allotted) || 0;
-          const total = parseFloat(report.totalSpent || report.total_spent) || (meta + insta + google + linkedin);
+
+          // 2. Query adSpendTransactions matching client and selected month/year
+          const clientTx = (adSpendTransactions || []).filter(tx => {
+            const txName = (tx.clientName || tx.client_name || '').trim().toLowerCase();
+            if (txName !== cName && !(cName.length > 3 && txName.length > 3 && (cName.includes(txName) || txName.includes(cName)))) return false;
+
+            let m = tx.month;
+            let y = tx.year;
+            if (tx.date) {
+              const parts = tx.date.split('-');
+              if (parts.length >= 2) {
+                y = parseInt(parts[0], 10) || y;
+                m = parseInt(parts[1], 10) || m;
+              }
+            }
+            if (selectedAdMonth !== 0 && m !== selectedAdMonth) return false;
+            if (selectedAdYear !== 0 && y !== selectedAdYear) return false;
+            return true;
+          });
+
+          // Compute spends accurately from transactions
+          let txTotal = 0;
+          let latestDate = report.date || '';
+          let paymentMode = report.paymentMode || report.mode_of_payment || '';
+          let remark = report.remark || '';
+
+          if (clientTx.length > 0) {
+            let txMeta = 0, txInsta = 0, txGoogle = 0, txLinkedin = 0;
+            clientTx.forEach(tx => {
+              const amt = parseFloat(tx.amount) || 0;
+              txTotal += amt;
+              const p = (tx.purpose || '').toLowerCase();
+              if (p.includes('insta') || p.includes('boost')) {
+                txInsta += amt;
+              } else if (p.includes('google') || p.includes('search') || p.includes('gads')) {
+                txGoogle += amt;
+              } else if (p.includes('linkedin')) {
+                txLinkedin += amt;
+              } else {
+                txMeta += amt;
+              }
+              if (tx.date) latestDate = tx.date;
+              if (tx.paymentMode) paymentMode = tx.paymentMode;
+              if (tx.purpose && !remark) remark = tx.purpose;
+            });
+
+            // Reconcile platforms: use max of ledger report vs live tx items to completely prevent double-counting
+            meta = Math.max(meta, txMeta);
+            insta = Math.max(insta, txInsta);
+            google = Math.max(google, txGoogle);
+            linkedin = Math.max(linkedin, txLinkedin);
+          }
+
+          const total = (meta + insta + google + linkedin);
+
+          // Proper currency detection
+          const hasUsdTx = clientTx.some(t => {
+            const cur = String(t.currency || '').trim().toUpperCase();
+            const p = String(t.purpose || '').toLowerCase();
+            const pm = String(t.paymentMode || '').toLowerCase();
+            return cur === 'USD' || cur === '$' || p.includes('$') || p.includes('dollar') || pm.includes('usd') || pm.includes('dollar');
+          });
+          const hasUsdReport = String(report.currency || '').trim().toUpperCase() === 'USD' || report.currency === '$';
+          const isAlis = cName.includes('alis');
+          const rowCurrency = (hasUsdTx || hasUsdReport || (isAlis && total > 0)) ? 'USD' : 'INR';
 
           return {
             clientId: client.id,
-            clientName: client.name || client.clientName || client.client_name,
-            date: report.date || 'dd-mm-yyyy',
+            clientName: client.name,
+            date: latestDate || 'dd-mm-yyyy',
             amountAllotted: allotted,
             metaAdsSpent: meta,
             instaBoostingSpent: insta,
             googleAdsSpent: google,
             linkedinAdsSpent: linkedin,
             totalSpent: total,
-            paymentMode: report.paymentMode || report.mode_of_payment || '',
-            remark: report.remark || '',
-            hasReport: !!(report.id || total > 0 || allotted > 0),
+            currency: rowCurrency,
+            paymentMode: paymentMode,
+            remark: remark,
+            hasReport: !!(report.id || total > 0 || allotted > 0 || clientTx.length > 0),
             reportId: report.id
           };
         });
 
-        const totalAllottedSum = summaryRows.reduce((s, r) => s + r.amountAllotted, 0);
-        const totalOutlaySum = summaryRows.reduce((s, r) => s + r.totalSpent, 0);
+        const totalAllottedSum = summaryRows.reduce((s, r) => s + (r.currency === 'INR' ? r.amountAllotted : 0), 0);
+        const totalOutlayInr = summaryRows.reduce((s, r) => s + (r.currency === 'INR' ? r.totalSpent : 0), 0);
+        const totalOutlayUsd = summaryRows.reduce((s, r) => s + (r.currency === 'USD' ? r.totalSpent : 0), 0);
+
+        // Filter for display in Table 1
+        const displayedSummaryRows = summaryRows.filter(r => {
+          if (adSummaryActiveOnly) {
+            if (r.totalSpent <= 0 && r.amountAllotted <= 0) return false;
+          }
+          if (adSummarySearch.trim()) {
+            const q = adSummarySearch.toLowerCase().trim();
+            const matchName = r.clientName.toLowerCase().includes(q);
+            const matchRemark = (r.remark || '').toLowerCase().includes(q);
+            const matchPay = (r.paymentMode || '').toLowerCase().includes(q);
+            if (!matchName && !matchRemark && !matchPay) return false;
+          }
+          return true;
+        });
 
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -891,7 +1056,7 @@ const ProjectDeliverablesHub = () => {
                 </p>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
                 <select
                   value={selectedAdMonth}
                   onChange={(e) => setSelectedAdMonth(parseInt(e.target.value, 10))}
@@ -899,9 +1064,18 @@ const ProjectDeliverablesHub = () => {
                   style={{ fontSize: '0.8rem', padding: '6px 12px', background: 'var(--bg-input)' }}
                 >
                   <option value={0}>All Months</option>
+                  <option value={1}>January</option>
+                  <option value={2}>February</option>
+                  <option value={3}>March</option>
+                  <option value={4}>April</option>
+                  <option value={5}>May</option>
                   <option value={6}>June</option>
                   <option value={7}>July</option>
                   <option value={8}>August</option>
+                  <option value={9}>September</option>
+                  <option value={10}>October</option>
+                  <option value={11}>November</option>
+                  <option value={12}>December</option>
                 </select>
 
                 <select
@@ -912,6 +1086,7 @@ const ProjectDeliverablesHub = () => {
                 >
                   <option value={2026}>2026</option>
                   <option value={2025}>2025</option>
+                  <option value={2024}>2024</option>
                 </select>
 
                 <div style={{ padding: '6px 14px', borderRadius: '8px', background: 'rgba(99, 102, 241, 0.15)', border: '1px solid rgba(99, 102, 241, 0.3)', fontSize: '0.78rem' }}>
@@ -919,16 +1094,72 @@ const ProjectDeliverablesHub = () => {
                   <strong style={{ color: '#818cf8' }}>₹{totalAllottedSum.toLocaleString('en-IN')}.00</strong>
                   <span style={{ color: 'var(--text-muted)', margin: '0 8px' }}>|</span>
                   <span style={{ color: 'var(--text-muted)' }}>Total Outlay: </span>
-                  <strong style={{ color: '#34d399' }}>₹{totalOutlaySum.toLocaleString('en-IN')}.00</strong>
+                  <strong style={{ color: '#34d399' }}>₹{totalOutlayInr.toLocaleString('en-IN')}.00</strong>
+                  {totalOutlayUsd > 0 && (
+                    <>
+                      <span style={{ color: 'var(--text-muted)', margin: '0 8px' }}>|</span>
+                      <strong style={{ color: '#38bdf8' }}>${totalOutlayUsd.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD</strong>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
 
             {/* Table 1: Monthly Ads Spent & Boosting Ledger (Summary) */}
             <div className="glass-card" style={{ padding: '20px' }}>
-              <h4 style={{ fontSize: '0.95rem', fontWeight: '800', marginBottom: '14px', color: 'var(--text-primary)' }}>
-                Monthly Ads Spent & Boosting Ledger (Summary)
-              </h4>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '14px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <h4 style={{ fontSize: '0.98rem', fontWeight: '800', margin: 0, color: 'var(--text-primary)' }}>
+                    Monthly Ads Spent & Boosting Ledger (Summary)
+                  </h4>
+                  <span style={{ fontSize: '0.72rem', padding: '3px 9px', borderRadius: '9999px', background: 'rgba(99, 102, 241, 0.15)', color: '#818cf8', fontWeight: '800' }}>
+                    {displayedSummaryRows.length} {displayedSummaryRows.length === 1 ? 'Client' : 'Clients'} {adSummaryActiveOnly ? 'Active' : 'Listed'}
+                  </span>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                  {/* Search Filter */}
+                  <div style={{ position: 'relative', width: '190px' }}>
+                    <Search style={{ position: 'absolute', left: '8px', top: '50%', transform: 'translateY(-50%)', width: '13px', height: '13px', color: 'var(--text-muted)' }} />
+                    <input
+                      type="text"
+                      placeholder="Filter clients..."
+                      value={adSummarySearch}
+                      onChange={e => setAdSummarySearch(e.target.value)}
+                      className="form-input"
+                      style={{ fontSize: '0.75rem', padding: '4px 8px 4px 26px', height: '30px' }}
+                    />
+                    {adSummarySearch && (
+                      <button onClick={() => setAdSummarySearch('')} style={{ position: 'absolute', right: '6px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
+                        <X style={{ width: '12px', height: '12px' }} />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Active Only Filter Toggle */}
+                  <button
+                    type="button"
+                    onClick={() => setAdSummaryActiveOnly(!adSummaryActiveOnly)}
+                    style={{
+                      padding: '5px 12px',
+                      fontSize: '0.74rem',
+                      fontWeight: '700',
+                      borderRadius: '8px',
+                      border: adSummaryActiveOnly ? '1px solid #4f46e5' : '1px solid #475569',
+                      background: adSummaryActiveOnly ? 'rgba(79, 70, 229, 0.2)' : 'transparent',
+                      color: adSummaryActiveOnly ? '#a5b4fc' : 'var(--text-muted)',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    <Filter style={{ width: '12px', height: '12px' }} />
+                    <span>{adSummaryActiveOnly ? 'Active Spend Only' : 'Show All Clients'}</span>
+                  </button>
+                </div>
+              </div>
 
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.78rem' }}>
@@ -947,7 +1178,7 @@ const ProjectDeliverablesHub = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {summaryRows.map((row, idx) => (
+                    {displayedSummaryRows.map((row, idx) => (
                       <tr
                         key={row.clientId || idx}
                         style={{ borderBottom: '1px solid var(--border-color)', transition: 'background 0.15s' }}
@@ -961,23 +1192,29 @@ const ProjectDeliverablesHub = () => {
                           {row.date}
                         </td>
                         <td style={{ padding: '10px 10px', textAlign: 'right', color: row.amountAllotted > 0 ? '#818cf8' : 'var(--text-muted)', fontWeight: row.amountAllotted > 0 ? '700' : '400' }}>
-                          {row.amountAllotted.toFixed(2)}
+                          {row.amountAllotted > 0 ? `${row.currency === 'USD' ? '$' : '₹'}${row.amountAllotted.toFixed(2)}` : '0.00'}
                         </td>
                         <td style={{ padding: '10px 10px', textAlign: 'right', color: row.metaAdsSpent > 0 ? '#38bdf8' : 'var(--text-muted)', fontWeight: row.metaAdsSpent > 0 ? '700' : '400' }}>
-                          {row.metaAdsSpent.toFixed(2)}
+                          {row.metaAdsSpent > 0 ? `${row.currency === 'USD' ? '$' : '₹'}${row.metaAdsSpent.toFixed(2)}` : '0.00'}
                         </td>
                         <td style={{ padding: '10px 10px', textAlign: 'right', color: row.instaBoostingSpent > 0 ? '#f472b6' : 'var(--text-muted)', fontWeight: row.instaBoostingSpent > 0 ? '700' : '400' }}>
-                          {row.instaBoostingSpent.toFixed(2)}
+                          {row.instaBoostingSpent > 0 ? `${row.currency === 'USD' ? '$' : '₹'}${row.instaBoostingSpent.toFixed(2)}` : '0.00'}
                         </td>
                         <td style={{ padding: '10px 10px', textAlign: 'right', color: row.googleAdsSpent > 0 ? '#fbbf24' : 'var(--text-muted)', fontWeight: row.googleAdsSpent > 0 ? '700' : '400' }}>
-                          {row.googleAdsSpent.toFixed(2)}
+                          {row.googleAdsSpent > 0 ? `${row.currency === 'USD' ? '$' : '₹'}${row.googleAdsSpent.toFixed(2)}` : '0.00'}
                         </td>
                         <td style={{ padding: '10px 10px', textAlign: 'right', color: row.linkedinAdsSpent > 0 ? '#60a5fa' : 'var(--text-muted)', fontWeight: row.linkedinAdsSpent > 0 ? '700' : '400' }}>
-                          {row.linkedinAdsSpent.toFixed(2)}
+                          {row.linkedinAdsSpent > 0 ? `${row.currency === 'USD' ? '$' : '₹'}${row.linkedinAdsSpent.toFixed(2)}` : '0.00'}
                         </td>
-                        <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: '800', color: row.totalSpent > 0 ? ((row.currency === 'USD' || (row.paymentMode && String(row.paymentMode).includes('USD'))) ? '#38bdf8' : '#34d399') : 'var(--text-muted)' }}>
-                          {((row.currency === 'USD' || row.currency === '$' || (row.paymentMode && String(row.paymentMode).includes('USD'))) ? '$' : '₹')}
-                          {row.totalSpent.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                        <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: '800', color: row.totalSpent > 0 ? (row.currency === 'USD' ? '#38bdf8' : '#34d399') : 'var(--text-muted)' }}>
+                          {row.totalSpent > 0 ? (
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', justifyContent: 'flex-end' }}>
+                              <span>{row.currency === 'USD' ? '$' : '₹'}{row.totalSpent.toLocaleString(row.currency === 'USD' ? 'en-US' : 'en-IN', { minimumFractionDigits: 2 })}</span>
+                              {row.currency === 'USD' && (
+                                <span style={{ fontSize: '0.62rem', padding: '1px 5px', borderRadius: '4px', background: 'rgba(56, 189, 248, 0.2)', color: '#38bdf8', fontWeight: '800' }}>USD</span>
+                              )}
+                            </span>
+                          ) : '0.00'}
                         </td>
                         <td style={{ padding: '10px 12px', color: 'var(--text-secondary)' }}>
                           {row.paymentMode || <span style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.7rem' }}>e.g. UPI or Visa</span>}
@@ -987,6 +1224,20 @@ const ProjectDeliverablesHub = () => {
                         </td>
                       </tr>
                     ))}
+                    {displayedSummaryRows.length === 0 && (
+                      <tr>
+                        <td colSpan="10" style={{ padding: '28px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                          No clients with active ad spend found for this period.
+                          <button
+                            type="button"
+                            onClick={() => { setAdSummaryActiveOnly(false); setAdSummarySearch(''); }}
+                            style={{ marginLeft: '10px', background: 'none', border: 'none', color: '#60a5fa', textDecoration: 'underline', cursor: 'pointer', fontWeight: '600' }}
+                          >
+                            View All {summaryRows.length} Clients
+                          </button>
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -1015,7 +1266,13 @@ const ProjectDeliverablesHub = () => {
                   <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Client Name</label>
                   <select
                     value={txClientId}
-                    onChange={(e) => setTxClientId(e.target.value)}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setTxClientId(val);
+                      if ((val || '').toLowerCase().includes('alis')) {
+                        setTxCurrency('USD');
+                      }
+                    }}
                     required
                     className="form-select"
                     style={{ fontSize: '0.75rem', padding: '6px 8px' }}
@@ -1106,26 +1363,32 @@ const ProjectDeliverablesHub = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {(adSpendTransactions || []).map(tx => {
-                      const isUsd = tx.currency === 'USD' || tx.currency === '$' || String(tx.currency).toUpperCase() === 'USD' ||
-                        (tx.paymentMode && String(tx.paymentMode).includes('USD')) ||
-                        (tx.mode_of_payment && String(tx.mode_of_payment).includes('USD'));
-                      const symbol = isUsd ? '$' : '₹';
-                      const badgeColor = isUsd ? '#38bdf8' : '#34d399';
-                      return (
-                        <tr key={tx.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                          <td style={{ padding: '10px 14px', color: 'var(--text-muted)' }}>{tx.date}</td>
-                          <td style={{ padding: '10px 14px', fontWeight: '700', color: 'var(--text-primary)' }}>{tx.clientName || tx.client_name}</td>
-                          <td style={{ padding: '10px 14px', textAlign: 'right', fontWeight: '800', color: badgeColor }}>
-                            {symbol}{(tx.amount || 0).toLocaleString(isUsd ? 'en-US' : 'en-IN', { minimumFractionDigits: 2 })}
-                          </td>
-                          <td style={{ padding: '10px 14px', color: '#818cf8' }}>{tx.purpose}</td>
-                          <td style={{ padding: '10px 14px', color: 'var(--text-secondary)' }}>
-                            {tx.paymentMode || tx.mode_of_payment}
-                            {isUsd && !(tx.paymentMode || tx.mode_of_payment || '').includes('USD') && (
-                              <span style={{ marginLeft: '6px', fontSize: '0.65rem', padding: '1px 5px', borderRadius: '4px', background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8', fontWeight: '600' }}>USD</span>
-                            )}
-                          </td>
+                    {(() => {
+                      const seen = new Set();
+                      const deduplicatedList = (adSpendTransactions || []).filter(tx => {
+                        const key = `${tx.id}-${tx.clientName || tx.client_name}-${tx.date}-${tx.amount}`;
+                        if (seen.has(key)) return false;
+                        seen.add(key);
+                        return true;
+                      });
+                      return deduplicatedList.map(tx => {
+                        const isUsd = tx.currency === 'USD' || tx.currency === '$';
+                        const symbol = isUsd ? '$' : '₹';
+                        const badgeColor = isUsd ? '#38bdf8' : '#34d399';
+                        return (
+                          <tr key={tx.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                            <td style={{ padding: '10px 14px', color: 'var(--text-muted)' }}>{tx.date}</td>
+                            <td style={{ padding: '10px 14px', fontWeight: '700', color: 'var(--text-primary)' }}>{tx.clientName || tx.client_name}</td>
+                            <td style={{ padding: '10px 14px', textAlign: 'right', fontWeight: '800', color: badgeColor }}>
+                              {symbol}{(tx.amount || 0).toLocaleString(isUsd ? 'en-US' : 'en-IN', { minimumFractionDigits: 2 })}
+                            </td>
+                            <td style={{ padding: '10px 14px', color: '#818cf8' }}>{tx.purpose}</td>
+                            <td style={{ padding: '10px 14px', color: 'var(--text-secondary)' }}>
+                              {tx.paymentMode || tx.mode_of_payment}
+                              {isUsd && (
+                                <span style={{ marginLeft: '6px', fontSize: '0.65rem', padding: '1px 5px', borderRadius: '4px', background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8', fontWeight: '600' }}>USD</span>
+                              )}
+                            </td>
                           <td style={{ padding: '10px 14px', textAlign: 'center' }}>
                             <button
                               onClick={() => deleteAdTransaction && deleteAdTransaction(tx.id)}
@@ -1138,7 +1401,8 @@ const ProjectDeliverablesHub = () => {
                           </td>
                         </tr>
                       );
-                    })}
+                    });
+                  })()}
                   </tbody>
                 </table>
               </div>
@@ -1151,73 +1415,439 @@ const ProjectDeliverablesHub = () => {
       {/* ========================================================================= */}
       {/* VIEW 4: VIDEO EDITOR ASSIGNMENTS                                         */}
       {/* ========================================================================= */}
-      {activeSubTab === 'editors' && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '16px' }}>
-          {editorAssignments.map(ed => (
-            <div key={ed.id} className="glass-card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <div>
-                  <h4 style={{ fontSize: '1.05rem', fontWeight: '800', margin: 0, color: 'var(--text-primary)' }}>
-                    {ed.editorName}
-                  </h4>
-                  <div style={{ fontSize: '0.75rem', color: '#818cf8' }}>
-                    {ed.email} · <strong>{ed.clientProject}</strong>
-                  </div>
-                </div>
+      {activeSubTab === 'editors' && (() => {
+        const filteredEditors = editorAssignments.filter(ed => {
+          const pName = (ed.projectName || ed.clientProject || '').toLowerCase();
+          const eName = (ed.editorName || '').toLowerCase();
+          const desc = (ed.taskDescription || '').toLowerCase();
+          const q = (editorSearchQuery || '').toLowerCase();
+          const matchesQuery = !q || pName.includes(q) || eName.includes(q) || desc.includes(q);
+          if (!matchesQuery) return false;
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span style={{
-                    padding: '3px 8px',
-                    borderRadius: '6px',
-                    background: ed.status === 'Completed' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(99, 102, 241, 0.15)',
-                    color: ed.status === 'Completed' ? '#34d399' : '#818cf8',
-                    fontSize: '0.72rem',
-                    fontWeight: '700'
-                  }}>
-                    {ed.status}
-                  </span>
+          if (editorStageFilter === 'ALL') return true;
+          const status = (ed.status || '').toLowerCase();
+          if (editorStageFilter === 'Editing in Progress') {
+            return status.includes('progress') && !status.includes('complete') && !status.includes('approved');
+          }
+          if (editorStageFilter === 'Internal Review') {
+            return status.includes('review');
+          }
+          if (editorStageFilter === 'Client Feedback / Revisions') {
+            return status.includes('feedback') || status.includes('revision');
+          }
+          if (editorStageFilter === 'Approved & Completed') {
+            return status.includes('approved') || status.includes('complete') || status.includes('delivered');
+          }
+          return ed.status === editorStageFilter;
+        });
 
-                  <button
-                    onClick={() => setEditingEditor({ ...ed })}
-                    className="btn btn-secondary"
-                    style={{ padding: '4px 8px', fontSize: '0.72rem', color: '#818cf8' }}
-                    title="Edit Task"
-                  >
-                    <Edit2 style={{ width: '12px', height: '12px' }} />
-                  </button>
+        const STAGE_OPTIONS = [
+          'Editing in Progress',
+          'Internal Review',
+          'Client Feedback / Revisions',
+          'Approved & Completed'
+        ];
 
-                  <button
-                    onClick={() => {
-                      if (window.confirm(`Delete editor task for ${ed.editorName}?`)) {
-                        deleteEditorAssignment(ed.id);
-                      }
-                    }}
-                    className="btn btn-secondary"
-                    style={{ padding: '4px 6px', color: '#f87171' }}
-                    title="Delete"
-                  >
-                    <Trash2 style={{ width: '12px', height: '12px' }} />
-                  </button>
-                </div>
+        const getStageStyle = (status) => {
+          const s = (status || '').toLowerCase();
+          if (s.includes('approved') || s.includes('complete') || s.includes('delivered')) {
+            return { label: 'Approved & Completed', color: '#10b981', bg: 'rgba(16, 185, 129, 0.15)', border: 'rgba(16, 185, 129, 0.35)' };
+          }
+          if (s.includes('feedback') || s.includes('revision')) {
+            return { label: 'Client Feedback / Revisions', color: '#f43f5e', bg: 'rgba(244, 63, 94, 0.15)', border: 'rgba(244, 63, 94, 0.35)' };
+          }
+          if (s.includes('review')) {
+            return { label: 'Internal Review', color: '#818cf8', bg: 'rgba(129, 140, 248, 0.15)', border: 'rgba(129, 140, 248, 0.35)' };
+          }
+          return { label: 'Editing in Progress', color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.15)', border: 'rgba(245, 158, 11, 0.35)' };
+        };
+
+        const handleDirectStatusChange = (editorId, newStatus) => {
+          const updates = { status: newStatus };
+          if (newStatus === 'Approved & Completed') {
+            updates.completedDate = new Date().toISOString().split('T')[0];
+          }
+          updateEditorAssignment(editorId, updates);
+        };
+
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+            {/* Header & Controls Bar */}
+            <div className="glass-panel" style={{ padding: '18px 22px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
+              <div>
+                <h3 style={{ fontSize: '1.2rem', fontWeight: '800', margin: '0 0 4px 0', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Video style={{ width: '20px', height: '20px', color: '#818cf8' }} />
+                  Video Editor Work Orders & Pipeline
+                </h3>
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: 0 }}>
+                  Manage project assignments across 4 stages: <strong>Editing in Progress</strong>, <strong>Internal Review</strong>, <strong>Client Feedback / Revisions</strong>, and <strong>Approved & Completed</strong>.
+                </p>
               </div>
 
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5, background: 'rgba(255,255,255,0.02)', padding: '10px', borderRadius: '8px' }}>
-                {ed.taskDescription}
-              </p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                {/* Search */}
+                <div style={{ position: 'relative', width: '220px' }}>
+                  <Search style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', width: '13px', height: '13px', color: 'var(--text-muted)' }} />
+                  <input
+                    type="text"
+                    placeholder="Search project or editor..."
+                    value={editorSearchQuery}
+                    onChange={(e) => setEditorSearchQuery(e.target.value)}
+                    className="form-input"
+                    style={{ paddingLeft: '30px', fontSize: '0.78rem', padding: '6px 12px 6px 30px' }}
+                  />
+                </div>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '8px', borderTop: '1px solid var(--border-color)', fontSize: '0.78rem' }}>
-                <div>
-                  <span style={{ color: 'var(--text-muted)' }}>Payout: </span>
-                  <strong style={{ color: '#34d399' }}>₹{(ed.amount || 0).toLocaleString('en-IN')}</strong> ({ed.paymentStatus})
+                {/* View Mode Switcher */}
+                <div style={{ display: 'flex', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', padding: '2px', border: '1px solid var(--border-color)' }}>
+                  <button
+                    type="button"
+                    onClick={() => setEditorViewMode('cards')}
+                    style={{
+                      padding: '5px 10px',
+                      borderRadius: '6px',
+                      fontSize: '0.75rem',
+                      fontWeight: editorViewMode === 'cards' ? '700' : '500',
+                      background: editorViewMode === 'cards' ? '#6366f1' : 'transparent',
+                      color: editorViewMode === 'cards' ? '#fff' : 'var(--text-secondary)',
+                      border: 'none',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Cards
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditorViewMode('table')}
+                    style={{
+                      padding: '5px 10px',
+                      borderRadius: '6px',
+                      fontSize: '0.75rem',
+                      fontWeight: editorViewMode === 'table' ? '700' : '500',
+                      background: editorViewMode === 'table' ? '#6366f1' : 'transparent',
+                      color: editorViewMode === 'table' ? '#fff' : 'var(--text-secondary)',
+                      border: 'none',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Table
+                  </button>
                 </div>
-                <div style={{ color: 'var(--text-muted)' }}>
-                  Due: <strong>{ed.submissionDate}</strong>
-                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setShowAddEditorModal(true)}
+                  className="btn gradient-btn-primary"
+                  style={{ padding: '7px 14px', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '6px' }}
+                >
+                  <Plus style={{ width: '14px', height: '14px' }} />
+                  <span>Assign New Task</span>
+                </button>
               </div>
             </div>
-          ))}
-        </div>
-      )}
+
+            {/* Quick Stage Filter Pills */}
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              {[
+                { id: 'ALL', label: 'All Orders', count: editorAssignments.length, color: '#818cf8', bg: 'rgba(129, 140, 248, 0.12)' },
+                { id: 'Editing in Progress', label: 'Editing in Progress', count: editorsEditingInProgress, color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.12)' },
+                { id: 'Internal Review', label: 'Internal Review', count: editorsInternalReview, color: '#818cf8', bg: 'rgba(129, 140, 248, 0.12)' },
+                { id: 'Client Feedback / Revisions', label: 'Client Feedback / Revisions', count: editorsClientFeedback, color: '#f43f5e', bg: 'rgba(244, 63, 94, 0.12)' },
+                { id: 'Approved & Completed', label: 'Approved & Completed', count: editorsApprovedCompleted, color: '#10b981', bg: 'rgba(16, 185, 129, 0.12)' }
+              ].map(pill => {
+                const active = editorStageFilter === pill.id;
+                return (
+                  <button
+                    key={pill.id}
+                    type="button"
+                    onClick={() => setEditorStageFilter(pill.id)}
+                    style={{
+                      padding: '6px 12px',
+                      borderRadius: '8px',
+                      fontSize: '0.75rem',
+                      fontWeight: active ? '800' : '600',
+                      background: active ? pill.color : pill.bg,
+                      color: active ? '#ffffff' : pill.color,
+                      border: active ? `1px solid ${pill.color}` : '1px solid transparent',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    <span>{pill.label}</span>
+                    <span style={{
+                      padding: '1px 6px',
+                      borderRadius: '10px',
+                      background: active ? 'rgba(0,0,0,0.25)' : 'rgba(255,255,255,0.08)',
+                      fontSize: '0.68rem',
+                      fontWeight: '800'
+                    }}>
+                      {pill.count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* TABLE VIEW */}
+            {editorViewMode === 'table' && (
+              <div className="glass-card" style={{ padding: '16px', overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.78rem' }}>
+                  <thead>
+                    <tr style={{ background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid var(--border-color)', color: 'var(--text-muted)' }}>
+                      <th style={{ padding: '10px 12px', textAlign: 'left' }}>Project Name</th>
+                      <th style={{ padding: '10px 10px', textAlign: 'center' }}>Task Assigned Date</th>
+                      <th style={{ padding: '10px 12px', textAlign: 'left' }}>Editor Name</th>
+                      <th style={{ padding: '10px 14px', textAlign: 'left' }}>Task Description</th>
+                      <th style={{ padding: '10px 12px', textAlign: 'center' }}>Workflow Stage</th>
+                      <th style={{ padding: '10px 10px', textAlign: 'center' }}>Completed Date</th>
+                      <th style={{ padding: '10px 10px', textAlign: 'center' }}>Deadline</th>
+                      <th style={{ padding: '10px 12px', textAlign: 'right' }}>Payout</th>
+                      <th style={{ padding: '10px 10px', textAlign: 'center' }}>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredEditors.length === 0 ? (
+                      <tr>
+                        <td colSpan={9} style={{ padding: '30px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                          No video editor work orders found matching this filter.
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredEditors.map(ed => {
+                        const stage = getStageStyle(ed.status);
+                        const assignedDate = ed.taskAssignedDate || ed.assignedDate || '—';
+                        const completedDate = ed.completedDate || ((ed.status?.includes('Approved') || ed.status?.includes('Complete')) ? (ed.submissionDate || 'Completed') : '—');
+                        const projectName = ed.projectName || ed.clientProject || 'General Project';
+
+                        return (
+                          <tr key={ed.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                            <td style={{ padding: '10px 12px', fontWeight: '800', color: 'var(--text-primary)' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <Video style={{ width: '13px', height: '13px', color: '#818cf8', flexShrink: 0 }} />
+                                <span>{projectName}</span>
+                              </div>
+                            </td>
+                            <td style={{ padding: '10px 10px', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                              <span style={{ padding: '2px 7px', borderRadius: '5px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-color)', fontSize: '0.73rem' }}>
+                                {assignedDate}
+                              </span>
+                            </td>
+                            <td style={{ padding: '10px 12px' }}>
+                              <div style={{ fontWeight: '700', color: 'var(--text-primary)' }}>{ed.editorName}</div>
+                              {ed.email && <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{ed.email}</div>}
+                            </td>
+                            <td style={{ padding: '10px 14px', color: 'var(--text-secondary)', maxWidth: '280px' }}>
+                              <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={ed.taskDescription}>
+                                {ed.taskDescription}
+                              </div>
+                              {ed.deliverableUrl && (
+                                <a href={ed.deliverableUrl} target="_blank" rel="noreferrer" style={{ fontSize: '0.68rem', color: '#818cf8', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '3px', marginTop: '2px' }}>
+                                  <Link2 style={{ width: '10px', height: '10px' }} /> View Asset
+                                </a>
+                              )}
+                            </td>
+                            <td style={{ padding: '10px 12px', textAlign: 'center' }}>
+                              <select
+                                value={stage.label}
+                                onChange={(e) => handleDirectStatusChange(ed.id, e.target.value)}
+                                style={{
+                                  padding: '4px 8px',
+                                  borderRadius: '6px',
+                                  fontSize: '0.72rem',
+                                  fontWeight: '700',
+                                  color: stage.color,
+                                  background: stage.bg,
+                                  border: `1px solid ${stage.border}`,
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                {STAGE_OPTIONS.map(opt => (
+                                  <option key={opt} value={opt} style={{ background: '#0f172a', color: '#fff' }}>
+                                    {opt}
+                                  </option>
+                                ))}
+                              </select>
+                            </td>
+                            <td style={{ padding: '10px 10px', textAlign: 'center' }}>
+                              {completedDate !== '—' ? (
+                                <span style={{ padding: '2px 8px', borderRadius: '5px', background: 'rgba(16, 185, 129, 0.12)', color: '#34d399', fontWeight: '700', fontSize: '0.72rem', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
+                                  ✓ {completedDate}
+                                </span>
+                              ) : (
+                                <span style={{ color: 'var(--text-muted)', fontSize: '0.72rem' }}>Pending</span>
+                              )}
+                            </td>
+                            <td style={{ padding: '10px 10px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.73rem' }}>
+                              {ed.submissionDate || '—'}
+                            </td>
+                            <td style={{ padding: '10px 12px', textAlign: 'right' }}>
+                              <div style={{ fontWeight: '800', color: '#34d399' }}>₹{(ed.amount || 0).toLocaleString('en-IN')}</div>
+                              <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>{ed.paymentStatus || 'Pending'}</div>
+                            </td>
+                            <td style={{ padding: '10px 10px', textAlign: 'center' }}>
+                              <div style={{ display: 'flex', justifyContent: 'center', gap: '4px' }}>
+                                <button
+                                  type="button"
+                                  onClick={() => setEditingEditor({ ...ed })}
+                                  className="btn btn-secondary"
+                                  style={{ padding: '4px 6px', color: '#818cf8', fontSize: '0.7rem' }}
+                                  title="Edit Task"
+                                >
+                                  <Edit2 style={{ width: '12px', height: '12px' }} />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (window.confirm(`Delete editor task for ${ed.editorName}?`)) {
+                                      deleteEditorAssignment(ed.id);
+                                    }
+                                  }}
+                                  className="btn btn-secondary"
+                                  style={{ padding: '4px 6px', color: '#f87171', fontSize: '0.7rem' }}
+                                  title="Delete"
+                                >
+                                  <Trash2 style={{ width: '12px', height: '12px' }} />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* CARDS VIEW */}
+            {editorViewMode === 'cards' && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '16px' }}>
+                {filteredEditors.length === 0 ? (
+                  <div className="glass-card" style={{ padding: '30px', textAlign: 'center', color: 'var(--text-muted)', gridColumn: '1 / -1' }}>
+                    No video editor work orders found matching this filter.
+                  </div>
+                ) : (
+                  filteredEditors.map(ed => {
+                    const stage = getStageStyle(ed.status);
+                    const assignedDate = ed.taskAssignedDate || ed.assignedDate || '—';
+                    const completedDate = ed.completedDate || ((ed.status?.includes('Approved') || ed.status?.includes('Complete')) ? (ed.submissionDate || 'Completed') : '');
+                    const projectName = ed.projectName || ed.clientProject || 'General Project';
+
+                    return (
+                      <div key={ed.id} className="glass-card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px', borderTop: `3px solid ${stage.color}` }}>
+                        {/* Top: Project Name & Stage */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '10px' }}>
+                          <div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
+                              <span style={{ fontSize: '0.7rem', padding: '2px 6px', borderRadius: '4px', background: 'rgba(129, 140, 248, 0.15)', color: '#818cf8', fontWeight: '700' }}>
+                                Project
+                              </span>
+                              <h4 style={{ fontSize: '1.05rem', fontWeight: '800', margin: 0, color: 'var(--text-primary)' }}>
+                                {projectName}
+                              </h4>
+                            </div>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                              Editor: <strong style={{ color: 'var(--text-primary)' }}>{ed.editorName}</strong> {ed.email && `· ${ed.email}`}
+                            </div>
+                          </div>
+
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                            <button
+                              type="button"
+                              onClick={() => setEditingEditor({ ...ed })}
+                              className="btn btn-secondary"
+                              style={{ padding: '4px 8px', fontSize: '0.72rem', color: '#818cf8' }}
+                              title="Edit Task"
+                            >
+                              <Edit2 style={{ width: '12px', height: '12px' }} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (window.confirm(`Delete editor task for ${ed.editorName}?`)) {
+                                  deleteEditorAssignment(ed.id);
+                                }
+                              }}
+                              className="btn btn-secondary"
+                              style={{ padding: '4px 6px', color: '#f87171' }}
+                              title="Delete"
+                            >
+                              <Trash2 style={{ width: '12px', height: '12px' }} />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Task Description */}
+                        <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5, background: 'rgba(255,255,255,0.02)', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                          {ed.taskDescription}
+                        </p>
+
+                        {/* Key Dates Badge Grid */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '0.73rem' }}>
+                          <div style={{ background: 'rgba(255,255,255,0.02)', padding: '6px 8px', borderRadius: '6px' }}>
+                            <span style={{ color: 'var(--text-muted)' }}>📅 Task Assigned: </span>
+                            <strong style={{ color: 'var(--text-primary)' }}>{assignedDate}</strong>
+                          </div>
+                          <div style={{ background: 'rgba(255,255,255,0.02)', padding: '6px 8px', borderRadius: '6px' }}>
+                            <span style={{ color: 'var(--text-muted)' }}>⏱ Deadline: </span>
+                            <strong style={{ color: '#818cf8' }}>{ed.submissionDate || '—'}</strong>
+                          </div>
+                          {completedDate && (
+                            <div style={{ gridColumn: '1 / -1', background: 'rgba(16, 185, 129, 0.08)', padding: '6px 8px', borderRadius: '6px', border: '1px solid rgba(16, 185, 129, 0.25)' }}>
+                              <span style={{ color: '#34d399' }}>✅ Completed Date: </span>
+                              <strong style={{ color: '#34d399' }}>{completedDate}</strong>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Financials & Deliverable Link */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '8px', borderTop: '1px solid var(--border-color)', fontSize: '0.78rem' }}>
+                          <div>
+                            <span style={{ color: 'var(--text-muted)' }}>Payout: </span>
+                            <strong style={{ color: '#34d399' }}>₹{(ed.amount || 0).toLocaleString('en-IN')}</strong> ({ed.paymentStatus || 'Pending'})
+                          </div>
+                          {ed.deliverableUrl && (
+                            <a href={ed.deliverableUrl} target="_blank" rel="noreferrer" style={{ fontSize: '0.72rem', color: '#818cf8', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                              <Link2 style={{ width: '12px', height: '12px' }} /> Drive / Asset
+                            </a>
+                          )}
+                        </div>
+
+                        {/* Interactive Workflow Stage Changer */}
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.03)', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                          <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: '600' }}>Workflow Stage:</span>
+                          <select
+                            value={stage.label}
+                            onChange={(e) => handleDirectStatusChange(ed.id, e.target.value)}
+                            style={{
+                              padding: '4px 10px',
+                              borderRadius: '6px',
+                              fontSize: '0.72rem',
+                              fontWeight: '700',
+                              color: stage.color,
+                              background: stage.bg,
+                              border: `1px solid ${stage.border}`,
+                              cursor: 'pointer'
+                            }}
+                          >
+                            {STAGE_OPTIONS.map(opt => (
+                              <option key={opt} value={opt} style={{ background: '#0f172a', color: '#fff' }}>
+                                {opt}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {/* ========================================================================= */}
       {/* VIEW 5: SERVER INFRASTRUCTURE & CREDENTIALS VAULT                         */}
@@ -2519,11 +3149,17 @@ const ProjectDeliverablesHub = () => {
       {/* ========================================================================= */}
       {/* MODAL: ADD VIDEO EDITOR WORK ORDER                                        */}
       {/* ========================================================================= */}
+      {/* ========================================================================= */}
+      {/* MODAL: ADD VIDEO EDITOR WORK ORDER                                        */}
+      {/* ========================================================================= */}
       {showAddEditorModal && (
         <div className="modal-overlay" style={{ zIndex: 1000, padding: '16px' }}>
-          <div className="modal-content" style={{ maxWidth: '540px', padding: '24px', background: '#0f172a', borderRadius: '16px', border: '1px solid rgba(255, 255, 255, 0.15)' }}>
+          <div className="modal-content" style={{ maxWidth: '580px', padding: '24px', background: '#0f172a', borderRadius: '16px', border: '1px solid rgba(255, 255, 255, 0.15)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ fontSize: '1.2rem', fontWeight: '800', margin: 0 }}>Assign Video Editor Task</h3>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Video style={{ width: '18px', height: '18px', color: '#818cf8' }} />
+                <h3 style={{ fontSize: '1.2rem', fontWeight: '800', margin: 0 }}>Assign Video Editor Task</h3>
+              </div>
               <button onClick={() => setShowAddEditorModal(false)} className="btn btn-secondary" style={{ padding: '6px 8px' }}>
                 <X style={{ width: '16px', height: '16px' }} />
               </button>
@@ -2532,22 +3168,211 @@ const ProjectDeliverablesHub = () => {
             <form onSubmit={handleCreateEditor} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div className="form-group">
+                  <label className="form-label">Project Name *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Acme Corporation Cloud"
+                    value={newEditorForm.projectName || newEditorForm.clientProject || ''}
+                    onChange={(e) => setNewEditorForm({ ...newEditorForm, projectName: e.target.value, clientProject: e.target.value })}
+                    className="form-input"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Task Assigned Date *</label>
+                  <input
+                    type="date"
+                    required
+                    value={newEditorForm.taskAssignedDate || newEditorForm.assignedDate || ''}
+                    onChange={(e) => setNewEditorForm({ ...newEditorForm, taskAssignedDate: e.target.value, assignedDate: e.target.value })}
+                    className="form-input"
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div className="form-group">
                   <label className="form-label">Editor Name *</label>
                   <input
                     type="text"
                     required
-                    value={newEditorForm.editorName}
+                    placeholder="e.g. Anand Editor"
+                    value={newEditorForm.editorName || ''}
                     onChange={(e) => setNewEditorForm({ ...newEditorForm, editorName: e.target.value })}
                     className="form-input"
                   />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Client Project *</label>
+                  <label className="form-label">Editor Email</label>
+                  <input
+                    type="email"
+                    placeholder="editor@sannainnovations.com"
+                    value={newEditorForm.email || ''}
+                    onChange={(e) => setNewEditorForm({ ...newEditorForm, email: e.target.value })}
+                    className="form-input"
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Task Description & Brief *</label>
+                <textarea
+                  required
+                  rows={2}
+                  placeholder="Details of reels, cut lengths, motion graphics, audio sync..."
+                  value={newEditorForm.taskDescription || ''}
+                  onChange={(e) => setNewEditorForm({ ...newEditorForm, taskDescription: e.target.value })}
+                  className="form-input"
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div className="form-group">
+                  <label className="form-label">Workflow Stage *</label>
+                  <select
+                    value={newEditorForm.status || 'Editing in Progress'}
+                    onChange={(e) => {
+                      const newStatus = e.target.value;
+                      const updates = { ...newEditorForm, status: newStatus };
+                      if (newStatus === 'Approved & Completed' && !newEditorForm.completedDate) {
+                        updates.completedDate = new Date().toISOString().split('T')[0];
+                      }
+                      setNewEditorForm(updates);
+                    }}
+                    className="form-select"
+                  >
+                    <option value="Editing in Progress">Editing in Progress</option>
+                    <option value="Internal Review">Internal Review</option>
+                    <option value="Client Feedback / Revisions">Client Feedback / Revisions</option>
+                    <option value="Approved & Completed">Approved & Completed</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Completed Date</label>
+                  <input
+                    type="date"
+                    value={newEditorForm.completedDate || ''}
+                    onChange={(e) => setNewEditorForm({ ...newEditorForm, completedDate: e.target.value })}
+                    className="form-input"
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+                <div className="form-group">
+                  <label className="form-label">Payout (₹) *</label>
+                  <input
+                    type="number"
+                    required
+                    value={newEditorForm.amount || ''}
+                    onChange={(e) => setNewEditorForm({ ...newEditorForm, amount: e.target.value })}
+                    className="form-input"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Deadline / Due</label>
+                  <input
+                    type="date"
+                    value={newEditorForm.submissionDate || ''}
+                    onChange={(e) => setNewEditorForm({ ...newEditorForm, submissionDate: e.target.value })}
+                    className="form-input"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Payment Status</label>
+                  <select
+                    value={newEditorForm.paymentStatus || 'Pending'}
+                    onChange={(e) => setNewEditorForm({ ...newEditorForm, paymentStatus: e.target.value })}
+                    className="form-select"
+                  >
+                    <option value="Pending">Pending</option>
+                    <option value="Processing">Processing</option>
+                    <option value="Paid">Paid</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Deliverable / Asset Link</label>
+                <input
+                  type="url"
+                  placeholder="https://drive.google.com/..."
+                  value={newEditorForm.deliverableUrl || ''}
+                  onChange={(e) => setNewEditorForm({ ...newEditorForm, deliverableUrl: e.target.value })}
+                  className="form-input"
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
+                <button type="button" onClick={() => setShowAddEditorModal(false)} className="btn btn-secondary">
+                  Cancel
+                </button>
+                <button type="submit" className="btn gradient-btn-primary">
+                  Assign Task
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MODAL: EDIT VIDEO EDITOR WORK ORDER                                       */}
+      {/* ========================================================================= */}
+      {editingEditor && (
+        <div className="modal-overlay" style={{ zIndex: 1000, padding: '16px' }}>
+          <div className="modal-content" style={{ maxWidth: '580px', padding: '24px', background: '#0f172a', borderRadius: '16px', border: '1px solid rgba(255, 255, 255, 0.15)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Edit2 style={{ width: '18px', height: '18px', color: '#818cf8' }} />
+                <h3 style={{ fontSize: '1.2rem', fontWeight: '800', margin: 0 }}>Edit Video Editor Task</h3>
+              </div>
+              <button onClick={() => setEditingEditor(null)} className="btn btn-secondary" style={{ padding: '6px 8px' }}>
+                <X style={{ width: '16px', height: '16px' }} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEditEditor} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div className="form-group">
+                  <label className="form-label">Project Name *</label>
                   <input
                     type="text"
                     required
-                    value={newEditorForm.clientProject}
-                    onChange={(e) => setNewEditorForm({ ...newEditorForm, clientProject: e.target.value })}
+                    value={editingEditor.projectName || editingEditor.clientProject || ''}
+                    onChange={(e) => setEditingEditor({ ...editingEditor, projectName: e.target.value, clientProject: e.target.value })}
+                    className="form-input"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Task Assigned Date *</label>
+                  <input
+                    type="date"
+                    required
+                    value={editingEditor.taskAssignedDate || editingEditor.assignedDate || ''}
+                    onChange={(e) => setEditingEditor({ ...editingEditor, taskAssignedDate: e.target.value, assignedDate: e.target.value })}
+                    className="form-input"
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div className="form-group">
+                  <label className="form-label">Editor Name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={editingEditor.editorName || ''}
+                    onChange={(e) => setEditingEditor({ ...editingEditor, editorName: e.target.value })}
+                    className="form-input"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Editor Email</label>
+                  <input
+                    type="email"
+                    value={editingEditor.email || ''}
+                    onChange={(e) => setEditingEditor({ ...editingEditor, email: e.target.value })}
                     className="form-input"
                   />
                 </div>
@@ -2558,20 +3383,52 @@ const ProjectDeliverablesHub = () => {
                 <textarea
                   required
                   rows={2}
-                  value={newEditorForm.taskDescription}
-                  onChange={(e) => setNewEditorForm({ ...newEditorForm, taskDescription: e.target.value })}
+                  value={editingEditor.taskDescription || ''}
+                  onChange={(e) => setEditingEditor({ ...editingEditor, taskDescription: e.target.value })}
                   className="form-input"
                 />
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div className="form-group">
+                  <label className="form-label">Workflow Stage *</label>
+                  <select
+                    value={editingEditor.status || 'Editing in Progress'}
+                    onChange={(e) => {
+                      const newStatus = e.target.value;
+                      const updates = { ...editingEditor, status: newStatus };
+                      if (newStatus === 'Approved & Completed' && !editingEditor.completedDate) {
+                        updates.completedDate = new Date().toISOString().split('T')[0];
+                      }
+                      setEditingEditor(updates);
+                    }}
+                    className="form-select"
+                  >
+                    <option value="Editing in Progress">Editing in Progress</option>
+                    <option value="Internal Review">Internal Review</option>
+                    <option value="Client Feedback / Revisions">Client Feedback / Revisions</option>
+                    <option value="Approved & Completed">Approved & Completed</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Completed Date</label>
+                  <input
+                    type="date"
+                    value={editingEditor.completedDate || ''}
+                    onChange={(e) => setEditingEditor({ ...editingEditor, completedDate: e.target.value })}
+                    className="form-input"
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+                <div className="form-group">
                   <label className="form-label">Payout Amount (₹) *</label>
                   <input
                     type="number"
                     required
-                    value={newEditorForm.amount}
-                    onChange={(e) => setNewEditorForm({ ...newEditorForm, amount: e.target.value })}
+                    value={editingEditor.amount || ''}
+                    onChange={(e) => setEditingEditor({ ...editingEditor, amount: e.target.value })}
                     className="form-input"
                   />
                 </div>
@@ -2579,19 +3436,42 @@ const ProjectDeliverablesHub = () => {
                   <label className="form-label">Deadline</label>
                   <input
                     type="date"
-                    value={newEditorForm.submissionDate}
-                    onChange={(e) => setNewEditorForm({ ...newEditorForm, submissionDate: e.target.value })}
+                    value={editingEditor.submissionDate || ''}
+                    onChange={(e) => setEditingEditor({ ...editingEditor, submissionDate: e.target.value })}
                     className="form-input"
                   />
                 </div>
+                <div className="form-group">
+                  <label className="form-label">Payment Status</label>
+                  <select
+                    value={editingEditor.paymentStatus || 'Pending'}
+                    onChange={(e) => setEditingEditor({ ...editingEditor, paymentStatus: e.target.value })}
+                    className="form-select"
+                  >
+                    <option value="Pending">Pending</option>
+                    <option value="Processing">Processing</option>
+                    <option value="Paid">Paid</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Deliverable / Asset Link</label>
+                <input
+                  type="url"
+                  placeholder="https://drive.google.com/..."
+                  value={editingEditor.deliverableUrl || ''}
+                  onChange={(e) => setEditingEditor({ ...editingEditor, deliverableUrl: e.target.value })}
+                  className="form-input"
+                />
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
-                <button type="button" onClick={() => setShowAddEditorModal(false)} className="btn btn-secondary">
+                <button type="button" onClick={() => setEditingEditor(null)} className="btn btn-secondary">
                   Cancel
                 </button>
                 <button type="submit" className="btn gradient-btn-primary">
-                  Assign Task
+                  Save Changes
                 </button>
               </div>
             </form>

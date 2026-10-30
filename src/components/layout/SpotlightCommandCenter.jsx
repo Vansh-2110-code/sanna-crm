@@ -121,8 +121,8 @@ const SpotlightCommandCenter = ({ isOpen, onClose, onNavigate }) => {
     {
       id: 'nav-dashboard',
       category: 'Navigation',
-      title: 'Executive Performance Cockpit',
-      subtitle: 'Revenue metrics, KPI telemetry & sales charts',
+      title: 'Executive Dashboard',
+      subtitle: 'Overview metrics, KPI telemetry & sales performance',
       icon: LayoutDashboard,
       iconColor: '#818cf8',
       badge: 'Analytics',

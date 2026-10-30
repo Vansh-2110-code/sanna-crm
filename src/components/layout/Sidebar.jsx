@@ -1,487 +1,807 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useCRM } from '../../context/CRMContext';
-import { getAppConfig } from '../../utils/appMode';
 import {
   LayoutDashboard,
   Users,
   Building2,
   Kanban,
-  Package,
   FileText,
   ShoppingBag,
   Clock,
   CheckSquare,
-  Headphones,
-  Megaphone,
-  FolderLock,
-  Boxes,
   ShieldCheck,
   Building,
   Sun,
   Moon,
   LogOut,
   ChevronRight,
-  Sparkles,
-  Wallet,
-  CheckCircle2,
   FolderKanban,
-  GraduationCap,
   BookOpen,
   BarChart3,
   Receipt,
   BookMarked,
   CalendarDays,
   Award,
-  Tag,
-  Layers
-} from 'lucide-react';
-
-const MENU_ITEMS = [
-  { id: 'dashboard', label: 'Dashboard & Analytics', icon: LayoutDashboard, category: 'Main' },
-  { id: 'reports', label: 'Reports & Intelligence', icon: BarChart3, category: 'Main' },
-  { id: 'security', label: 'Security & Audit Vault', icon: ShieldCheck, category: 'Tenant' },
-  
-  { id: 'leads', label: 'Lead Management', icon: Users, category: 'Sales' },
-  { id: 'ai-assistant', label: 'AI Sales Assistant', icon: Sparkles, category: 'Sales' },
-  { id: 'contacts', label: 'Contacts & Accounts', icon: Building2, category: 'Sales' },
-  { id: 'pipeline', label: 'Sales Pipeline Kanban', icon: Kanban, category: 'Sales' },
-  { id: 'products', label: 'Product Catalog', icon: Package, category: 'Sales' },
-  { id: 'service-catalog', label: 'Service Catalog', icon: Tag, category: 'Sales' },
-  { id: 'quotes', label: 'Quotation Engine', icon: FileText, category: 'Sales' },
-  { id: 'orders', label: 'Orders & Invoices', icon: ShoppingBag, category: 'Sales' },
-
-  { id: 'client-directory', label: 'Client Directory', icon: Building, category: 'Operations' },
-  { id: 'activities', label: 'Activities & Call Logs', icon: Clock, category: 'Operations' },
-  { id: 'tasks', label: 'Tasks & Follow-ups', icon: CheckSquare, category: 'Operations' },
-  { id: 'daily-logs', label: 'Daily Work & Intern Logs', icon: BookOpen, category: 'Operations' },
-  { id: 'content-calendar', label: 'Content Calendar', icon: CalendarDays, category: 'Operations' },
-  { id: 'deliverables', label: 'Deliverables Matrix', icon: Layers, category: 'Operations' },
-  { id: 'ongoing-projects', label: 'Ongoing Projects & MIS Hub', icon: FolderKanban, category: 'Operations' },
-  { id: 'completed-projects', label: 'Completed Projects', icon: CheckCircle2, category: 'Operations' },
-  { id: 'support', label: 'Customer Support Desk', icon: Headphones, category: 'Operations' },
-  { id: 'customers', label: 'Customer Accounts & Login', icon: Users, category: 'Operations' },
-  
-  { id: 'marketing', label: 'Marketing Campaigns', icon: Megaphone, category: 'Growth' },
-  { id: 'documents', label: 'Document Vault', icon: FolderLock, category: 'Growth' },
-  { id: 'integrations', label: 'Integrations Hub', icon: Boxes, category: 'Growth' },
-
-  { id: 'gst-invoices', label: 'GST Invoice Manager', icon: Receipt, category: 'Finance' },
-  { id: 'financial-ledger', label: 'Financial Ledger', icon: BookMarked, category: 'Finance' },
-
-  { id: 'salary', label: 'Salary, Attendance & Payroll', icon: Wallet, category: 'HR' },
-  { id: 'kyc', label: 'KYC & Verification Vault', icon: ShieldCheck, category: 'HR' },
-  { id: 'performance-board', label: 'Performance Board', icon: Award, category: 'HR' },
-];
-
-import PricingPlansModal from '../billing/PricingPlansModal';
-import {
+  Layers,
   PanelLeftClose,
-  PanelLeftOpen
+  PanelLeftOpen,
+  CheckCircle2,
+  FolderLock,
+  Key
 } from 'lucide-react';
+import PricingPlansModal from '../billing/PricingPlansModal';
+
+// 6 Core iOS Hubs Architecture
+const IOS_CORE_HUBS = [
+  {
+    id: 'dashboard',
+    label: 'Dashboard',
+    icon: LayoutDashboard,
+    subItems: [
+      { id: 'dashboard', label: 'Overview', icon: LayoutDashboard },
+      { id: 'reports', label: 'Analytics & Reports', icon: BarChart3 }
+    ]
+  },
+  {
+    id: 'ongoing-projects',
+    label: 'Projects',
+    icon: FolderKanban,
+    subItems: [
+      { id: 'ongoing-projects', label: 'Active Projects', icon: FolderKanban },
+      { id: 'deliverables', label: 'Deliverables', icon: Layers },
+      { id: 'content-calendar', label: 'Content Calendar', icon: CalendarDays },
+      { id: 'completed-projects', label: 'Archived Projects', icon: CheckCircle2 }
+    ]
+  },
+  {
+    id: 'client-directory',
+    label: 'Clients',
+    icon: Building,
+    subItems: [
+      { id: 'client-directory', label: 'Client Directory', icon: Building },
+      { id: 'leads', label: 'Leads', icon: Users },
+      { id: 'contacts', label: 'Contacts', icon: Building2 },
+      { id: 'pipeline', label: 'Sales Pipeline', icon: Kanban }
+    ]
+  },
+  {
+    id: 'daily-logs',
+    label: 'Work Logs',
+    icon: BookOpen,
+    subItems: [
+      { id: 'daily-logs', label: 'Daily Logs', icon: BookOpen },
+      { id: 'activities', label: 'Team Activity', icon: Clock },
+      { id: 'tasks', label: 'Tasks', icon: CheckSquare }
+    ]
+  },
+  {
+    id: 'gst-invoices',
+    label: 'Finance',
+    icon: Receipt,
+    subItems: [
+      { id: 'gst-invoices', label: 'GST Invoices', icon: Receipt },
+      { id: 'financial-ledger', label: 'Ledger', icon: BookMarked },
+      { id: 'quotes', label: 'Quotations', icon: FileText },
+      { id: 'orders', label: 'Orders & Billing', icon: ShoppingBag }
+    ]
+  },
+  {
+    id: 'salary',
+    label: 'HR & Attendance',
+    icon: CalendarDays,
+    subItems: [
+      { id: 'salary', label: 'Attendance & Holidays', icon: CalendarDays },
+      { id: 'kyc', label: 'KYC & Verification', icon: ShieldCheck },
+      { id: 'performance-board', label: 'Performance', icon: Award },
+      { id: 'security', label: 'Security & Access', icon: ShieldCheck },
+      { id: 'documents', label: 'Document Vault', icon: FolderLock }
+    ]
+  }
+];
 
 const Sidebar = ({ activeTab, setActiveTab, mobileOpen, onCloseMobile, collapsed = false, onToggleCollapse }) => {
   const { activeTenant, activeRole, theme, setTheme, logout, currentUser } = useCRM();
   const [showPricingModal, setShowPricingModal] = useState(false);
 
+  // Expanded submenus state
+  const [openHubs, setOpenHubs] = useState(() => {
+    const initial = {};
+    IOS_CORE_HUBS.forEach(hub => {
+      if (hub.id === activeTab || hub.subItems.some(sub => sub.id === activeTab)) {
+        initial[hub.id] = true;
+      }
+    });
+    return initial;
+  });
+
+  // Keep hub containing activeTab open when tab changes
+  useEffect(() => {
+    IOS_CORE_HUBS.forEach(hub => {
+      if (hub.id === activeTab || hub.subItems.some(sub => sub.id === activeTab)) {
+        setOpenHubs(prev => ({ ...prev, [hub.id]: true }));
+      }
+    });
+  }, [activeTab]);
+
+  const toggleHub = (hubId, e) => {
+    e.stopPropagation();
+    setOpenHubs(prev => ({
+      ...prev,
+      [hubId]: !prev[hubId]
+    }));
+  };
+
+  const isHubVisible = (hubId) => {
+    const perms = activeRole?.permissions || [];
+    const roleId = activeRole?.id || currentUser?.roleId || '';
+    const roleName = (activeRole?.name || currentUser?.role || '').toLowerCase();
+    const userEmail = (currentUser?.email || '').toLowerCase();
+    const userName = (currentUser?.name || '').toLowerCase();
+    const assigned = currentUser?.assignedModules || [];
+    const isSowmya = userEmail.includes('sowmya') || userName.includes('sowmya');
+
+    // Super Admin or View All permission sees all hubs
+    if (roleId === 'role-admin' || perms.includes('super_admin') || perms.includes('view_all')) return true;
+
+    // Assigned module override
+    if (assigned.includes(hubId)) return true;
+
+    switch (hubId) {
+      case 'dashboard':
+      case 'ongoing-projects':
+      case 'client-directory':
+      case 'daily-logs':
+      case 'salary':
+        // Universal access for all employees (Dev, Intern, Marketer, Video Editor, etc.)
+        return true;
+      case 'gst-invoices':
+        // Admin, Finance clearance, or Sowmya
+        return isSowmya || assigned.includes('finance') || assigned.includes('ad-spend') || perms.includes('manage_salary') || perms.includes('view_orders') || perms.includes('view_all');
+      default:
+        return false;
+    }
+  };
+
+  const isSubItemVisible = (subId) => {
+    const perms = activeRole?.permissions || [];
+    const roleId = activeRole?.id || currentUser?.roleId || '';
+    const roleName = (activeRole?.name || currentUser?.role || '').toLowerCase();
+    const userEmail = (currentUser?.email || '').toLowerCase();
+    const userName = (currentUser?.name || '').toLowerCase();
+    const assigned = currentUser?.assignedModules || [];
+    const isSowmya = userEmail.includes('sowmya') || userName.includes('sowmya');
+
+    if (roleId === 'role-admin' || perms.includes('super_admin') || perms.includes('view_all')) return true;
+    if (assigned.includes(subId)) return true;
+
+    // Developers & Interns share identical permissions
+    if (roleId === 'role-dev' || roleId === 'role-intern' || roleName.includes('developer') || roleName.includes('intern')) {
+      return ['dashboard', 'ongoing-projects', 'deliverables', 'client-directory', 'daily-logs', 'salary', 'kyc'].includes(subId);
+    }
+    // Marketers
+    if (roleId === 'role-marketer' || roleName.includes('marketer')) {
+      const allowed = ['dashboard', 'ongoing-projects', 'deliverables', 'client-directory', 'leads', 'daily-logs', 'salary', 'kyc'];
+      if (isSowmya) allowed.push('gst-invoices', 'financial-ledger');
+      return allowed.includes(subId);
+    }
+    // Video Editors
+    if (roleId === 'role-video' || roleName.includes('video')) {
+      return ['dashboard', 'ongoing-projects', 'deliverables', 'content-calendar', 'client-directory', 'daily-logs', 'salary', 'kyc'].includes(subId);
+    }
+
+    return isHubVisible(subId);
+  };
+
   return (
     <>
-      {/* Dark overlay backdrop on mobile */}
+      {/* Mobile overlay backdrop */}
       <div
         className={`sidebar-overlay ${mobileOpen ? 'active' : ''}`}
         onClick={onCloseMobile}
       />
-      <aside className={`sidebar ${mobileOpen ? 'mobile-open' : ''}`} style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        width: collapsed ? '78px' : 'var(--sidebar-width)',
-        height: '100vh',
-        background: 'var(--bg-secondary)',
-        borderRight: '1px solid var(--border-color)',
-        display: 'flex',
-        flexDirection: 'column',
-        zIndex: 100,
-        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-        overflow: 'hidden'
-      }}>
-      {/* Brand Header */}
-      <div style={{
-        padding: collapsed ? '18px 12px' : '20px 20px',
-        borderBottom: '1px solid var(--border-color)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: collapsed ? 'center' : 'space-between',
-        gap: '12px'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', overflow: 'hidden' }}>
-          <div style={{
-            width: '40px',
-            height: '40px',
-            borderRadius: '12px',
-            background: 'linear-gradient(135deg, #ffffff 0%, #e2e8f0 100%)',
-            padding: '4px',
+
+      <aside
+        className={`sidebar ${mobileOpen ? 'mobile-open' : ''}`}
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: collapsed ? '80px' : '260px',
+          height: '100vh',
+          background: theme === 'dark' ? '#121216' : '#FFFFFF',
+          borderRight: theme === 'dark' ? '1px solid #23232b' : '1px solid #EEF2F6',
+          display: 'flex',
+          flexDirection: 'column',
+          zIndex: 100,
+          transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+          overflow: 'hidden',
+          boxShadow: '0 4px 24px rgba(0, 0, 0, 0.12)'
+        }}
+      >
+        {/* Brand Header */}
+        <div
+          style={{
+            padding: collapsed ? '20px 14px' : '20px 18px',
+            borderBottom: theme === 'dark' ? '1px solid #23232b' : '1px solid #F1F4F9',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 4px 16px rgba(99, 102, 241, 0.25)',
-            flexShrink: 0
-          }}>
-            <img
-              src="/logo.png"
-              alt="Sanna CRM Logo"
+            justifyContent: collapsed ? 'center' : 'space-between',
+            gap: '12px',
+            background: theme === 'dark' ? '#121216' : '#FFFFFF'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', overflow: 'hidden' }}>
+            <div
               style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'contain',
-                borderRadius: '8px'
+                width: '40px',
+                height: '40px',
+                borderRadius: '12px',
+                background: '#1c1c22',
+                padding: '6px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                flexShrink: 0
               }}
-            />
-          </div>
-          {!collapsed && (
-            <div style={{ overflow: 'hidden' }}>
-              <h1 style={{
-                fontSize: '1.15rem',
-                fontWeight: '900',
-                letterSpacing: '-0.02em',
-                background: 'linear-gradient(135deg, #ffffff 0%, #a5b4fc 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                lineHeight: 1.1
-              }}>
-                {getAppConfig().appName.toUpperCase()}
-              </h1>
-              <span style={{ fontSize: '0.65rem', color: '#818cf8', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                Enterprise CRM
-              </span>
+            >
+              <img
+                src="/sanna_logo.png"
+                alt="Sanna Innovations"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'contain'
+                }}
+              />
             </div>
+
+            {!collapsed && (
+              <div style={{ overflow: 'hidden' }}>
+                <h1
+                  style={{
+                    fontSize: '0.98rem',
+                    fontWeight: '900',
+                    letterSpacing: '-0.02em',
+                    color: theme === 'dark' ? '#F9FAFB' : '#1E1F24',
+                    margin: 0,
+                    lineHeight: 1.15
+                  }}
+                >
+                  SANNA CRM
+                </h1>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    marginTop: '2px'
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: '0.62rem',
+                      color: '#4E3EFF',
+                      fontWeight: '800',
+                      letterSpacing: '0.04em',
+                      textTransform: 'uppercase'
+                    }}
+                  >
+                    Verion Matte
+                  </span>
+                  <span
+                    style={{
+                      display: 'inline-block',
+                      width: '5px',
+                      height: '5px',
+                      borderRadius: '50%',
+                      background: '#93FEBF'
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Collapse toggle button */}
+          {!collapsed && onToggleCollapse && (
+            <button
+              onClick={onToggleCollapse}
+              title="Collapse Sidebar"
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: '#94A3B8',
+                cursor: 'pointer',
+                padding: '6px',
+                borderRadius: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'color 0.15s ease'
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = '#FFFFFF')}
+              onMouseLeave={(e) => (e.currentTarget.style.color = '#94A3B8')}
+            >
+              <PanelLeftClose style={{ width: '18px', height: '18px' }} />
+            </button>
+          )}
+
+          {collapsed && onToggleCollapse && (
+            <button
+              onClick={onToggleCollapse}
+              title="Expand Sidebar"
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: '#4E3EFF',
+                cursor: 'pointer',
+                padding: '4px',
+                borderRadius: '6px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              <PanelLeftOpen style={{ width: '16px', height: '16px' }} />
+            </button>
           )}
         </div>
 
-        {/* Collapse toggle button on desktop */}
-        {!collapsed && onToggleCollapse && (
-          <button
-            onClick={onToggleCollapse}
-            title="Collapse Sidebar"
+        {/* Tenant Organization Pill Card */}
+        {!collapsed && (
+          <div
+            onClick={() => setShowPricingModal(true)}
             style={{
-              background: 'transparent',
-              border: 'none',
-              color: 'var(--text-muted)',
-              cursor: 'pointer',
-              padding: '6px',
-              borderRadius: '8px',
+              margin: '12px 14px 4px 14px',
+              padding: '9px 12px',
+              background: theme === 'dark' ? '#1c1c22' : '#F8FAFC',
+              border: theme === 'dark' ? '1px solid rgba(255, 255, 255, 0.06)' : '1px solid #E2E8F0',
+              borderRadius: '12px',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center'
-            }}
-          >
-            <PanelLeftClose style={{ width: '18px', height: '18px' }} />
-          </button>
-        )}
-
-        {collapsed && onToggleCollapse && (
-          <button
-            onClick={onToggleCollapse}
-            title="Expand Sidebar"
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: '#818cf8',
+              gap: '10px',
               cursor: 'pointer',
-              padding: '4px',
-              borderRadius: '6px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
+              transition: 'all 0.15s ease'
             }}
+            title="Suite Subscription & Licensing"
           >
-            <PanelLeftOpen style={{ width: '16px', height: '16px' }} />
-          </button>
-        )}
-      </div>
-
-      {/* Active Tenant Badge */}
-      <div
-        onClick={() => setShowPricingModal(true)}
-        style={{
-          margin: '14px 16px 6px 16px',
-          padding: '10px 14px',
-          background: 'rgba(99, 102, 241, 0.08)',
-          border: '1px solid rgba(99, 102, 241, 0.2)',
-          borderRadius: '10px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px',
-          cursor: 'pointer',
-          transition: 'all 0.15s ease'
-        }}
-        title="Click to view Subscription Pricing & Seat Licensing"
-      >
-        <img
-          src={activeTenant?.logo || '/logo.png'}
-          alt={activeTenant?.name || 'Organization'}
-          style={{ width: '28px', height: '28px', borderRadius: '6px', objectFit: 'cover' }}
-        />
-        <div style={{ overflow: 'hidden', flex: 1 }}>
-          <div style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {activeTenant?.name && !activeTenant.name.includes('(Admin)') ? activeTenant.name : getAppConfig().companyName}
-          </div>
-          <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-            Plan: <span style={{ color: '#34d399', fontWeight: '700' }}>{activeTenant?.plan || 'Enterprise Suite'}</span> ⚡
-          </div>
-        </div>
-      </div>
-
-      <PricingPlansModal isOpen={showPricingModal} onClose={() => setShowPricingModal(false)} />
-
-      {/* Navigation Links */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '12px 14px' }}>
-        {MENU_ITEMS.filter(item => {
-          const perms = activeRole?.permissions || [];
-          const roleId = activeRole?.id || currentUser?.roleId || '';
-          const roleName = (activeRole?.name || currentUser?.role || '').toLowerCase();
-          
-          // Super Admin sees 100% of all data and modules entered under all roles
-          if (roleId === 'role-admin' || perms.includes('super_admin')) {
-            return true;
-          }
-
-          // 1. Software Developer: ONLY Ongoing Projects, Deliverables Matrix, Client Directory, MIS (Daily Work Logs), and Attendance
-          if (roleId === 'role-dev' || roleName.includes('software developer') || roleName.includes('developer')) {
-            return ['client-directory', 'ongoing-projects', 'deliverables', 'daily-logs', 'salary', 'kyc'].includes(item.id);
-          }
-
-          // 2. Digital Marketer: ONLY Ongoing Projects, Deliverables Matrix, Client Directory, MIS (Daily Work Logs), and Attendance
-          if (roleId === 'role-marketer' || roleName.includes('digital marketer') || roleName.includes('marketer')) {
-            return ['client-directory', 'ongoing-projects', 'deliverables', 'daily-logs', 'salary', 'kyc'].includes(item.id);
-          }
-
-          // 3. Video Editor: ONLY Ongoing Projects, Deliverables Matrix, Client Directory, Content Calendar, MIS (Daily Work Logs), and Attendance
-          if (roleId === 'role-video' || roleName.includes('video editor') || roleName.includes('video')) {
-            return ['client-directory', 'ongoing-projects', 'deliverables', 'content-calendar', 'daily-logs', 'salary', 'kyc'].includes(item.id);
-          }
-
-          // 4. Intern / Trainee
-          if (roleId === 'role-intern' || roleName.includes('intern')) {
-            return ['client-directory', 'ongoing-projects', 'deliverables', 'daily-logs', 'salary', 'kyc'].includes(item.id);
-          }
-          
-          switch(item.id) {
-            case 'dashboard':
-              return perms.includes('view_all') || roleId === 'role-mgr' || roleId === 'role-ops';
-            case 'reports':
-              return perms.includes('view_reports') || perms.includes('export_data');
-            case 'security':
-              return perms.includes('security_admin') || perms.includes('manage_employees');
-            case 'leads':
-            case 'ai-assistant':
-            case 'pipeline':
-              return perms.includes('view_leads') || perms.includes('view_sales');
-            case 'contacts':
-              return perms.includes('view_contacts') || perms.includes('view_sales') || perms.includes('view_ops');
-            case 'products':
-            case 'service-catalog':
-              return perms.includes('view_products') || perms.includes('view_sales') || perms.includes('view_ops');
-            case 'quotes':
-              return perms.includes('view_quotes') || perms.includes('create_quotes');
-            case 'orders':
-              return perms.includes('view_orders') || perms.includes('approve_quotes');
-            case 'activities':
-            case 'tasks':
-              return perms.includes('log_activities') || perms.includes('view_leads') || perms.includes('view_ops') || perms.includes('view_sales');
-            case 'daily-logs':
-              return true;
-            case 'content-calendar':
-              return perms.includes('view_content_calendar') || perms.includes('view_ops') || perms.includes('view_sales') || perms.includes('view_marketing');
-            case 'deliverables':
-            case 'ongoing-projects':
-              return perms.includes('view_projects') || perms.includes('view_ops') || perms.includes('view_sales') || perms.includes('log_activities');
-            case 'completed-projects':
-              return perms.includes('view_ops') || perms.includes('view_sales');
-            case 'support':
-              return perms.includes('manage_tickets') || perms.includes('view_ops');
-            case 'customers':
-              return perms.includes('manage_customers') || perms.includes('view_ops');
-            case 'marketing':
-              return perms.includes('view_marketing');
-            case 'documents':
-              return perms.includes('view_documents') || perms.includes('view_sales');
-            case 'integrations':
-              return perms.includes('view_integrations');
-            case 'salary':
-              return true;
-            case 'kyc':
-              return true; // All employees can access their own KYC view
-            case 'performance-board':
-              return perms.includes('manage_salary') || perms.includes('view_hr');
-            case 'gst-invoices':
-            case 'financial-ledger':
-              return perms.includes('manage_salary') || perms.includes('view_orders') || perms.includes('approve_quotes') || perms.includes('view_hr');
-            default:
-              return false;
-          }
-
-        }).map((item, index, filteredArr) => {
-          const Icon = item.icon;
-          const isActive = activeTab === item.id;
-          const showCategoryHeader = !collapsed && (index === 0 || filteredArr[index - 1].category !== item.category);
-          const isRestrictedEmployee = ['role-dev', 'role-marketer', 'role-video', 'role-intern'].includes(activeRole?.id || currentUser?.roleId);
-          const displayLabel = (item.id === 'salary' && isRestrictedEmployee) ? 'Attendance & Logs' : item.label;
-
-          return (
-            <React.Fragment key={item.id}>
-              {showCategoryHeader && (
-                <div style={{
-                  fontSize: '0.66rem',
-                  fontWeight: '800',
-                  color: 'var(--text-muted)',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.08em',
-                  margin: index === 0 ? '4px 8px 8px 8px' : '16px 8px 8px 8px'
-                }}>
-                  {item.category}
-                </div>
-              )}
-
-              <button
-                onClick={() => setActiveTab(item.id)}
-                title={collapsed ? displayLabel : undefined}
+            <div
+              style={{
+                width: '30px',
+                height: '30px',
+                borderRadius: '8px',
+                background: '#4E3EFF',
+                color: '#FFFFFF',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: '800',
+                fontSize: '0.8rem',
+                flexShrink: 0
+              }}
+            >
+              <Building style={{ width: '15px', height: '15px' }} />
+            </div>
+            <div style={{ overflow: 'hidden', flex: 1 }}>
+              <div
                 style={{
-                  width: '100%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: collapsed ? 'center' : 'flex-start',
-                  gap: '12px',
-                  padding: collapsed ? '10px 0' : '9px 12px',
-                  marginBottom: '3px',
-                  borderRadius: '10px',
-                  background: isActive
-                    ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.22) 0%, rgba(168, 85, 247, 0.12) 100%)'
-                    : 'transparent',
-                  border: isActive ? '1px solid rgba(99, 102, 241, 0.4)' : '1px solid transparent',
-                  borderLeft: isActive ? '3.5px solid #6366f1' : '1px solid transparent',
-                  color: isActive ? '#a5b4fc' : 'var(--text-secondary)',
-                  fontWeight: isActive ? '800' : '500',
-                  fontSize: '0.84rem',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                  textAlign: 'left',
-                  boxShadow: isActive ? '0 4px 14px rgba(99, 102, 241, 0.2)' : 'none'
+                  fontSize: '0.78rem',
+                  fontWeight: '800',
+                  color: theme === 'dark' ? '#F9FAFB' : '#1E1F24',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis'
                 }}
               >
-                <Icon style={{
-                  width: '18px',
-                  height: '18px',
-                  flexShrink: 0,
-                  color: isActive ? '#818cf8' : 'var(--text-muted)',
-                  filter: isActive ? 'drop-shadow(0 0 8px rgba(99, 102, 241, 0.6))' : 'none'
-                }} />
-                {!collapsed && <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{displayLabel}</span>}
-                {!collapsed && isActive && <ChevronRight style={{ width: '14px', height: '14px', color: '#818cf8' }} />}
-              </button>
-            </React.Fragment>
-          );
-        })}
-      </div>
+                {activeTenant?.name && !activeTenant.name.includes('(Admin)') ? activeTenant.name : 'Sanna Innovations'}
+              </div>
+              <div
+                style={{
+                  fontSize: '0.66rem',
+                  color: '#64748B',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}
+              >
+                <span>Enterprise Suite</span>
+                <span style={{ color: '#10B981', fontWeight: '800' }}>● Active</span>
+              </div>
+            </div>
+          </div>
+        )}
 
-      {/* Footer & User / Theme Switcher */}
-      <div style={{
-        padding: collapsed ? '12px 8px' : '16px',
-        borderTop: '1px solid var(--border-color)',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '10px',
-        background: 'rgba(0,0,0,0.18)'
-      }}>
-        {/* Digital Employee ID Badge */}
-        {!collapsed ? (
-          <div style={{
-            background: 'rgba(255, 255, 255, 0.03)',
-            border: '1px solid var(--border-color)',
-            borderRadius: '12px',
-            padding: '10px 12px',
+        <PricingPlansModal isOpen={showPricingModal} onClose={() => setShowPricingModal(false)} />
+
+        {/* 6 Core iOS Hubs Dock Navigation */}
+        <div
+          style={{
+            flex: 1,
+            overflowY: 'auto',
+            padding: collapsed ? '12px 8px' : '14px 12px',
             display: 'flex',
             flexDirection: 'column',
-            gap: '8px'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <img
-                src={currentUser?.avatar || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&auto=format&fit=crop&q=80'}
-                alt={currentUser?.name}
-                style={{ width: '34px', height: '34px', borderRadius: '50%', border: '1.5px solid #6366f1', objectFit: 'cover' }}
-              />
-              <div style={{ overflow: 'hidden' }}>
-                <div style={{ fontSize: '0.8rem', fontWeight: '800', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {currentUser?.name}
+            gap: '6px'
+          }}
+        >
+          {IOS_CORE_HUBS.map((hub) => {
+            if (!isHubVisible(hub.id)) return null;
+
+            const visibleSubItems = hub.subItems.filter(sub => isSubItemVisible(sub.id));
+            const isDirectActive = activeTab === hub.id;
+            const hasSubActive = visibleSubItems.some(sub => sub.id === activeTab);
+            const isActive = isDirectActive || hasSubActive;
+            const isOpen = openHubs[hub.id] && visibleSubItems.length > 1;
+            const HubIcon = hub.icon;
+
+            return (
+              <div key={hub.id} style={{ marginBottom: '2px' }}>
+                {/* Main Hub Squircle Button */}
+                <div
+                  onClick={() => {
+                    setActiveTab(hub.id);
+                    if (!isOpen && visibleSubItems.length > 1) {
+                      setOpenHubs(prev => ({ ...prev, [hub.id]: true }));
+                    }
+                  }}
+                  title={collapsed ? hub.label : undefined}
+                  style={{
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: collapsed ? 'center' : 'space-between',
+                    padding: collapsed ? '11px 0' : '10px 12px',
+                    borderRadius: '12px',
+                    background: isActive
+                      ? (theme === 'dark' ? '#1c1c22' : '#F1F4F9')
+                      : 'transparent',
+                    border: isActive
+                      ? (theme === 'dark' ? '1px solid rgba(255, 255, 255, 0.08)' : '1px solid #E2E8F0')
+                      : '1px solid transparent',
+                    color: isActive
+                      ? (theme === 'dark' ? '#FFFFFF' : '#1E1F24')
+                      : (theme === 'dark' ? '#94A3B8' : '#475467'),
+                    fontWeight: isActive ? '700' : '500',
+                    fontSize: '0.825rem',
+                    cursor: 'pointer',
+                    transition: 'all 0.18s ease',
+                    userSelect: 'none'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isActive) {
+                      e.currentTarget.style.background = theme === 'dark' ? '#18181f' : '#F8FAFC';
+                      e.currentTarget.style.color = theme === 'dark' ? '#F9FAFB' : '#1E1F24';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isActive) {
+                      e.currentTarget.style.background = 'transparent';
+                      e.currentTarget.style.color = theme === 'dark' ? '#94A3B8' : '#475467';
+                    }
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '11px', overflow: 'hidden' }}>
+                    <HubIcon
+                      style={{
+                        width: '18px',
+                        height: '18px',
+                        flexShrink: 0,
+                        color: isActive ? '#4E3EFF' : (theme === 'dark' ? '#94A3B8' : '#64748B')
+                      }}
+                    />
+                    {!collapsed && (
+                      <span
+                        style={{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          letterSpacing: '-0.01em'
+                        }}
+                      >
+                        {hub.label}
+                      </span>
+                    )}
+                  </div>
+
+                  {!collapsed && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      {isActive && (
+                        <span
+                          style={{
+                            width: '6px',
+                            height: '6px',
+                            borderRadius: '50%',
+                            background: '#93FEBF',
+                            flexShrink: 0
+                          }}
+                        />
+                      )}
+                      {visibleSubItems.length > 1 && (
+                        <button
+                          onClick={(e) => toggleHub(hub.id, e)}
+                          title="Toggle sub-views"
+                          style={{
+                            background: isOpen
+                              ? (theme === 'dark' ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.05)')
+                              : 'transparent',
+                            border: 'none',
+                            borderRadius: '6px',
+                            color: isOpen ? (theme === 'dark' ? '#F1F5F9' : '#1E1F24') : '#64748B',
+                            cursor: 'pointer',
+                            width: '22px',
+                            height: '22px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)',
+                            transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
+                          }}
+                        >
+                          <ChevronRight style={{ width: '13px', height: '13px' }} />
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
-                <div style={{ fontSize: '0.68rem', color: 'var(--text-secondary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {currentUser?.designation || 'Representative'}
+
+                {/* Sub-items (iOS Grouped Inset Capsule) */}
+                {!collapsed && isOpen && visibleSubItems.length > 1 && (
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '2px',
+                      padding: '4px',
+                      marginTop: '4px',
+                      marginBottom: '6px',
+                      marginLeft: '12px',
+                      marginRight: '2px',
+                      background: theme === 'dark' ? 'rgba(255, 255, 255, 0.025)' : 'rgba(0, 0, 0, 0.025)',
+                      border: theme === 'dark' ? '1px solid rgba(255, 255, 255, 0.05)' : '1px solid rgba(0, 0, 0, 0.04)',
+                      borderRadius: '12px',
+                      backdropFilter: 'blur(10px)',
+                      transition: 'all 0.2s ease'
+                    }}
+                  >
+                    {visibleSubItems.map((sub) => {
+                      const SubIcon = sub.icon;
+                      const isSubActive = activeTab === sub.id;
+
+                      return (
+                        <button
+                          key={sub.id}
+                          onClick={() => setActiveTab(sub.id)}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '7px 10px',
+                            borderRadius: '8px',
+                            background: isSubActive
+                              ? (theme === 'dark' ? 'rgba(78, 62, 255, 0.18)' : '#EEF2FF')
+                              : 'transparent',
+                            border: isSubActive
+                              ? (theme === 'dark' ? '1px solid rgba(78, 62, 255, 0.3)' : '1px solid rgba(78, 62, 255, 0.2)')
+                              : '1px solid transparent',
+                            color: isSubActive
+                              ? (theme === 'dark' ? '#FFFFFF' : '#4E3EFF')
+                              : (theme === 'dark' ? '#94A3B8' : '#64748B'),
+                            fontSize: '0.78rem',
+                            fontWeight: isSubActive ? '600' : '500',
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                            transition: 'all 0.16s cubic-bezier(0.16, 1, 0.3, 1)',
+                            width: '100%'
+                          }}
+                          onMouseEnter={(e) => {
+                            if (!isSubActive) {
+                              e.currentTarget.style.background = theme === 'dark' ? 'rgba(255, 255, 255, 0.045)' : 'rgba(0, 0, 0, 0.035)';
+                              e.currentTarget.style.color = theme === 'dark' ? '#FFFFFF' : '#1E1F24';
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!isSubActive) {
+                              e.currentTarget.style.background = 'transparent';
+                              e.currentTarget.style.color = theme === 'dark' ? '#94A3B8' : '#64748B';
+                            }
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
+                            <SubIcon
+                              style={{
+                                width: '13px',
+                                height: '13px',
+                                flexShrink: 0,
+                                color: isSubActive ? '#4E3EFF' : (theme === 'dark' ? '#64748B' : '#94A3B8')
+                              }}
+                            />
+                            <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              {sub.label}
+                            </span>
+                          </div>
+                          {isSubActive && (
+                            <span
+                              style={{
+                                width: '5px',
+                                height: '5px',
+                                borderRadius: '50%',
+                                background: '#93FEBF',
+                                flexShrink: 0,
+                                boxShadow: '0 0 6px rgba(147, 254, 191, 0.6)'
+                              }}
+                            />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Bottom Drawer & User Profile */}
+        <div
+          style={{
+            padding: collapsed ? '12px 8px' : '14px 14px',
+            borderTop: theme === 'dark' ? '1px solid #23232b' : '1px solid #F1F4F9',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '8px',
+            background: theme === 'dark' ? '#121216' : '#FAFAFA'
+          }}
+        >
+          {/* User Profile Pill - Clean & Egalitarian (No artificial Lead badges) */}
+          {!collapsed ? (
+            <div
+              style={{
+                background: theme === 'dark' ? '#1c1c22' : '#FFFFFF',
+                border: theme === 'dark' ? '1px solid rgba(255, 255, 255, 0.06)' : '1px solid #E2E8F0',
+                borderRadius: '12px',
+                padding: '8px 10px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px'
+              }}
+            >
+              <div style={{ position: 'relative', flexShrink: 0 }}>
+                <img
+                  src={currentUser?.avatar || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&auto=format&fit=crop&q=80'}
+                  alt={currentUser?.name}
+                  style={{
+                    width: '34px',
+                    height: '34px',
+                    borderRadius: '10px',
+                    objectFit: 'cover',
+                    border: '1.5px solid #4E3EFF'
+                  }}
+                />
+                <span
+                  style={{
+                    position: 'absolute',
+                    bottom: -1,
+                    right: -1,
+                    width: '8px',
+                    height: '8px',
+                    borderRadius: '50%',
+                    background: '#10B981',
+                    border: '1.5px solid #121216'
+                  }}
+                />
+              </div>
+
+              <div style={{ overflow: 'hidden', flex: 1 }}>
+                <div
+                  style={{
+                    fontSize: '0.78rem',
+                    fontWeight: '800',
+                    color: theme === 'dark' ? '#F9FAFB' : '#1E1F24',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
+                  }}
+                >
+                  {currentUser?.name || 'Smitesh'}
+                </div>
+                <div
+                  style={{
+                    fontSize: '0.66rem',
+                    color: '#94A3B8',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
+                  }}
+                >
+                  {(() => {
+                    const nameLower = (currentUser?.name || '').toLowerCase();
+                    const userLower = (currentUser?.username || '').toLowerCase();
+                    if (nameLower.includes('smitesh') || userLower === 'smitesh') {
+                      return 'Lead Developer';
+                    }
+                    const des = currentUser?.designation;
+                    const role = currentUser?.role;
+                    if (des && des !== 'Intern' && des !== 'Employee') return des;
+                    if (role && !role.includes('Intern / Engineering Trainee')) return role;
+                    return des || role || 'Team Member';
+                  })()}
                 </div>
               </div>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.65rem', borderTop: '1px solid var(--border-color)', paddingTop: '6px', color: 'var(--text-muted)' }}>
-              <span>ID: <strong style={{ color: '#6366f1' }}>{currentUser?.id || 'EMP-999'}</strong></span>
-              <span style={{ textTransform: 'uppercase', fontWeight: '800', color: '#a855f7' }}>{currentUser?.role?.split(' ')[0]}</span>
+          ) : (
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <img
+                src={currentUser?.avatar || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&auto=format&fit=crop&q=80'}
+                alt={currentUser?.name}
+                title={`${currentUser?.name} (${currentUser?.designation || 'User'})`}
+                style={{
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '10px',
+                  objectFit: 'cover',
+                  border: '1.5px solid #4E3EFF'
+                }}
+              />
             </div>
-          </div>
-        ) : (
-          <div style={{ display: 'flex', justifyContent: 'center' }}>
-            <img
-              src={currentUser?.avatar || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&auto=format&fit=crop&q=80'}
-              alt={currentUser?.name}
-              title={`${currentUser?.name} (${currentUser?.designation || 'User'})`}
-              style={{ width: '34px', height: '34px', borderRadius: '50%', border: '1.5px solid #6366f1', objectFit: 'cover' }}
-            />
-          </div>
-        )}
+          )}
 
-        <div style={{ display: 'flex', gap: '6px', flexDirection: collapsed ? 'column' : 'row' }}>
-          <button
-            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-            title="Toggle Theme"
-            style={{
-              flex: 1,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '6px',
-              padding: '7px',
-              borderRadius: '8px',
-              background: 'var(--bg-input)',
-              border: '1px solid var(--border-color)',
-              color: 'var(--text-primary)',
-              fontSize: '0.75rem',
-              fontWeight: '600',
-              cursor: 'pointer'
-            }}
-          >
-            {theme === 'dark' ? <Sun style={{ width: '14px', height: '14px', color: '#fbbf24' }} /> : <Moon style={{ width: '14px', height: '14px', color: '#8b5cf6' }} />}
-            {!collapsed && <span>Theme</span>}
-          </button>
+          {/* Quick Actions (Password & Logout) */}
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent('open-change-password-modal'))}
+              title="Change Password"
+              style={{
+                flex: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px',
+                padding: '9px 10px',
+                borderRadius: '10px',
+                background: 'rgba(78, 62, 255, 0.1)',
+                border: '1px solid rgba(78, 62, 255, 0.25)',
+                color: '#818CF8',
+                fontSize: '0.76rem',
+                fontWeight: '700',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease'
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(78, 62, 255, 0.2)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(78, 62, 255, 0.1)'; }}
+            >
+              <Key style={{ width: '13px', height: '13px' }} />
+              {!collapsed && <span>Password</span>}
+            </button>
 
-          <button
-            onClick={logout}
-            title="Logout of session"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '6px',
-              padding: '7px 10px',
-              borderRadius: '8px',
-              background: 'rgba(244, 63, 94, 0.15)',
-              border: '1px solid rgba(244, 63, 94, 0.3)',
-              color: '#f43f5e',
-              fontSize: '0.75rem',
-              fontWeight: '600',
-              cursor: 'pointer'
-            }}
-          >
-            <LogOut style={{ width: '14px', height: '14px' }} />
-            {!collapsed && <span>Exit</span>}
-          </button>
+            <button
+              onClick={logout}
+              title="Sign Out"
+              style={{
+                flex: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px',
+                padding: '9px 10px',
+                borderRadius: '10px',
+                background: 'rgba(239, 68, 68, 0.08)',
+                border: '1px solid rgba(239, 68, 68, 0.2)',
+                color: '#EF4444',
+                fontSize: '0.76rem',
+                fontWeight: '700',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease'
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.16)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.08)'; }}
+            >
+              <LogOut style={{ width: '13px', height: '13px' }} />
+              {!collapsed && <span>Sign Out</span>}
+            </button>
+          </div>
         </div>
-      </div>
-    </aside>
+      </aside>
     </>
   );
 };

@@ -309,7 +309,7 @@ const PerformanceBoard = () => {
         role: winner.role,
         month: 8,
         year: 2026,
-        reason: `👑 Crowned Employee of the Month via Automated KPI Ingestion. ${winner.aiSummary}`,
+        reason: `Crowned Employee of the Month via Automated KPI Ingestion. ${winner.aiSummary}`,
         nominatedBy: 'Automated KPI Ingestion Engine',
         score: winner.compositeScore,
         tier: winner.tier
@@ -337,7 +337,7 @@ const PerformanceBoard = () => {
     }
 
     setPreviewModalOpen(false);
-    setUploadToast(`🎉 Ingestion successful! ${winner.employeeName} crowned Employee of the Month with ${winner.compositeScore}% composite score.`);
+    setUploadToast(`Ingestion successful! ${winner.employeeName} crowned Employee of the Month with ${winner.compositeScore}% composite score.`);
     setTimeout(() => setUploadToast(null), 8000);
   };
 
@@ -759,11 +759,10 @@ const PerformanceBoard = () => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: '1.5rem',
                 boxShadow: '0 4px 16px rgba(245, 158, 11, 0.25)',
                 flexShrink: 0
               }}>
-                👑
+                <Crown style={{ width: '24px', height: '24px', color: '#f59e0b' }} />
               </div>
               <div>
                 <h3 style={{ fontSize: '1.25rem', fontWeight: '900', margin: 0, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -1015,7 +1014,7 @@ const PerformanceBoard = () => {
                     fontWeight: '900',
                     boxShadow: '0 2px 6px rgba(0,0,0,0.4)'
                   }}>
-                    👑
+                    <Crown style={{ width: '13px', height: '13px', color: '#000' }} />
                   </div>
                 </div>
 
@@ -1299,11 +1298,17 @@ const PerformanceBoard = () => {
                           {/* Rank */}
                           <td style={{ padding: '12px 14px', textAlign: 'center' }}>
                             {isFirst ? (
-                              <span style={{ fontSize: '1.2rem' }}>👑</span>
+                              <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <Crown style={{ width: '18px', height: '18px', color: '#f59e0b' }} />
+                              </span>
                             ) : isSecond ? (
-                              <span style={{ fontSize: '1.1rem' }}>🥈</span>
+                              <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <Medal style={{ width: '18px', height: '18px', color: '#94a3b8' }} />
+                              </span>
                             ) : isThird ? (
-                              <span style={{ fontSize: '1.1rem' }}>🥉</span>
+                              <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <Medal style={{ width: '18px', height: '18px', color: '#d97706' }} />
+                              </span>
                             ) : (
                               <span style={{ fontWeight: '800', color: 'var(--text-muted)', fontSize: '0.82rem' }}>#{emp.rank}</span>
                             )}
@@ -1536,9 +1541,9 @@ const PerformanceBoard = () => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: '1.3rem'
+                color: '#fff'
               }}>
-                🎂
+                <Gift style={{ width: '20px', height: '20px' }} />
               </div>
               <div>
                 <h3 style={{ fontSize: '1.15rem', fontWeight: '800', margin: 0, color: 'var(--text-primary)' }}>
@@ -1632,8 +1637,8 @@ const PerformanceBoard = () => {
                               border: isToday ? '2px solid #f59e0b' : '2px solid rgba(255, 255, 255, 0.1)'
                             }}
                           />
-                          <span style={{ position: 'absolute', bottom: '-4px', right: '-4px', fontSize: '0.85rem' }}>
-                            🎂
+                          <span style={{ position: 'absolute', bottom: '-4px', right: '-4px', background: '#f59e0b', borderRadius: '50%', padding: '2px', display: 'flex' }}>
+                            <Gift style={{ width: '10px', height: '10px', color: '#fff' }} />
                           </span>
                         </div>
                         <div style={{ flex: 1, overflow: 'hidden' }}>
@@ -1655,8 +1660,8 @@ const PerformanceBoard = () => {
                         </div>
                         <div>
                           {isToday ? (
-                            <span style={{ fontSize: '0.72rem', fontWeight: '800', padding: '3px 8px', borderRadius: '12px', background: '#f59e0b', color: '#000' }}>
-                              🎉 Birthday Today!
+                            <span style={{ fontSize: '0.72rem', fontWeight: '800', padding: '3px 8px', borderRadius: '12px', background: '#f59e0b', color: '#000', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                              <PartyPopper style={{ width: '11px', height: '11px' }} /> Birthday Today!
                             </span>
                           ) : (
                             <span style={{ fontSize: '0.72rem', fontWeight: '700', padding: '3px 8px', borderRadius: '12px', background: 'rgba(99, 102, 241, 0.15)', color: '#818cf8' }}>
@@ -1683,7 +1688,7 @@ const PerformanceBoard = () => {
                         }}
                       >
                         <PartyPopper style={{ width: '13px', height: '13px' }} />
-                        <span>{isWished ? '✓ Celebration Card Sent' : 'Send Birthday Greeting 🎉'}</span>
+                        <span>{isWished ? '✓ Celebration Card Sent' : 'Send Birthday Greeting'}</span>
                       </button>
                     </div>
                   );
@@ -1741,15 +1746,17 @@ const PerformanceBoard = () => {
                           {emp.designation || emp.role}
                         </td>
                         <td style={{ padding: '10px 14px', fontWeight: '700', color: isToday ? '#fbbf24' : '#818cf8' }}>
-                          🎂 {formatBirthday(emp.birthday, true)}
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                            <Gift style={{ width: '12px', height: '12px', color: '#fbbf24' }} /> {formatBirthday(emp.birthday, true)}
+                          </span>
                         </td>
                         <td style={{ padding: '10px 14px', color: 'var(--text-secondary)' }}>
                           {emp.birthday ? `Annual celebration on ${formatBirthday(emp.birthday, false)}` : 'Not configured'}
                         </td>
                         <td style={{ padding: '10px 14px', textAlign: 'center' }}>
                           {isToday ? (
-                            <span style={{ padding: '2px 8px', borderRadius: '10px', background: '#f59e0b', color: '#000', fontSize: '0.72rem', fontWeight: '800' }}>
-                              🎉 Today!
+                            <span style={{ padding: '2px 8px', borderRadius: '10px', background: '#f59e0b', color: '#000', fontSize: '0.72rem', fontWeight: '800', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                              <PartyPopper style={{ width: '10px', height: '10px' }} /> Today!
                             </span>
                           ) : isBdayInCurMonth ? (
                             <span style={{ padding: '2px 8px', borderRadius: '10px', background: 'rgba(245, 158, 11, 0.15)', color: '#fbbf24', fontSize: '0.72rem', fontWeight: '700' }}>
@@ -2045,8 +2052,8 @@ const PerformanceBoard = () => {
                 gap: '12px'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: '#f59e0b', color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem' }}>
-                    👑
+                  <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: '#f59e0b', color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Crown style={{ width: '22px', height: '22px', color: '#000' }} />
                   </div>
                   <div>
                     <div style={{ fontSize: '0.72rem', color: '#f59e0b', fontWeight: '800', textTransform: 'uppercase' }}>
@@ -2092,7 +2099,15 @@ const PerformanceBoard = () => {
                     {parsedPreviewRecords.map((emp) => (
                       <tr key={emp.employeeId || emp.rank} style={{ borderBottom: '1px solid var(--border-color)' }}>
                         <td style={{ padding: '9px 12px', textAlign: 'center', fontWeight: '900' }}>
-                          {emp.rank === 1 ? '👑 #1' : emp.rank === 2 ? '🥈 #2' : emp.rank === 3 ? '🥉 #3' : `#${emp.rank}`}
+                          {emp.rank === 1 ? (
+                            <span style={{ color: '#f59e0b', fontWeight: '900' }}>#1</span>
+                          ) : emp.rank === 2 ? (
+                            <span style={{ color: '#94a3b8', fontWeight: '900' }}>#2</span>
+                          ) : emp.rank === 3 ? (
+                            <span style={{ color: '#d97706', fontWeight: '900' }}>#3</span>
+                          ) : (
+                            `#${emp.rank}`
+                          )}
                         </td>
                         <td style={{ padding: '9px 12px', fontWeight: '700', color: 'var(--text-primary)' }}>
                           {emp.employeeName}

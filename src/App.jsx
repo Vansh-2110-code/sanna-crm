@@ -84,7 +84,7 @@ const queryClient = new QueryClient({
 });
 
 const MainLayout = () => {
-  const { isAuthenticated, currentUser, login } = useCRM();
+  const { isAuthenticated, currentUser, login, activeRole } = useCRM();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [showQuickCreate, setShowQuickCreate] = useState(false);
   const [viewMode, setViewMode] = useState('auth'); // 'auth' | 'landing'
@@ -116,6 +116,13 @@ const MainLayout = () => {
     }
   }, [isAuthenticated, currentUser]);
 
+  // Listener for manual Change Password trigger
+  React.useEffect(() => {
+    const handleOpenPwd = () => setShowPasswordChangeModal(true);
+    window.addEventListener('open-change-password-modal', handleOpenPwd);
+    return () => window.removeEventListener('open-change-password-modal', handleOpenPwd);
+  }, []);
+
   // Trigger KYC upload modal for employees who haven't submitted KYC yet
   React.useEffect(() => {
     if (isAuthenticated && currentUser) {
@@ -124,10 +131,15 @@ const MainLayout = () => {
       const isAdmin = roleId === 'role-admin' || roleName.includes('super admin') || roleName.includes('org admin');
       // Only non-admin employees need to submit KYC
       if (!isAdmin) {
+        const isDismissedForSession = sessionStorage.getItem('kyc_dismissed_session') === 'true';
+        if (isDismissedForSession) return;
+
         const kycKey = `kyc_submitted_${currentUser.id || currentUser.username}`;
         const kycSubmittedLocally = localStorage.getItem(kycKey) === 'true';
-        const kycStatus = currentUser.kycStatus || 'Not Submitted';
-        if (!kycSubmittedLocally && kycStatus === 'Not Submitted') {
+        const kycStatus = String(currentUser.kycStatus || 'Not Submitted').trim().toLowerCase();
+        const isAlreadyDone = kycStatus === 'completed' || kycStatus === 'verified' || kycStatus === 'submitted';
+
+        if (!kycSubmittedLocally && !isAlreadyDone) {
           // Delay slightly so password modal shows first if both are needed
           const timer = setTimeout(() => setShowKYCModal(true), showPasswordChangeModal ? 0 : 800);
           return () => clearTimeout(timer);
@@ -141,30 +153,66 @@ const MainLayout = () => {
     if (isAuthenticated && currentUser) {
       const roleId = currentUser.roleId || '';
       const roleName = (currentUser.role || '').toLowerCase();
+      const userEmail = (currentUser.email || '').toLowerCase();
+      const userName = (currentUser.name || '').toLowerCase();
+      const assigned = currentUser.assignedModules || [];
       
+      const isAdmin = roleId === 'role-admin' || roleName.includes('admin');
       const isDev = roleId === 'role-dev' || roleName.includes('software developer') || roleName.includes('developer');
       const isMarketer = roleId === 'role-marketer' || roleName.includes('digital marketer') || roleName.includes('marketer');
       const isVideo = roleId === 'role-video' || roleName.includes('video editor') || roleName.includes('video');
       const isIntern = roleId === 'role-intern' || roleName.includes('intern');
+      const isSowmya = userEmail.includes('sowmya') || userName.includes('sowmya');
 
-      if (isDev || isMarketer) {
-        const allowed = ['ongoing-projects', 'daily-logs', 'salary', 'kyc'];
-        if (!allowed.includes(activeTab)) {
-          setActiveTab('ongoing-projects');
-        }
-      } else if (isVideo) {
-        const allowed = ['ongoing-projects', 'content-calendar', 'daily-logs', 'salary', 'kyc'];
-        if (!allowed.includes(activeTab)) {
-          setActiveTab('ongoing-projects');
-        }
-      } else if (isIntern) {
-        const allowed = ['ongoing-projects', 'daily-logs', 'salary', 'kyc'];
-        if (!allowed.includes(activeTab)) {
-          setActiveTab('ongoing-projects');
-        }
+      // Super Admin has full unrestricted access
+      if (isAdmin) return;
+
+      // Base allowed tabs for all team members (including tailored dashboard and client-directory)
+      const allowed = [
+        'dashboard',
+        'ongoing-projects',
+        'deliverables',
+        'client-directory',
+        'daily-logs',
+        'salary',
+        'kyc',
+        ...assigned
+      ];
+
+      // Digital Marketers have access to Leads
+      if (isMarketer) {
+        allowed.push('leads');
+      }
+
+      // Check role permissions from RBAC
+      const perms = activeRole?.permissions || [];
+      if (perms.includes('view_leads') || perms.includes('manage_leads') || perms.includes('edit_own_leads') || perms.includes('view_all')) {
+        allowed.push('leads');
+      }
+      if (perms.includes('view_contacts') || perms.includes('view_all')) {
+        allowed.push('contacts');
+      }
+      if (perms.includes('view_pipeline') || perms.includes('view_all')) {
+        allowed.push('pipeline');
+      }
+      if (perms.includes('security_admin')) {
+        allowed.push('security');
+      }
+
+      if (isVideo) {
+        allowed.push('content-calendar');
+      }
+
+      // Sowmya or finance-assigned staff
+      if (isSowmya || assigned.includes('ad-spend') || assigned.includes('finance')) {
+        allowed.push('gst-invoices', 'financial-ledger');
+      }
+
+      if (!allowed.includes(activeTab)) {
+        setActiveTab('dashboard');
       }
     }
-  }, [isAuthenticated, currentUser, activeTab]);
+  }, [isAuthenticated, currentUser, activeTab, activeRole]);
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
@@ -207,7 +255,7 @@ const MainLayout = () => {
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard':
-        return <ExecutiveDashboard />;
+        return <ExecutiveDashboard onNavigate={setActiveTab} />;
       case 'reports':
         return <ReportsEngine />;
       case 'security':
@@ -251,7 +299,7 @@ const MainLayout = () => {
       case 'integrations':
         return <IntegrationHub />;
       case 'salary':
-        return <SalaryModule />;
+        return <SalaryModule onNavigate={handleTabChange} />;
       case 'kyc':
         return <KYCManager />;
       case 'gst-invoices':
@@ -265,7 +313,7 @@ const MainLayout = () => {
       case 'performance-board':
         return <PerformanceBoard />;
       default:
-        return <ExecutiveDashboard />;
+        return <ExecutiveDashboard onNavigate={setActiveTab} />;
     }
   };
 
@@ -273,14 +321,6 @@ const MainLayout = () => {
     <div className="app-container" style={{
       '--sidebar-width': sidebarCollapsed ? '78px' : '260px'
     }}>
-      {/* Ambient background glow atmosphere */}
-      <div className="ambient-glow-layer" aria-hidden="true">
-        <div className="ambient-orb-1" />
-        <div className="ambient-orb-2" />
-        <div className="ambient-orb-3" />
-        <div className="ambient-orb-4" />
-      </div>
-
       <Sidebar
         activeTab={activeTab}
         setActiveTab={handleTabChange}

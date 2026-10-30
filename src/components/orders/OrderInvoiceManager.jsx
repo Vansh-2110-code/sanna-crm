@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useCRM } from '../../context/CRMContext';
-import { isSannaCRM, getAppConfig } from '../../utils/appMode';
-import { ShoppingBag, Truck, Printer, Plus, Trash2, X, Eye, RefreshCw, Building2, Edit2, Edit } from 'lucide-react';
+import { ShoppingBag, Truck, Printer, Plus, Trash2, X, Eye, RefreshCw, Building2, Edit2, Edit, Monitor, Palette, Building, Briefcase } from 'lucide-react';
 import { DEFAULT_SELLER_INFO, DEFAULT_BANK_DETAILS } from '../finance/GSTInvoiceManager';
 
 // Indian Number System Converter (Lakhs/Crores)
@@ -466,10 +465,10 @@ const OrderInvoiceManager = () => {
 
   // Templates Metadata
   const TEMPLATES = [
-    { id: 'modern', label: '1. Modern Corporate', icon: '💻' },
-    { id: 'creative', label: '2. Creative Agency', icon: '🎨' },
-    { id: 'classic', label: '3. Classic GST Grid', icon: '🏢' },
-    { id: 'compact', label: '4. Executive Compact', icon: '💼' }
+    { id: 'modern', label: '1. Modern Corporate', icon: Monitor },
+    { id: 'creative', label: '2. Creative Agency', icon: Palette },
+    { id: 'classic', label: '3. Classic GST Grid', icon: Building },
+    { id: 'compact', label: '4. Executive Compact', icon: Briefcase }
   ];
 
   // Helper Theme Bar
@@ -511,7 +510,7 @@ const OrderInvoiceManager = () => {
                     gap: '6px'
                   }}
                 >
-                  <span>{t.icon}</span>
+                  <t.icon style={{ width: '14px', height: '14px' }} />
                   <span>{t.label}</span>
                 </button>
                 <button

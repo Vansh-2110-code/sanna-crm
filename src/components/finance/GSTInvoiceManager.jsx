@@ -5,7 +5,7 @@ import {
   Building2, Calendar, DollarSign, CheckCircle2, Clock,
   AlertCircle, Search, Filter, Printer, Hash, Landmark,
   Layers, ChevronDown, ChevronUp, Sparkles, Copy, Eye,
-  Banknote, RefreshCw, Receipt
+  Banknote, RefreshCw, Receipt, Zap
 } from 'lucide-react';
 import { exportToCSV } from '../../utils/csvExporter';
 import { getNextBillNumber } from '../../utils/billSequenceUtils';
@@ -666,8 +666,9 @@ const GSTInvoiceManager = () => {
 
             {/* Client Presets Shortcut */}
             <div style={{ marginBottom: '20px', background: 'rgba(255, 255, 255, 0.03)', padding: '12px 16px', borderRadius: '10px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
-              <div style={{ fontSize: '0.75rem', fontWeight: '700', color: 'var(--text-muted)', marginBottom: '8px', textTransform: 'uppercase' }}>
-                ⚡ Quick Load Client Details:
+              <div style={{ fontSize: '0.75rem', fontWeight: '700', color: 'var(--text-muted)', marginBottom: '8px', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <Zap style={{ width: '13px', height: '13px', color: '#818cf8' }} />
+                <span>Quick Load Client Details:</span>
               </div>
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 {CLIENT_PRESETS.map((cp, idx) => (
@@ -802,8 +803,9 @@ const GSTInvoiceManager = () => {
 
               {/* Service Quick Presets */}
               <div style={{ background: 'rgba(255, 255, 255, 0.02)', padding: '12px 14px', borderRadius: '10px', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
-                <div style={{ fontSize: '0.74rem', fontWeight: '700', color: 'var(--text-muted)', marginBottom: '8px', textTransform: 'uppercase' }}>
-                  ⚡ Quick Add Service Item:
+                <div style={{ fontSize: '0.74rem', fontWeight: '700', color: 'var(--text-muted)', marginBottom: '8px', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <Zap style={{ width: '13px', height: '13px', color: '#818cf8' }} />
+                  <span>Quick Add Service Item:</span>
                 </div>
                 <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                   {SERVICE_QUICK_PRESETS.map((sp, idx) => (

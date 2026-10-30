@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useCRM } from '../../context/CRMContext';
 import { getMonthBirthdays, isBirthdayOnDay } from '../../utils/birthdayUtils';
-import { CalendarDays, Plus, Edit2, Trash2, X, Download, Search, ChevronLeft, ChevronRight, Filter } from 'lucide-react';
+import { CalendarDays, Plus, Edit2, Trash2, X, Download, Search, ChevronLeft, ChevronRight, Filter, Gift } from 'lucide-react';
 import { exportToCSV } from '../../utils/csvExporter';
 
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -143,9 +143,12 @@ const ContentCalendar = () => {
               borderRadius: '10px',
               background: 'rgba(245, 158, 11, 0.18)',
               color: '#fbbf24',
-              border: '1px solid rgba(245, 158, 11, 0.35)'
+              border: '1px solid rgba(245, 158, 11, 0.35)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px'
             }}>
-              🎂 {monthBirthdays.length} Birthdays
+              <Gift style={{ width: '12px', height: '12px' }} /> {monthBirthdays.length} Birthdays
             </span>
           )}
         </div>
@@ -197,7 +200,7 @@ const ContentCalendar = () => {
                     <>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
                         <span style={{ fontSize: '0.78rem', fontWeight: isToday ? '900' : '600', color: isToday ? '#818cf8' : 'var(--text-secondary)' }}>{day}</span>
-                        {dayBirthdays.length > 0 && <span style={{ fontSize: '0.72rem' }}>🎂</span>}
+                        {dayBirthdays.length > 0 && <Gift style={{ width: '12px', height: '12px', color: '#fbbf24' }} />}
                       </div>
 
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
@@ -215,11 +218,14 @@ const ContentCalendar = () => {
                               border: '1px solid rgba(245, 158, 11, 0.5)',
                               whiteSpace: 'nowrap',
                               overflow: 'hidden',
-                              textOverflow: 'ellipsis'
+                              textOverflow: 'ellipsis',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '3px'
                             }}
-                            title={`🎂 Employee Birthday: ${b.name} (${b.designation || b.role})`}
+                            title={`Employee Birthday: ${b.name} (${b.designation || b.role})`}
                           >
-                            🎂 {b.name.split(' ')[0]}'s Birthday
+                            <Gift style={{ width: '10px', height: '10px' }} /> {b.name.split(' ')[0]}'s Birthday
                           </div>
                         ))}
 

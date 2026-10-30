@@ -1,3 +1,9 @@
+const OLD_LEADS_TO_PURGE = new Set([
+  'apn hording', 'mysira', 'madrx healthcare portal', 'spices e-commerce dm',
+  'naeem / alis digital', 'pvd coating portal', 'mr. veeresh enterprise',
+  'sri lalitha tours & travels', 'madrx', 'naeem / alis', 'apn'
+]);
+
 import React, { useState, useMemo } from 'react';
 import { useCRM } from '../../context/CRMContext';
 import { MIS_CLIENTS_DATA, MIS_CREDENTIALS_DATA, MIS_SERVERS_DATA } from '../../data/misClientsDirectoryData';
@@ -34,16 +40,35 @@ import {
 } from 'lucide-react';
 
 const ClientDirectory = () => {
+  const { theme } = useCRM();
+  const isDark = theme === 'dark';
+
+    // Persistent tracking of deleted client names/IDs
+  const getDeletedClientSet = () => {
+    try {
+      const saved = localStorage.getItem('astra_deleted_client_keys_v2');
+      if (saved) return new Set(JSON.parse(saved));
+    } catch (e) {}
+    return new Set();
+  };
+
   // Local state for Clients with localStorage persistence
   const [clients, setClients] = useState(() => {
+    const deletedSet = getDeletedClientSet();
     const saved = localStorage.getItem('astra_client_directory_v1');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.filter(c => {
+            const idKey = String(c.id);
+            const nameKey = (c.name || c.client_name || '').toLowerCase().trim();
+            return !deletedSet.has(idKey) && !deletedSet.has(nameKey) && !OLD_LEADS_TO_PURGE.has(nameKey);
+          });
+        }
       } catch (e) {}
     }
-    return MIS_CLIENTS_DATA;
+    return [];
   });
 
   // Local state for Credentials with localStorage persistence
@@ -88,8 +113,53 @@ const ClientDirectory = () => {
     } catch (e) {}
   }, [servers]);
 
+    // Live sync with server API (Server is single source of truth, never re-inserts deleted)
+  React.useEffect(() => {
+    let isMounted = true;
+    const syncClientsFromServer = async () => {
+      try {
+        const res = await fetch('/api/mis/clients');
+        if (res.ok) {
+          const serverData = await res.json();
+          if (Array.isArray(serverData) && serverData.length > 0 && isMounted) {
+            const deletedSet = getDeletedClientSet();
+            const cleanServerData = serverData.filter(c => {
+              const idKey = String(c.id);
+              const nameKey = (c.name || c.client_name || '').toLowerCase().trim();
+              return !deletedSet.has(idKey) && !deletedSet.has(nameKey) && !OLD_LEADS_TO_PURGE.has(nameKey);
+            });
+
+            // De-duplicate in memory by normalized name/domain to prevent any duplicate display
+            const seen = new Set();
+            const uniqueClients = [];
+            cleanServerData.forEach(c => {
+              const rawName = (c.name || c.client_name || '').toLowerCase().trim();
+              const baseName = rawName.replace(/\.(in|com|co\.in|org|net|bio)$/i, '');
+              const key = c.client_type === 'hosting' ? baseName : rawName;
+              if (!seen.has(key)) {
+                seen.add(key);
+                uniqueClients.push(c);
+              }
+            });
+
+            setClients(uniqueClients);
+            try {
+              localStorage.setItem('astra_client_directory_v1', JSON.stringify(cleanServerData));
+            } catch (e) {}
+          }
+        }
+      } catch (e) {}
+    };
+    syncClientsFromServer();
+    const timer = setInterval(syncClientsFromServer, 5000);
+    return () => {
+      isMounted = false;
+      clearInterval(timer);
+    };
+  }, []);
+
   // Filtering and Search States
-  const [categoryFilter, setCategoryFilter] = useState('all'); // 'all' | 'active_dm' | 'hold' | 'one_time' | 'hosting' | 'left' | 'servers'
+  const [categoryFilter, setCategoryFilter] = useState('all'); // 'all' | 'active_dm' | 'hold' | 'one_time' | 'hosting' | 'left'
   const [searchQuery, setSearchQuery] = useState('');
 
   // Modal States
@@ -97,6 +167,9 @@ const ClientDirectory = () => {
   const [editingProject, setEditingProject] = useState(null);
   const [selectedClientForLogins, setSelectedClientForLogins] = useState(null);
   const [showLoginsModal, setShowLoginsModal] = useState(false);
+  const [showAdvanceModal, setShowAdvanceModal] = useState(false);
+  const [selectedClientForAdvance, setSelectedClientForAdvance] = useState(null);
+  const [advanceInput, setAdvanceInput] = useState('');
 
   // Visibility & Copy Feedback States
   const [visiblePasswords, setVisiblePasswords] = useState({});
@@ -163,7 +236,6 @@ const ClientDirectory = () => {
         amountDue = 0;
         daysDue = 0;
       } else {
-        // Estimate billing date and dues
         if (client.id === 1) { // Nirmal
           monthsDue = 1;
           amountDue = 40000;
@@ -211,15 +283,14 @@ const ClientDirectory = () => {
 
   // Filtered Clients based on Category and Search
   const filteredClients = useMemo(() => {
-    return enrichedClients.filter(c => {
-      // Category Filter
-      if (categoryFilter === 'active_dm' && c.client_type !== 'active_dm') return false;
+        return enrichedClients.filter(c => {
+      if (categoryFilter === 'active_dm' && (c.client_type !== 'active_dm' || c.status === 'upcoming')) return false;
       if (categoryFilter === 'hold' && c.status !== 'hold') return false;
-      if (categoryFilter === 'one_time' && c.client_type !== 'one_time') return false;
-      if (categoryFilter === 'hosting' && c.client_type !== 'hosting') return false;
+      if (categoryFilter === 'one_time' && (c.client_type !== 'one_time' || c.status === 'upcoming')) return false;
+      if (categoryFilter === 'hosting' && (c.client_type !== 'hosting' || c.status === 'upcoming')) return false;
+      if (categoryFilter === 'upcoming' && c.status !== 'upcoming' && c.client_type !== 'upcoming' && c.project_status !== 'upcoming') return false;
       if (categoryFilter === 'left' && c.client_type !== 'left') return false;
 
-      // Search Query
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
         const matchName = (c.name || c.client_name || '').toLowerCase().includes(q);
@@ -235,13 +306,21 @@ const ClientDirectory = () => {
 
   // Actions
   const handleToggleHold = (id) => {
+    let nextStatus = 'hold';
     setClients(prev => prev.map(c => {
       if (c.id === id) {
-        const nextStatus = c.status === 'hold' ? 'active' : 'hold';
+        nextStatus = c.status === 'hold' ? 'active' : 'hold';
         return { ...c, status: nextStatus };
       }
       return c;
     }));
+    try {
+      fetch(`/api/mis/clients/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: nextStatus })
+      }).catch(() => {});
+    } catch (e) {}
   };
 
   const handleClearMonth = (id) => {
@@ -249,22 +328,130 @@ const ClientDirectory = () => {
       if (c.id === id) {
         const currentDue = c.months_due !== undefined ? c.months_due : 1;
         const nextDue = Math.max(0, currentDue - 1);
-        return {
+        const updated = {
           ...c,
           months_due: nextDue,
           amount_due: nextDue * parseFloat(c.ticket_size || 0),
           payment_status: nextDue === 0 ? 'Paid' : 'Pending'
         };
+        try {
+          fetch(`/api/mis/clients/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ payment_status: updated.payment_status })
+          }).catch(() => {});
+        } catch (e) {}
+        return updated;
       }
       return c;
     }));
   };
 
-  const handleDeleteClient = (id, name) => {
-    if (window.confirm(`Are you sure you want to delete client project "${name}"?`)) {
-      setClients(prev => prev.filter(c => c.id !== id));
-      setCredentials(prev => prev.filter(cr => cr.project_id !== id && cr.client_name !== name));
+    const handleStatusChange = async (id, newStatus) => {
+    setClients(prev => {
+      const updated = prev.map(c => c.id === id ? { ...c, status: newStatus } : c);
+      try { localStorage.setItem('astra_client_directory_v1', JSON.stringify(updated)); } catch (e) {}
+      return updated;
+    });
+
+    try {
+      await fetch(`/api/mis/clients/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      });
+    } catch (e) {
+      console.warn('Status change sync error:', e);
     }
+  };
+
+  const handleDeleteClient = async (id, name) => {
+    const targetName = name || '';
+    if (window.confirm(`Are you sure you want to permanently delete client project "${targetName}"?`)) {
+      const idKey = String(id);
+      const nameKey = targetName.toLowerCase().trim();
+      const baseKey = nameKey.replace(/\.(in|com|co\.in|org|net|bio)$/i, '');
+      const deletedSet = getDeletedClientSet();
+      deletedSet.add(idKey);
+      if (nameKey) deletedSet.add(nameKey);
+      if (baseKey) deletedSet.add(baseKey);
+      try {
+        localStorage.setItem('astra_deleted_client_keys_v2', JSON.stringify(Array.from(deletedSet)));
+      } catch (e) {}
+
+      // Remove immediately from clients state & localStorage
+      setClients(prev => {
+        const next = prev.filter(c => {
+          const cId = String(c.id);
+          const cName = (c.name || c.client_name || '').toLowerCase().trim();
+          const cBase = cName.replace(/\.(in|com|co\.in|org|net|bio)$/i, '');
+          return cId !== idKey && cName !== nameKey && cBase !== baseKey;
+        });
+        try { localStorage.setItem('astra_client_directory_v1', JSON.stringify(next)); } catch (e) {}
+        return next;
+      });
+
+      // Remove associated credentials
+      setCredentials(prev => prev.filter(cr => {
+        const crId = String(cr.project_id);
+        const crName = (cr.client_name || '').toLowerCase().trim();
+        return crId !== idKey && crName !== nameKey;
+      }));
+
+      // Send DELETE directly to server SQLite database
+      try {
+        await fetch(`/api/mis/clients/${id}`, { method: 'DELETE' });
+        await fetch('/api/mis/clients/delete-by-name', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: targetName, id })
+        });
+      } catch (e) {
+        console.warn('Delete client network error:', e);
+      }
+    }
+  };
+
+  const handleOpenAdvanceModal = (client) => {
+    setSelectedClientForAdvance(client);
+    setAdvanceInput(client.advance_payment !== undefined ? client.advance_payment : 0);
+    setShowAdvanceModal(true);
+  };
+
+  const handleSaveAdvancePayment = async (e) => {
+    e.preventDefault();
+    if (!selectedClientForAdvance) return;
+
+    const advVal = Math.max(0, parseFloat(advanceInput) || 0);
+    const ticket = parseFloat(selectedClientForAdvance.ticket_size || 0);
+    const newPaymentStatus = (advVal >= ticket && ticket > 0) ? 'Paid' : (advVal > 0 ? 'Pending' : (selectedClientForAdvance.payment_status || 'Unpaid'));
+
+    setClients(prev => prev.map(c => {
+      if (c.id === selectedClientForAdvance.id) {
+        return {
+          ...c,
+          advance_payment: advVal,
+          payment_status: newPaymentStatus
+        };
+      }
+      return c;
+    }));
+
+    try {
+      await fetch(`/api/mis/clients/${selectedClientForAdvance.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          advance_payment: advVal,
+          payment_status: newPaymentStatus
+        })
+      });
+    } catch (err) {
+      console.warn('Failed to sync advance payment:', err);
+    }
+
+    setShowAdvanceModal(false);
+    setSelectedClientForAdvance(null);
   };
 
   const handleOpenEdit = (client) => {
@@ -293,14 +480,35 @@ const ClientDirectory = () => {
 
     if (editingProject) {
       setClients(prev => prev.map(c => c.id === editingProject.id ? { ...c, ...projectForm } : c));
+      try {
+        fetch(`/api/mis/clients/${editingProject.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(projectForm)
+        }).catch(() => {});
+      } catch (e) {}
     } else {
-      const newId = Date.now();
+      const tempId = Date.now();
       const newProj = {
-        id: newId,
+        id: tempId,
         ...projectForm,
         created_at: new Date().toISOString()
       };
       setClients(prev => [newProj, ...prev]);
+      try {
+        fetch('/api/mis/clients', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(projectForm)
+        })
+        .then(r => r.json())
+        .then(saved => {
+          if (saved && saved.id) {
+            setClients(prev => prev.map(c => c.id === tempId ? { ...c, ...saved, id: saved.id } : c));
+          }
+        })
+        .catch(() => {});
+      } catch (e) {}
     }
     setShowProjectModal(false);
     setEditingProject(null);
@@ -364,21 +572,50 @@ const ClientDirectory = () => {
     return `₹${Number(amt || 0).toLocaleString('en-IN')}`;
   };
 
+    const filterTabs = [
+    { id: 'all', label: 'All Organizations', count: clients.length },
+    { id: 'active_dm', label: 'Active Retainers', count: clients.filter(c => c.client_type === 'active_dm' && c.status !== 'upcoming').length },
+    { id: 'hold', label: 'On Hold', count: clients.filter(c => c.status === 'hold').length },
+    { id: 'one_time', label: 'One-Time Dev', count: clients.filter(c => c.client_type === 'one_time' && c.status !== 'upcoming').length },
+    { id: 'hosting', label: 'Hosting & Cloud', count: clients.filter(c => c.client_type === 'hosting' && c.status !== 'upcoming').length },
+    { id: 'upcoming', label: 'Upcoming Projects', count: clients.filter(c => c.status === 'upcoming' || c.client_type === 'upcoming' || c.project_status === 'upcoming').length },
+    { id: 'left', label: 'Left Us', count: clients.filter(c => c.client_type === 'left').length }
+  ];
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
       
-      {/* Header Banner */}
-      <div className="glass-panel" style={{ padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
+      {/* 1. VERION Top Header & Add Action */}
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '14px',
+          padding: '2px 0'
+        }}
+      >
         <div>
-          <div style={{ fontSize: '0.8rem', color: '#818cf8', fontWeight: '700', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Building style={{ width: '15px', height: '15px' }} />
-            Client Directory & Project Management
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+            <span style={{ fontSize: '0.68rem', color: '#4E3EFF', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+              Operations & Organization Vault
+            </span>
+            <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#93FEBF' }} />
           </div>
-          <h2 style={{ fontSize: '1.6rem', fontWeight: '900', margin: '4px 0 6px', color: 'var(--text-primary)' }}>
+          <h2
+            style={{
+              fontSize: '1.75rem',
+              fontWeight: '900',
+              margin: 0,
+              color: isDark ? '#F9FAFB' : '#1E1F24',
+              letterSpacing: '-0.03em'
+            }}
+          >
             Client Directory
           </h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', margin: 0 }}>
-            Manage onboarding budgets, billing cycles, and payment clearances.
+          <p style={{ color: '#64748B', fontSize: '0.84rem', margin: '4px 0 0 0' }}>
+            Central synchronized database of client organizations, billing schedules, and credential vaults.
           </p>
         </div>
 
@@ -388,121 +625,345 @@ const ClientDirectory = () => {
             setProjectForm(defaultProjectForm);
             setShowProjectModal(true);
           }}
-          className="btn gradient-btn-primary"
-          style={{ padding: '9px 18px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '7px' }}
+          style={{
+            background: '#4E3EFF',
+            color: '#FFFFFF',
+            border: 'none',
+            borderRadius: '9999px',
+            padding: '10px 20px',
+            fontSize: '0.8rem',
+            fontWeight: '800',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            cursor: 'pointer',
+            transition: 'all 0.18s ease',
+            boxShadow: '0 4px 14px rgba(78, 62, 255, 0.3)'
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-1px)')}
+          onMouseLeave={(e) => (e.currentTarget.style.transform = 'translateY(0)')}
         >
-          <Plus style={{ width: '15px', height: '15px' }} />
-          <span>+ Add Client Project</span>
+          <Plus style={{ width: '16px', height: '16px' }} />
+          <span>Add Client Organization</span>
         </button>
       </div>
 
-      {/* Overview Metric Chips */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
-        <div className="glass-card" style={{ padding: '14px 18px', borderLeft: '4px solid #6366f1' }}>
-          <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: '700', textTransform: 'uppercase' }}>TOTAL CLIENTS</span>
-          <div style={{ fontSize: '1.4rem', fontWeight: '900', color: '#818cf8', marginTop: '2px' }}>{clients.length}</div>
-        </div>
-        <div className="glass-card" style={{ padding: '14px 18px', borderLeft: '4px solid #10b981' }}>
-          <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: '700', textTransform: 'uppercase' }}>ACTIVE DM CLIENTS</span>
-          <div style={{ fontSize: '1.4rem', fontWeight: '900', color: '#34d399', marginTop: '2px' }}>
-            {clients.filter(c => c.client_type === 'active_dm').length}
+      {/* 2. VERION 4 Pastel Summary Cards (Lavender, Mint, Peach, Yellow) */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+          gap: '16px'
+        }}
+      >
+        {/* Lavender Card: Total Clients (Never statically 58) */}
+        <div
+          style={{
+            background: isDark ? '#121216' : '#EEF2FF',
+            border: isDark ? '1px solid #23232b' : '1px solid #C7D2FE',
+            borderRadius: '20px',
+            padding: '20px 22px',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: '0.72rem', color: '#4E3EFF', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              TOTAL ORGANIZATIONS
+            </span>
+            <div
+              style={{
+                width: '34px',
+                height: '34px',
+                borderRadius: '10px',
+                background: '#FFFFFF',
+                color: '#4E3EFF',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 2px 6px rgba(78, 62, 255, 0.15)'
+              }}
+            >
+              <Building style={{ width: '16px', height: '16px' }} />
+            </div>
+          </div>
+          <div style={{ margin: '12px 0 4px 0' }}>
+            <div style={{ fontSize: '2rem', fontWeight: '900', color: isDark ? '#F9FAFB' : '#1E1F24', lineHeight: 1.1 }}>
+              {clients.length}
+            </div>
+            <div style={{ fontSize: '0.72rem', color: '#64748B', marginTop: '3px' }}>
+              Synchronized active records
+            </div>
+          </div>
+          <div style={{ fontSize: '0.72rem', color: '#4E3EFF', fontWeight: '700', paddingTop: '8px', borderTop: '1px solid rgba(78, 62, 255, 0.15)' }}>
+            ● Central Baseline Synced
           </div>
         </div>
-        <div className="glass-card" style={{ padding: '14px 18px', borderLeft: '4px solid #f59e0b' }}>
-          <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: '700', textTransform: 'uppercase' }}>ON HOLD</span>
-          <div style={{ fontSize: '1.4rem', fontWeight: '900', color: '#fbbf24', marginTop: '2px' }}>
-            {clients.filter(c => c.status === 'hold').length}
+
+        {/* Mint Card: Active Retainers & DM */}
+        <div
+          style={{
+            background: isDark ? '#121216' : '#ECFDF5',
+            border: isDark ? '1px solid #23232b' : '1px solid #A7F3D0',
+            borderRadius: '20px',
+            padding: '20px 22px',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: '0.72rem', color: '#059669', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              ACTIVE RETAINERS (DM)
+            </span>
+            <div
+              style={{
+                width: '34px',
+                height: '34px',
+                borderRadius: '10px',
+                background: '#FFFFFF',
+                color: '#059669',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 2px 6px rgba(16, 185, 129, 0.15)'
+              }}
+            >
+              <TrendingUp style={{ width: '16px', height: '16px' }} />
+            </div>
+          </div>
+          <div style={{ margin: '12px 0 4px 0' }}>
+            <div style={{ fontSize: '2rem', fontWeight: '900', color: '#059669', lineHeight: 1.1 }}>
+              {clients.filter(c => c.client_type === 'active_dm').length}
+            </div>
+            <div style={{ fontSize: '0.72rem', color: '#64748B', marginTop: '3px' }}>
+              Monthly digital marketing clients
+            </div>
+          </div>
+          <div style={{ fontSize: '0.72rem', color: '#059669', fontWeight: '700', paddingTop: '8px', borderTop: '1px solid rgba(16, 185, 129, 0.15)' }}>
+            Active deliverables tracking
           </div>
         </div>
-        <div className="glass-card" style={{ padding: '14px 18px', borderLeft: '4px solid #8b5cf6' }}>
-          <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: '700', textTransform: 'uppercase' }}>HOSTING CLIENTS</span>
-          <div style={{ fontSize: '1.4rem', fontWeight: '900', color: '#a78bfa', marginTop: '2px' }}>
-            {clients.filter(c => c.client_type === 'hosting').length}
+
+        {/* Peach Card: On-Hold Projects */}
+        <div
+          style={{
+            background: isDark ? '#121216' : '#FFF7ED',
+            border: isDark ? '1px solid #23232b' : '1px solid #FED7AA',
+            borderRadius: '20px',
+            padding: '20px 22px',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: '0.72rem', color: '#EA580C', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              ON HOLD
+            </span>
+            <div
+              style={{
+                width: '34px',
+                height: '34px',
+                borderRadius: '10px',
+                background: '#FFFFFF',
+                color: '#EA580C',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 2px 6px rgba(234, 88, 12, 0.15)'
+              }}
+            >
+              <Pause style={{ width: '16px', height: '16px' }} />
+            </div>
+          </div>
+          <div style={{ margin: '12px 0 4px 0' }}>
+            <div style={{ fontSize: '2rem', fontWeight: '900', color: '#EA580C', lineHeight: 1.1 }}>
+              {clients.filter(c => c.status === 'hold').length}
+            </div>
+            <div style={{ fontSize: '0.72rem', color: '#64748B', marginTop: '3px' }}>
+              Paused billing or pending review
+            </div>
+          </div>
+          <div style={{ fontSize: '0.72rem', color: '#EA580C', fontWeight: '700', paddingTop: '8px', borderTop: '1px solid rgba(234, 88, 12, 0.15)' }}>
+            Requires account manager action
           </div>
         </div>
-        <div className="glass-card" style={{ padding: '14px 18px', borderLeft: '4px solid #f43f5e' }}>
-          <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: '700', textTransform: 'uppercase' }}>SAVED CREDENTIALS</span>
-          <div style={{ fontSize: '1.4rem', fontWeight: '900', color: '#f87171', marginTop: '2px' }}>
-            {credentials.length} Logins
+
+        {/* Yellow Card: Hosting & One-Time Dev Projects */}
+        <div
+          style={{
+            background: isDark ? '#121216' : '#FEFCE8',
+            border: isDark ? '1px solid #23232b' : '1px solid #FEF08A',
+            borderRadius: '20px',
+            padding: '20px 22px',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: '0.72rem', color: '#CA8A04', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              ONE-TIME & HOSTING
+            </span>
+            <div
+              style={{
+                width: '34px',
+                height: '34px',
+                borderRadius: '10px',
+                background: '#FFFFFF',
+                color: '#CA8A04',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 2px 6px rgba(202, 138, 4, 0.15)'
+              }}
+            >
+              <Server style={{ width: '16px', height: '16px' }} />
+            </div>
+          </div>
+          <div style={{ margin: '12px 0 4px 0' }}>
+            <div style={{ fontSize: '2rem', fontWeight: '900', color: '#CA8A04', lineHeight: 1.1 }}>
+              {clients.filter(c => c.client_type === 'hosting' || c.client_type === 'one_time').length}
+            </div>
+            <div style={{ fontSize: '0.72rem', color: '#64748B', marginTop: '3px' }}>
+              Web development, LMS, server hosting
+            </div>
+          </div>
+          <div style={{ fontSize: '0.72rem', color: '#CA8A04', fontWeight: '700', paddingTop: '8px', borderTop: '1px solid rgba(202, 138, 4, 0.15)' }}>
+            {credentials.length} Access Logins Stored
           </div>
         </div>
       </div>
 
-      {/* Main Table Container */}
-      <div className="glass-card" style={{ padding: '0', overflow: 'hidden' }}>
-        
-        {/* Table Toolbar matching reference screenshot */}
-        <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-          <h3 style={{ fontSize: '1.05rem', fontWeight: '800', margin: 0, color: 'var(--text-primary)' }}>
-            Active & Onboarded Client Projects
-          </h3>
+      {/* 3. Main Card: Table Toolbar with VERION Category Pills & Search */}
+      <div
+        style={{
+          background: isDark ? '#121216' : '#FFFFFF',
+          borderRadius: '24px',
+          border: isDark ? '1px solid #23232b' : '1px solid #EEF2F6',
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)',
+          overflow: 'hidden'
+        }}
+      >
+        {/* Toolbar Header */}
+        <div
+          style={{
+            padding: '20px 24px',
+            borderBottom: isDark ? '1px solid #23232b' : '1px solid #F1F4F9',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '14px'
+          }}
+        >
+          {/* Category Filter Pills */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+            {filterTabs.map((tab) => {
+              const isActive = categoryFilter === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setCategoryFilter(tab.id)}
+                  style={{
+                    border: 'none',
+                    borderRadius: '9999px',
+                    padding: '7px 14px',
+                    fontSize: '0.76rem',
+                    fontWeight: isActive ? '800' : '600',
+                    background: isActive ? '#4E3EFF' : (isDark ? '#1c1c22' : '#F1F4F9'),
+                    color: isActive ? '#FFFFFF' : '#94A3B8',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  <span>{tab.label}</span>
+                  <span
+                    style={{
+                      background: isActive ? 'rgba(255,255,255,0.2)' : (isDark ? '#23232b' : '#E2E8F0'),
+                      color: isActive ? '#FFFFFF' : '#64748B',
+                      padding: '1px 6px',
+                      borderRadius: '9999px',
+                      fontSize: '0.64rem',
+                      fontWeight: '800'
+                    }}
+                  >
+                    {tab.count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-            {/* Search */}
-            <div style={{ position: 'relative' }}>
-              <Search style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', width: '14px', height: '14px', color: 'var(--text-muted)' }} />
-              <input
-                type="text"
-                placeholder="Search client..."
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                className="form-input"
-                style={{ paddingLeft: '32px', width: '200px', fontSize: '0.8rem', height: '34px' }}
-              />
-            </div>
-
-            {/* Category Filter Dropdown */}
-            <select
-              value={categoryFilter}
-              onChange={e => setCategoryFilter(e.target.value)}
-              className="form-input"
-              style={{ width: 'auto', padding: '6px 12px', fontSize: '0.8rem', height: '34px', cursor: 'pointer' }}
-            >
-              <option value="all">Show: All</option>
-              <option value="active_dm">Show: Active DM</option>
-              <option value="hold">Show: On Hold</option>
-              <option value="one_time">Show: One-Time</option>
-              <option value="hosting">Show: Hosting</option>
-              <option value="left">Show: Left Us</option>
-            </select>
-
-            <button
-              onClick={() => {
-                setEditingProject(null);
-                setProjectForm(defaultProjectForm);
-                setShowProjectModal(true);
+          {/* VERION Search Pill */}
+          <div style={{ position: 'relative', minWidth: '220px' }}>
+            <Search
+              style={{
+                position: 'absolute',
+                left: '12px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                width: '14px',
+                height: '14px',
+                color: '#94A3B8'
               }}
-              className="btn gradient-btn-primary"
-              style={{ padding: '7px 14px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '5px', height: '34px' }}
-            >
-              <Plus style={{ width: '13px', height: '13px' }} />
-              <span>+ Add Client Project</span>
-            </button>
+            />
+            <input
+              type="text"
+              placeholder="Search organizations..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{
+                width: '100%',
+                paddingLeft: '34px',
+                paddingRight: '14px',
+                paddingTop: '8px',
+                paddingBottom: '8px',
+                borderRadius: '9999px',
+                background: isDark ? '#1c1c22' : '#F1F4F9',
+                border: isDark ? '1px solid #23232b' : '1px solid transparent',
+                fontSize: '0.78rem',
+                color: isDark ? '#F9FAFB' : '#1E1F24',
+                outline: 'none',
+                transition: 'all 0.15s ease'
+              }}
+              onFocus={(e) => (e.currentTarget.style.borderColor = '#4E3EFF')}
+              onBlur={(e) => (e.currentTarget.style.borderColor = isDark ? '#23232b' : 'transparent')}
+            />
           </div>
         </div>
 
-        {/* Client Directory Data Table */}
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
+        {/* Client Directory Data Table (Compact Full-Width No-Scroll View) */}
+        <div style={{ overflowX: 'auto', width: '100%' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem', tableLayout: 'auto' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.02)' }}>
-                <th style={{ padding: '12px 14px', textAlign: 'left', fontWeight: '800', color: 'var(--text-muted)', fontSize: '0.72rem', textTransform: 'uppercase' }}>Client Name</th>
-                <th style={{ padding: '12px 14px', textAlign: 'left', fontWeight: '800', color: 'var(--text-muted)', fontSize: '0.72rem', textTransform: 'uppercase' }}>Onboarded Date</th>
-                <th style={{ padding: '12px 14px', textAlign: 'left', fontWeight: '800', color: 'var(--text-muted)', fontSize: '0.72rem', textTransform: 'uppercase' }}>Billing Cycle</th>
-                <th style={{ padding: '12px 14px', textAlign: 'left', fontWeight: '800', color: 'var(--text-muted)', fontSize: '0.72rem', textTransform: 'uppercase' }}>Billing Date</th>
-                <th style={{ padding: '12px 14px', textAlign: 'left', fontWeight: '800', color: 'var(--text-muted)', fontSize: '0.72rem', textTransform: 'uppercase' }}>Payment Status</th>
-                <th style={{ padding: '12px 14px', textAlign: 'center', fontWeight: '800', color: 'var(--text-muted)', fontSize: '0.72rem', textTransform: 'uppercase' }}>Months Due</th>
-                <th style={{ padding: '12px 14px', textAlign: 'left', fontWeight: '800', color: 'var(--text-muted)', fontSize: '0.72rem', textTransform: 'uppercase' }}>Amount Due</th>
-                <th style={{ padding: '12px 14px', textAlign: 'left', fontWeight: '800', color: 'var(--text-muted)', fontSize: '0.72rem', textTransform: 'uppercase' }}>Days Due</th>
-                <th style={{ padding: '12px 14px', textAlign: 'left', fontWeight: '800', color: 'var(--text-muted)', fontSize: '0.72rem', textTransform: 'uppercase' }}>Client Type</th>
-                <th style={{ padding: '12px 14px', textAlign: 'left', fontWeight: '800', color: 'var(--text-muted)', fontSize: '0.72rem', textTransform: 'uppercase' }}>Status</th>
-                <th style={{ padding: '12px 14px', textAlign: 'right', fontWeight: '800', color: 'var(--text-muted)', fontSize: '0.72rem', textTransform: 'uppercase' }}>Actions</th>
+                <th style={{ padding: '8px 8px', textAlign: 'left', fontWeight: '800', color: 'var(--text-muted)', fontSize: '0.68rem', textTransform: 'uppercase' }}>Client Name</th>
+                <th style={{ padding: '8px 6px', textAlign: 'left', fontWeight: '800', color: 'var(--text-muted)', fontSize: '0.68rem', textTransform: 'uppercase' }}>Onboarded</th>
+                <th style={{ padding: '8px 6px', textAlign: 'left', fontWeight: '800', color: 'var(--text-muted)', fontSize: '0.68rem', textTransform: 'uppercase' }}>Billing Cycle</th>
+                <th style={{ padding: '8px 6px', textAlign: 'left', fontWeight: '800', color: 'var(--text-muted)', fontSize: '0.68rem', textTransform: 'uppercase' }}>Billing Date</th>
+                <th style={{ padding: '8px 6px', textAlign: 'center', fontWeight: '800', color: 'var(--text-muted)', fontSize: '0.68rem', textTransform: 'uppercase' }}>Payment</th>
+                <th style={{ padding: '8px 4px', textAlign: 'center', fontWeight: '800', color: 'var(--text-muted)', fontSize: '0.68rem', textTransform: 'uppercase' }}>Months</th>
+                <th style={{ padding: '8px 6px', textAlign: 'right', fontWeight: '800', color: 'var(--text-muted)', fontSize: '0.68rem', textTransform: 'uppercase' }}>Amount Due</th>
+                <th style={{ padding: '8px 6px', textAlign: 'center', fontWeight: '800', color: 'var(--text-muted)', fontSize: '0.68rem', textTransform: 'uppercase' }}>Days Due</th>
+                <th style={{ padding: '8px 6px', textAlign: 'center', fontWeight: '800', color: 'var(--text-muted)', fontSize: '0.68rem', textTransform: 'uppercase' }}>Type</th>
+                <th style={{ padding: '8px 6px', textAlign: 'center', fontWeight: '800', color: 'var(--text-muted)', fontSize: '0.68rem', textTransform: 'uppercase' }}>Status</th>
+                <th style={{ padding: '8px 8px', textAlign: 'right', fontWeight: '800', color: 'var(--text-muted)', fontSize: '0.68rem', textTransform: 'uppercase' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {filteredClients.length === 0 ? (
                 <tr>
-                  <td colSpan="11" style={{ padding: '50px 20px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                  <td colSpan="11" style={{ padding: '40px 10px', textAlign: 'center', color: 'var(--text-muted)' }}>
                     No client projects found matching current filter.
                   </td>
                 </tr>
@@ -520,104 +981,143 @@ const ClientDirectory = () => {
                       onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                     >
                       {/* Client Name */}
-                      <td style={{ padding: '12px 14px', fontWeight: '800', color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>
+                      <td style={{ padding: '7px 8px', fontWeight: '800', color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>
                         {c.name || c.client_name}
                       </td>
 
                       {/* Onboarded Date */}
-                      <td style={{ padding: '12px 14px', color: 'var(--text-secondary)', fontSize: '0.78rem', whiteSpace: 'nowrap' }}>
+                      <td style={{ padding: '7px 6px', color: 'var(--text-secondary)', fontSize: '0.72rem', whiteSpace: 'nowrap' }}>
                         {c.onboarded_date || '—'}
                       </td>
 
                       {/* Billing Cycle */}
-                      <td style={{ padding: '12px 14px', color: 'var(--text-secondary)', fontSize: '0.78rem', whiteSpace: 'nowrap' }}>
+                      <td style={{ padding: '7px 6px', color: 'var(--text-secondary)', fontSize: '0.72rem', whiteSpace: 'nowrap' }}>
                         {c.client_type === 'one_time' ? 'One-Time' : (c.billing_cycle || '—')}
                       </td>
 
                       {/* Billing Date */}
-                      <td style={{ padding: '12px 14px', color: 'var(--text-secondary)', fontSize: '0.78rem', whiteSpace: 'nowrap' }}>
+                      <td style={{ padding: '7px 6px', color: 'var(--text-secondary)', fontSize: '0.72rem', whiteSpace: 'nowrap' }}>
                         {c.computedBillingDate}
                       </td>
 
                       {/* Payment Status Badge */}
-                      <td style={{ padding: '12px 14px' }}>
+                      <td style={{ padding: '7px 6px', textAlign: 'center' }}>
                         {isPaid ? (
-                          <span style={{ padding: '3px 8px', borderRadius: '10px', background: 'rgba(16,185,129,0.15)', color: '#34d399', fontSize: '0.72rem', fontWeight: '800' }}>
+                          <span style={{ padding: '2px 6px', borderRadius: '8px', background: 'rgba(16,185,129,0.15)', color: '#34d399', fontSize: '0.66rem', fontWeight: '800' }}>
                             Paid
                           </span>
                         ) : isUnpaid ? (
-                          <span style={{ padding: '3px 8px', borderRadius: '10px', background: 'rgba(244,63,94,0.18)', color: '#f87171', fontSize: '0.72rem', fontWeight: '800' }}>
+                          <span style={{ padding: '2px 6px', borderRadius: '8px', background: 'rgba(244,63,94,0.18)', color: '#f87171', fontSize: '0.66rem', fontWeight: '800' }}>
                             Unpaid
                           </span>
                         ) : (
-                          <span style={{ padding: '3px 8px', borderRadius: '10px', background: 'rgba(245,158,11,0.15)', color: '#fbbf24', fontSize: '0.72rem', fontWeight: '800' }}>
+                          <span style={{ padding: '2px 6px', borderRadius: '8px', background: 'rgba(245,158,11,0.15)', color: '#fbbf24', fontSize: '0.66rem', fontWeight: '800' }}>
                             Pending
                           </span>
                         )}
                       </td>
 
                       {/* Months Due */}
-                      <td style={{ padding: '12px 14px', textAlign: 'center', fontWeight: '800', color: c.computedMonthsDue > 0 ? '#f87171' : 'var(--text-muted)' }}>
+                      <td style={{ padding: '7px 4px', textAlign: 'center', fontWeight: '800', color: c.computedMonthsDue > 0 ? '#f87171' : 'var(--text-muted)' }}>
                         {c.computedMonthsDue}
                       </td>
 
                       {/* Amount Due */}
-                      <td style={{ padding: '12px 14px', fontWeight: '800', color: c.computedAmountDue > 0 ? '#f87171' : 'var(--text-muted)', whiteSpace: 'nowrap' }}>
-                        {c.computedAmountDue > 0 ? formatINR(c.computedAmountDue) : '—'}
+                      <td style={{ padding: '7px 6px', textAlign: 'right', fontWeight: '800', whiteSpace: 'nowrap' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
+                          <span style={{ color: c.computedAmountDue > 0 ? '#f87171' : (parseFloat(c.advance_payment || 0) > 0 ? '#34d399' : 'var(--text-muted)') }}>
+                            {c.computedAmountDue > 0 ? formatINR(c.computedAmountDue) : (parseFloat(c.advance_payment || 0) > 0 ? '₹0 (Settled)' : '—')}
+                          </span>
+                          {parseFloat(c.advance_payment || 0) > 0 && (
+                            <span style={{ fontSize: '0.62rem', color: '#10b981', fontWeight: '700', background: 'rgba(16,185,129,0.1)', padding: '1px 5px', borderRadius: '4px' }}>
+                              ₹{parseFloat(c.advance_payment).toLocaleString('en-IN')} Adv
+                            </span>
+                          )}
+                        </div>
                       </td>
 
                       {/* Days Due */}
-                      <td style={{ padding: '12px 14px', fontWeight: '700', color: isPaid ? '#34d399' : (c.computedDaysDue > 0 ? '#f87171' : 'var(--text-muted)'), whiteSpace: 'nowrap' }}>
-                        {isPaid ? 'Paid' : (c.computedDaysDue > 0 ? `${c.computedDaysDue} days` : '—')}
+                      <td style={{ padding: '7px 6px', textAlign: 'center', fontWeight: '700', color: isPaid ? '#34d399' : (c.computedDaysDue > 0 ? '#f87171' : 'var(--text-muted)'), whiteSpace: 'nowrap', fontSize: '0.72rem' }}>
+                        {isPaid ? 'Paid' : (c.computedDaysDue > 0 ? `${c.computedDaysDue}d` : '—')}
                       </td>
 
                       {/* Client Type Badge */}
-                      <td style={{ padding: '12px 14px' }}>
+                      <td style={{ padding: '7px 6px', textAlign: 'center' }}>
                         {c.client_type === 'active_dm' ? (
-                          <span style={{ padding: '3px 8px', borderRadius: '10px', background: 'rgba(16,185,129,0.12)', color: '#10b981', fontSize: '0.7rem', fontWeight: '800', border: '1px solid rgba(16,185,129,0.25)' }}>
+                          <span style={{ padding: '2px 6px', borderRadius: '8px', background: 'rgba(16,185,129,0.12)', color: '#10b981', fontSize: '0.65rem', fontWeight: '800', border: '1px solid rgba(16,185,129,0.25)', whiteSpace: 'nowrap' }}>
                             DM Client
                           </span>
                         ) : c.client_type === 'one_time' ? (
-                          <span style={{ padding: '3px 8px', borderRadius: '10px', background: 'rgba(245,158,11,0.12)', color: '#f59e0b', fontSize: '0.7rem', fontWeight: '800', border: '1px solid rgba(245,158,11,0.25)' }}>
+                          <span style={{ padding: '2px 6px', borderRadius: '8px', background: 'rgba(245,158,11,0.12)', color: '#f59e0b', fontSize: '0.65rem', fontWeight: '800', border: '1px solid rgba(245,158,11,0.25)', whiteSpace: 'nowrap' }}>
                             One-Time
                           </span>
                         ) : c.client_type === 'hosting' ? (
-                          <span style={{ padding: '3px 8px', borderRadius: '10px', background: 'rgba(139,92,246,0.12)', color: '#8b5cf6', fontSize: '0.7rem', fontWeight: '800', border: '1px solid rgba(139,92,246,0.25)' }}>
+                          <span style={{ padding: '2px 6px', borderRadius: '8px', background: 'rgba(139,92,246,0.12)', color: '#8b5cf6', fontSize: '0.65rem', fontWeight: '800', border: '1px solid rgba(139,92,246,0.25)', whiteSpace: 'nowrap' }}>
                             Hosting
                           </span>
                         ) : (
-                          <span style={{ padding: '3px 8px', borderRadius: '10px', background: 'rgba(244,63,94,0.12)', color: '#f43f5e', fontSize: '0.7rem', fontWeight: '800' }}>
+                          <span style={{ padding: '2px 6px', borderRadius: '8px', background: 'rgba(244,63,94,0.12)', color: '#f43f5e', fontSize: '0.65rem', fontWeight: '800', whiteSpace: 'nowrap' }}>
                             Left Us
                           </span>
                         )}
                       </td>
 
-                      {/* Status Badge */}
-                      <td style={{ padding: '12px 14px' }}>
-                        <span style={{ padding: '3px 8px', borderRadius: '10px', background: isHold ? 'rgba(244,63,94,0.15)' : 'rgba(16,185,129,0.12)', color: isHold ? '#f87171' : '#34d399', fontSize: '0.7rem', fontWeight: '800', textTransform: 'lowercase' }}>
-                          {c.status || 'active'}
-                        </span>
+                      {/* Interactive Status Selector */}
+                      <td style={{ padding: '7px 6px', textAlign: 'center' }}>
+                        <select
+                          value={c.status || 'active'}
+                          onChange={(e) => handleStatusChange(c.id, e.target.value)}
+                          style={{
+                            padding: '3px 8px',
+                            borderRadius: '8px',
+                            background: c.status === 'upcoming' 
+                              ? 'rgba(168,85,247,0.18)' 
+                              : (c.status === 'hold' 
+                                  ? 'rgba(244,63,94,0.18)' 
+                                  : (c.status === 'left' ? 'rgba(100,116,139,0.18)' : 'rgba(16,185,129,0.15)')),
+                            color: c.status === 'upcoming' 
+                              ? '#c084fc' 
+                              : (c.status === 'hold' 
+                                  ? '#f87171' 
+                                  : (c.status === 'left' ? '#94a3b8' : '#34d399')),
+                            border: c.status === 'upcoming' 
+                              ? '1px solid rgba(168,85,247,0.4)' 
+                              : (c.status === 'hold' 
+                                  ? '1px solid rgba(244,63,94,0.4)' 
+                                  : (c.status === 'left' ? '1px solid rgba(100,116,139,0.3)' : '1px solid rgba(16,185,129,0.3)')),
+                            fontSize: '0.68rem',
+                            fontWeight: '800',
+                            outline: 'none',
+                            cursor: 'pointer'
+                          }}
+                          title="Click to change project status (active, upcoming, hold, left)"
+                        >
+                          <option value="active" style={{ background: '#1c1c24', color: '#34d399' }}>active</option>
+                          <option value="upcoming" style={{ background: '#1c1c24', color: '#c084fc' }}>upcoming</option>
+                          <option value="hold" style={{ background: '#1c1c24', color: '#f87171' }}>hold</option>
+                          <option value="left" style={{ background: '#1c1c24', color: '#94a3b8' }}>left</option>
+                        </select>
                       </td>
 
                       {/* Action Buttons matching screenshot */}
-                      <td style={{ padding: '12px 14px', textAlign: 'right', whiteSpace: 'nowrap' }}>
-                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                      <td style={{ padding: '7px 8px', textAlign: 'right', whiteSpace: 'nowrap' }}>
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                           {/* Resume / Hold Toggle */}
                           {isHold ? (
                             <button
                               onClick={() => handleToggleHold(c.id)}
-                              style={{ padding: '4px 8px', borderRadius: '6px', border: 'none', background: '#10b981', color: '#fff', fontSize: '0.72rem', fontWeight: '700', display: 'inline-flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}
+                              style={{ padding: '3px 6px', borderRadius: '6px', border: 'none', background: '#10b981', color: '#fff', fontSize: '0.68rem', fontWeight: '700', display: 'inline-flex', alignItems: 'center', gap: '3px', cursor: 'pointer' }}
                               title="Resume Project"
                             >
-                              <Play style={{ width: '10px', height: '10px', fill: '#fff' }} /> Resume
+                              <Play style={{ width: '9px', height: '9px', fill: '#fff' }} /> Resume
                             </button>
                           ) : (
                             <button
                               onClick={() => handleToggleHold(c.id)}
-                              style={{ padding: '4px 8px', borderRadius: '6px', border: '1px solid rgba(244,63,94,0.4)', background: 'rgba(244,63,94,0.15)', color: '#f87171', fontSize: '0.72rem', fontWeight: '700', display: 'inline-flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}
+                              style={{ padding: '3px 6px', borderRadius: '6px', border: '1px solid rgba(244,63,94,0.4)', background: 'rgba(244,63,94,0.15)', color: '#f87171', fontSize: '0.68rem', fontWeight: '700', display: 'inline-flex', alignItems: 'center', gap: '3px', cursor: 'pointer' }}
                               title="Put Project on Hold"
                             >
-                              <Pause style={{ width: '10px', height: '10px' }} /> Hold
+                              <Pause style={{ width: '9px', height: '9px' }} /> Hold
                             </button>
                           )}
 
@@ -625,38 +1125,47 @@ const ClientDirectory = () => {
                           {c.computedMonthsDue > 0 && (
                             <button
                               onClick={() => handleClearMonth(c.id)}
-                              style={{ padding: '4px 8px', borderRadius: '6px', border: 'none', background: '#3b82f6', color: '#fff', fontSize: '0.72rem', fontWeight: '700', display: 'inline-flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}
+                              style={{ padding: '3px 6px', borderRadius: '6px', border: 'none', background: '#3b82f6', color: '#fff', fontSize: '0.68rem', fontWeight: '700', display: 'inline-flex', alignItems: 'center', gap: '3px', cursor: 'pointer' }}
                               title="Record 1 Month Payment Cleared"
                             >
-                              <Check style={{ width: '10px', height: '10px' }} /> Clear 1m
+                              <Check style={{ width: '9px', height: '9px' }} /> Clear 1m
                             </button>
                           )}
+
+                          {/* Record Advance Payment */}
+                          <button
+                            onClick={() => handleOpenAdvanceModal(c)}
+                            style={{ padding: '3px 6px', borderRadius: '6px', border: '1px solid rgba(16,185,129,0.3)', background: 'rgba(16,185,129,0.12)', color: '#34d399', fontSize: '0.68rem', fontWeight: '700', display: 'inline-flex', alignItems: 'center', gap: '3px', cursor: 'pointer' }}
+                            title="Record Advance Payment"
+                          >
+                            <DollarSign style={{ width: '9px', height: '9px' }} /> Advance
+                          </button>
 
                           {/* Logins */}
                           <button
                             onClick={() => handleOpenLogins(c)}
-                            style={{ padding: '4px 9px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.04)', color: 'var(--text-primary)', fontSize: '0.72rem', fontWeight: '700', display: 'inline-flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}
+                            style={{ padding: '3px 6px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.04)', color: 'var(--text-primary)', fontSize: '0.68rem', fontWeight: '700', display: 'inline-flex', alignItems: 'center', gap: '3px', cursor: 'pointer' }}
                             title="View access logins and credentials"
                           >
-                            <Key style={{ width: '11px', height: '11px', color: '#818cf8' }} /> Logins
+                            <Key style={{ width: '10px', height: '10px', color: '#818cf8' }} /> Logins
                           </button>
 
                           {/* Edit */}
                           <button
                             onClick={() => handleOpenEdit(c)}
-                            style={{ padding: '4px 8px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.04)', color: 'var(--text-secondary)', fontSize: '0.72rem', cursor: 'pointer' }}
+                            style={{ padding: '3px 6px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.04)', color: 'var(--text-secondary)', fontSize: '0.68rem', cursor: 'pointer' }}
                             title="Edit Project"
                           >
-                            <Edit2 style={{ width: '11px', height: '11px' }} />
+                            <Edit2 style={{ width: '10px', height: '10px' }} />
                           </button>
 
                           {/* Delete */}
                           <button
                             onClick={() => handleDeleteClient(c.id, c.name || c.client_name)}
-                            style={{ padding: '4px 8px', borderRadius: '6px', border: '1px solid rgba(244,63,94,0.2)', background: 'rgba(244,63,94,0.08)', color: '#f87171', fontSize: '0.72rem', cursor: 'pointer' }}
+                            style={{ padding: '3px 6px', borderRadius: '6px', border: '1px solid rgba(244,63,94,0.2)', background: 'rgba(244,63,94,0.08)', color: '#f87171', fontSize: '0.68rem', cursor: 'pointer' }}
                             title="Delete Client Project"
                           >
-                            <Trash2 style={{ width: '11px', height: '11px' }} />
+                            <Trash2 style={{ width: '10px', height: '10px' }} />
                           </button>
                         </div>
                       </td>
@@ -671,27 +1180,46 @@ const ClientDirectory = () => {
 
       {/* 🛡 ACCESS LOGINS MODAL (Exact match to screenshot 2) */}
       {showLoginsModal && selectedClientForLogins && (
-        <div className="modal-overlay" style={{ zIndex: 1200 }}>
-          <div className="modal-content glass-card" style={{ maxWidth: '640px', width: '92%', maxHeight: '90vh', overflowY: 'auto', padding: '24px' }}>
+        <div className="modal-overlay" style={{ zIndex: 1200, backdropFilter: 'blur(8px)', background: 'rgba(0,0,0,0.75)' }}>
+          <div
+            style={{
+              background: isDark ? '#121216' : '#FFFFFF',
+              border: isDark ? '1px solid #23232b' : '1px solid #EEF2F6',
+              borderRadius: '20px',
+              maxWidth: '660px',
+              width: '92%',
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              padding: '26px',
+              boxShadow: '0 20px 50px rgba(0, 0, 0, 0.4)'
+            }}
+          >
             
             {/* Modal Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '12px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', borderBottom: isDark ? '1px solid #23232b' : '1px solid #F1F4F9', paddingBottom: '14px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <Shield style={{ width: '22px', height: '22px', color: '#818cf8' }} />
-                <h3 style={{ fontSize: '1.2rem', fontWeight: '900', margin: 0, color: 'var(--text-primary)' }}>
-                  Access Logins — {selectedClientForLogins.name || selectedClientForLogins.client_name}
-                </h3>
+                <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#1c1c22', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#4E3EFF', border: '1px solid rgba(255,255,255,0.08)' }}>
+                  <Shield style={{ width: '18px', height: '18px' }} />
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '1.05rem', fontWeight: '900', margin: 0, color: isDark ? '#F9FAFB' : '#1E1F24' }}>
+                    Access Logins & Socials Vault
+                  </h3>
+                  <div style={{ fontSize: '0.72rem', color: '#94A3B8', marginTop: '2px' }}>
+                    {selectedClientForLogins.name || selectedClientForLogins.client_name}
+                  </div>
+                </div>
               </div>
               <button
                 onClick={() => setShowLoginsModal(false)}
-                style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
+                style={{ background: 'transparent', border: 'none', color: '#94A3B8', cursor: 'pointer', padding: '4px' }}
               >
                 <X style={{ width: '20px', height: '20px' }} />
               </button>
             </div>
 
             {/* Existing Credentials Table */}
-            <div style={{ overflowX: 'auto', marginBottom: '20px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)' }}>
+            <div style={{ overflowX: 'auto', marginBottom: '20px', borderRadius: '12px', border: isDark ? '1px solid #23232b' : '1px solid #EEF2F6' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
                 <thead>
                   <tr style={{ background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
@@ -938,7 +1466,9 @@ const ClientDirectory = () => {
                     className="form-input"
                   >
                     <option value="active">Active</option>
+                    <option value="upcoming">Upcoming</option>
                     <option value="hold">On Hold</option>
+                    <option value="left">Left Us</option>
                   </select>
                 </div>
 
@@ -970,6 +1500,18 @@ const ClientDirectory = () => {
                     placeholder="e.g. 40000"
                     value={projectForm.ticket_size}
                     onChange={e => setProjectForm({ ...projectForm, ticket_size: parseFloat(e.target.value) || 0 })}
+                    className="form-input"
+                  />
+                </div>
+
+                <div>
+                  <label className="form-label" style={{ fontSize: '0.78rem', fontWeight: '700' }}>Advance Received (INR)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder="e.g. 50000"
+                    value={projectForm.advance_payment}
+                    onChange={e => setProjectForm({ ...projectForm, advance_payment: parseFloat(e.target.value) || 0 })}
                     className="form-input"
                   />
                 </div>
@@ -1024,6 +1566,124 @@ const ClientDirectory = () => {
                   style={{ padding: '8px 22px', fontWeight: '800' }}
                 >
                   {editingProject ? 'Save Changes' : 'Create Client Project'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 💰 RECORD ADVANCE PAYMENT MODAL */}
+      {showAdvanceModal && selectedClientForAdvance && (
+        <div className="modal-overlay" style={{ zIndex: 1200, backdropFilter: 'blur(8px)', background: 'rgba(0,0,0,0.75)' }}>
+          <div
+            style={{
+              background: isDark ? '#121216' : '#FFFFFF',
+              border: isDark ? '1px solid #23232b' : '1px solid #EEF2F6',
+              borderRadius: '20px',
+              maxWidth: '460px',
+              width: '92%',
+              padding: '24px',
+              boxShadow: '0 20px 50px rgba(0, 0, 0, 0.4)'
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: isDark ? '1px solid #23232b' : '1px solid #F1F4F9', paddingBottom: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ width: '34px', height: '34px', borderRadius: '10px', background: 'rgba(16,185,129,0.15)', color: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <DollarSign style={{ width: '18px', height: '18px' }} />
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '1.05rem', fontWeight: '900', margin: 0, color: isDark ? '#F9FAFB' : '#1E1F24' }}>
+                    Record Advance Payment
+                  </h3>
+                  <div style={{ fontSize: '0.72rem', color: '#94A3B8', marginTop: '2px' }}>
+                    {selectedClientForAdvance.name || selectedClientForAdvance.client_name}
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowAdvanceModal(false)}
+                style={{ background: 'transparent', border: 'none', color: '#94A3B8', cursor: 'pointer' }}
+              >
+                <X style={{ width: '20px', height: '20px' }} />
+              </button>
+            </div>
+
+            {/* Financial Overview Card */}
+            <div style={{ background: isDark ? '#18181F' : '#F8FAFC', borderRadius: '14px', padding: '14px 16px', marginBottom: '16px', border: isDark ? '1px solid #262630' : '1px solid #E2E8F0', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <div>
+                <span style={{ fontSize: '0.68rem', color: '#94A3B8', textTransform: 'uppercase', fontWeight: '700' }}>Total Ticket Size</span>
+                <div style={{ fontSize: '1rem', fontWeight: '900', color: isDark ? '#FFFFFF' : '#1E293B', marginTop: '2px' }}>
+                  ₹{(parseFloat(selectedClientForAdvance.ticket_size || 0)).toLocaleString('en-IN')}
+                </div>
+              </div>
+              <div>
+                <span style={{ fontSize: '0.68rem', color: '#94A3B8', textTransform: 'uppercase', fontWeight: '700' }}>Current Advance</span>
+                <div style={{ fontSize: '1rem', fontWeight: '900', color: '#10b981', marginTop: '2px' }}>
+                  ₹{(parseFloat(selectedClientForAdvance.advance_payment || 0)).toLocaleString('en-IN')}
+                </div>
+              </div>
+            </div>
+
+            <form onSubmit={handleSaveAdvancePayment} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div>
+                <label className="form-label" style={{ fontSize: '0.76rem', fontWeight: '700' }}>
+                  New Total Advance Received (INR) *
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', fontWeight: '700', color: '#94A3B8' }}>₹</span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="100"
+                    required
+                    style={{ paddingLeft: '28px', height: '40px', fontSize: '0.9rem', fontWeight: '700' }}
+                    className="form-input"
+                    value={advanceInput}
+                    onChange={e => setAdvanceInput(e.target.value)}
+                    placeholder="Enter advance amount"
+                    autoFocus
+                  />
+                </div>
+              </div>
+
+              {/* Dynamic Calculation Preview */}
+              {(() => {
+                const entered = parseFloat(advanceInput) || 0;
+                const ticket = parseFloat(selectedClientForAdvance.ticket_size || 0);
+                const remaining = Math.max(0, ticket - entered);
+                const isFullySettled = entered >= ticket && ticket > 0;
+
+                return (
+                  <div style={{ padding: '10px 12px', borderRadius: '10px', background: isFullySettled ? 'rgba(16,185,129,0.1)' : 'rgba(245,158,11,0.1)', border: `1px solid ${isFullySettled ? 'rgba(16,185,129,0.2)' : 'rgba(245,158,11,0.2)'}`, fontSize: '0.74rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '800', color: isFullySettled ? '#34d399' : '#fbbf24' }}>
+                      <span>Remaining Balance Due:</span>
+                      <span>₹{remaining.toLocaleString('en-IN')}</span>
+                    </div>
+                    <div style={{ fontSize: '0.68rem', color: '#94A3B8', marginTop: '4px' }}>
+                      {isFullySettled
+                        ? '🎉 Advance covers full ticket size. Status will update to Paid.'
+                        : 'Status will be updated and balance tracked directly in database.'}
+                    </div>
+                  </div>
+                );
+              })()}
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '8px' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowAdvanceModal(false)}
+                  className="btn btn-secondary"
+                  style={{ padding: '8px 16px', fontSize: '0.8rem' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="btn gradient-btn-primary"
+                  style={{ padding: '8px 20px', fontSize: '0.8rem', fontWeight: '800' }}
+                >
+                  Save & Sync Database
                 </button>
               </div>
             </form>

@@ -34,3 +34,5 @@ backend/sync_*.js
 
 # External redesign folder
 hipapa-redesign/
+backend/*.cjs
+scratch/

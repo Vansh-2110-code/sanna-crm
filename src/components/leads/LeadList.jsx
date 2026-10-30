@@ -31,14 +31,17 @@ import {
   ArrowRight,
   Clock,
   Shield,
-  Layers
+  Layers,
+  Upload
 } from 'lucide-react';
 import { safeToISODate } from '../../utils/dateUtils';
 import LeadFormModal from './LeadFormModal';
+import BulkImportLeadsModal from './BulkImportLeadsModal';
 
 const LeadList = () => {
   const { leads = [], updateLeadStatus, deleteLead, updateLeadNotes, globalSearch = '' } = useCRM();
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showBulkImportModal, setShowBulkImportModal] = useState(false);
   const [selectedSource, setSelectedSource] = useState('ALL');
   const [selectedStatus, setSelectedStatus] = useState('ALL');
   
@@ -188,6 +191,15 @@ const LeadList = () => {
         </div>
 
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <button
+            onClick={() => setShowBulkImportModal(true)}
+            className="btn btn-secondary"
+            style={{ padding: '9px 14px', fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: '6px' }}
+            title="Bulk import leads from Excel (.xlsx, .xls) or CSV documents"
+          >
+            <Upload style={{ width: '14px', height: '14px', color: '#818CF8' }} />
+            <span>Bulk Import Leads</span>
+          </button>
           <button
             onClick={() => handleExportCSV(false)}
             className="btn btn-secondary"
@@ -728,6 +740,15 @@ const LeadList = () => {
           </div>
         </div>
       )}
+
+      {/* Bulk Import Leads Modal (Excel / CSV Ingestion) */}
+      <BulkImportLeadsModal
+        isOpen={showBulkImportModal}
+        onClose={() => setShowBulkImportModal(false)}
+        onImportSuccess={(count) => {
+          alert(`🎉 Successfully imported ${count} leads into the pipeline!`);
+        }}
+      />
 
     </div>
   );

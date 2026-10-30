@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useCRM } from '../../context/CRMContext';
+import DevelopmentDeliverablesTracker from './DevelopmentDeliverablesTracker';
 import {
   Filter,
   Plus,
@@ -14,7 +15,12 @@ import {
   TrendingUp,
   TrendingDown,
   Download,
-  Layers
+  Layers,
+  Code2,
+  RotateCw,
+  ArrowRight,
+  CheckSquare,
+  Square
 } from 'lucide-react';
 
 const MONTH_NAMES = [
@@ -29,8 +35,18 @@ const DeliverablesMatrix = () => {
     allClients = [],
     updateProjectDeliverables,
     addDeliverableRecord,
-    deleteDeliverableRecord
+    deleteDeliverableRecord,
+    currentUser,
+    activeRole,
+    theme
   } = useCRM();
+
+  // Role check: If developer or intern, default to 'dev', otherwise 'dm'
+  const isDevUser = ['role-dev', 'role-intern'].includes(activeRole?.id || currentUser?.roleId) ||
+    (activeRole?.name || currentUser?.role || '').toLowerCase().includes('developer') ||
+    (activeRole?.name || currentUser?.role || '').toLowerCase().includes('intern');
+
+  const [activeMatrixTab, setActiveMatrixTab] = useState(isDevUser ? 'dev' : 'dm'); // 'dm' | 'dev'
 
   const [selectedMonth, setSelectedMonth] = useState(8); // Default August
   const [selectedYear, setSelectedYear] = useState(2026);
@@ -40,6 +56,14 @@ const DeliverablesMatrix = () => {
   const [editForm, setEditForm] = useState(null);
   const [remarksModalRow, setRemarksModalRow] = useState(null);
   const [remarksText, setRemarksText] = useState('');
+
+  // Rollover / Carry Forward Clients State
+  const [showRolloverModal, setShowRolloverModal] = useState(false);
+  const [rolloverTargetMonth, setRolloverTargetMonth] = useState(selectedMonth === 12 ? 1 : selectedMonth + 1);
+  const [rolloverTargetYear, setRolloverTargetYear] = useState(selectedMonth === 12 ? selectedYear + 1 : selectedYear);
+  const [rolloverClients, setRolloverClients] = useState([]);
+
+  const isDark = theme === 'dark';
 
   const clientList = (Array.isArray(clients) && clients.length > 0) ? clients : (Array.isArray(allClients) ? allClients : []);
 
@@ -308,19 +332,205 @@ const DeliverablesMatrix = () => {
     }
   };
 
+  // Open Rollover Modal populated with current month clients
+  const openRolloverModal = () => {
+    const nextM = selectedMonth === 12 ? 1 : selectedMonth + 1;
+    const nextY = selectedMonth === 12 ? selectedYear + 1 : selectedYear;
+    setRolloverTargetMonth(nextM);
+    setRolloverTargetYear(nextY);
+
+    const seen = new Set();
+    const rows = [];
+    (currentMonthDeliverables || []).forEach(d => {
+      const name = d.clientName || d.projectName;
+      if (name && !seen.has(name.toLowerCase())) {
+        seen.add(name.toLowerCase());
+        rows.push({
+          selected: true,
+          clientName: name,
+          type: d.type || 'DM',
+          service: d.service || 'SMM & SEO',
+          reelsPlanned: parseInt(d.reelsPlanned || 6, 10),
+          postsPlanned: parseInt(d.postsPlanned || 8, 10),
+          totalFollowers: d.totalFollowers || '',
+          gmbPosition: d.gmbPosition || ''
+        });
+      }
+    });
+
+    if (rows.length === 0) {
+      clientList.forEach(c => {
+        const name = c.name || c.clientName;
+        if (name && !seen.has(name.toLowerCase())) {
+          seen.add(name.toLowerCase());
+          rows.push({
+            selected: true,
+            clientName: name,
+            type: 'DM',
+            service: 'SMM & SEO',
+            reelsPlanned: 6,
+            postsPlanned: 8,
+            totalFollowers: '',
+            gmbPosition: ''
+          });
+        }
+      });
+    }
+
+    setRolloverClients(rows);
+    setShowRolloverModal(true);
+  };
+
+  const toggleSelectAllRollover = (select) => {
+    setRolloverClients(prev => prev.map(c => ({ ...c, selected: select })));
+  };
+
+  const updateRolloverClientField = (index, field, value) => {
+    setRolloverClients(prev => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], [field]: value };
+      return updated;
+    });
+  };
+
+  const handleExecuteRollover = (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    const selectedToRoll = rolloverClients.filter(c => c.selected);
+    if (selectedToRoll.length === 0) {
+      alert('Please select at least one continuing client to carry forward.');
+      return;
+    }
+
+    selectedToRoll.forEach(item => {
+      const payload = {
+        clientName: item.clientName,
+        type: item.type || 'DM',
+        month: rolloverTargetMonth,
+        year: rolloverTargetYear,
+        deliveryDate: '',
+        reelsPlanned: parseInt(item.reelsPlanned || 0, 10),
+        postsPlanned: parseInt(item.postsPlanned || 0, 10),
+        reelsDelivered: 0,
+        postsDelivered: 0,
+        service: item.service || 'SMM & SEO',
+        totalFollowers: item.totalFollowers || '',
+        followerGain: '',
+        viewsReached: '',
+        viewGain: '',
+        backlinksCreated: 0,
+        keywordsInjected: 0,
+        gmbPosition: item.gmbPosition || '',
+        adsSpend: '',
+        leads: '',
+        leadTicketSize: '',
+        achievement: '',
+        otherRemarks: `Carried forward from ${MONTH_NAMES[selectedMonth - 1]} ${selectedYear}`,
+        remarks: `Carried forward from ${MONTH_NAMES[selectedMonth - 1]} ${selectedYear}`
+      };
+      if (addDeliverableRecord) {
+        addDeliverableRecord(payload);
+      }
+    });
+
+    setShowRolloverModal(false);
+    setSelectedMonth(rolloverTargetMonth);
+    setSelectedYear(rolloverTargetYear);
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%' }}>
       
-      {/* Top Header & Month/Year Selector */}
-      <div className="glass-panel" style={{ padding: '22px 26px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
-        <div>
-          <h2 style={{ fontSize: '1.75rem', fontWeight: '900', margin: 0, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
-            Deliverables Matrix
-          </h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', margin: '4px 0 0' }}>
-            Track SMM and SEO deliverables planned vs. delivered with dynamic audience metrics
-          </p>
+      {/* VERION Unified Deliverables Mode Switcher */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '12px',
+          background: isDark ? '#1F2937' : '#FFFFFF',
+          padding: '10px 16px',
+          borderRadius: '16px',
+          border: isDark ? '1px solid #374151' : '1px solid #EEF2F6',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.03)'
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <button
+            onClick={() => setActiveMatrixTab('dm')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 16px',
+              borderRadius: '9999px',
+              border: 'none',
+              background: activeMatrixTab === 'dm' ? '#1E1F24' : 'transparent',
+              color: activeMatrixTab === 'dm' ? '#FFFFFF' : '#64748B',
+              fontSize: '0.78rem',
+              fontWeight: '800',
+              cursor: 'pointer',
+              transition: 'all 0.15s ease'
+            }}
+          >
+            <Layers style={{ width: '15px', height: '15px' }} />
+            <span>Digital Marketing Deliverables</span>
+          </button>
+
+          <button
+            onClick={() => setActiveMatrixTab('dev')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 16px',
+              borderRadius: '9999px',
+              border: 'none',
+              background: activeMatrixTab === 'dev' ? '#4E3EFF' : 'transparent',
+              color: activeMatrixTab === 'dev' ? '#FFFFFF' : '#64748B',
+              fontSize: '0.78rem',
+              fontWeight: '800',
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
+              boxShadow: activeMatrixTab === 'dev' ? '0 4px 12px rgba(78, 62, 255, 0.25)' : 'none'
+            }}
+          >
+            <Code2 style={{ width: '15px', height: '15px' }} />
+            <span>Software Development Matrix</span>
+            <span
+              style={{
+                background: activeMatrixTab === 'dev' ? 'rgba(255,255,255,0.25)' : '#EFF6FF',
+                color: activeMatrixTab === 'dev' ? '#FFFFFF' : '#2563EB',
+                padding: '2px 7px',
+                borderRadius: '9999px',
+                fontSize: '0.65rem',
+                fontWeight: '800'
+              }}
+            >
+              Live % Engine
+            </span>
+          </button>
         </div>
+
+        <div style={{ fontSize: '0.74rem', color: '#64748B', fontWeight: '600' }}>
+          Active View: <strong style={{ color: activeMatrixTab === 'dev' ? '#4E3EFF' : (isDark ? '#F9FAFB' : '#1E1F24') }}>{activeMatrixTab === 'dev' ? 'Development Milestones Tracker' : 'DM Monthly Deliverables'}</strong>
+        </div>
+      </div>
+
+      {activeMatrixTab === 'dev' ? (
+        <DevelopmentDeliverablesTracker />
+      ) : (
+        <>
+          {/* Top Header & Month/Year Selector */}
+          <div className="glass-panel" style={{ padding: '22px 26px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+            <div>
+              <h2 style={{ fontSize: '1.75rem', fontWeight: '900', margin: 0, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
+                Deliverables Matrix
+              </h2>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', margin: '4px 0 0' }}>
+                Track SMM and SEO deliverables planned vs. delivered with dynamic audience metrics
+              </p>
+            </div>
 
         {/* Month and Year Selectors */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(15, 23, 42, 0.6)', padding: '6px 12px', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
@@ -414,6 +624,31 @@ const DeliverablesMatrix = () => {
             >
               <Plus style={{ width: '14px', height: '14px' }} />
               <span>+ Add Log Entry</span>
+            </button>
+
+            {/* Rollover / Carry Forward Button */}
+            <button
+              onClick={openRolloverModal}
+              className="btn"
+              style={{
+                padding: '8px 16px',
+                fontSize: '0.82rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '7px',
+                background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: '10px',
+                fontWeight: '700',
+                cursor: 'pointer',
+                boxShadow: '0 4px 14px rgba(79, 70, 229, 0.35)',
+                transition: 'all 0.15s ease'
+              }}
+              title="Select continuing clients and roll them into next month"
+            >
+              <RotateCw style={{ width: '14px', height: '14px' }} />
+              <span>Carry Forward to Next Month</span>
             </button>
           </div>
         </div>
@@ -687,7 +922,8 @@ const DeliverablesMatrix = () => {
                             whiteSpace: 'nowrap'
                           }}
                         >
-                          💬 {rem ? rem.slice(0, 16) + '...' : 'View / Add Remarks'}
+                          <MessageSquare style={{ width: '12px', height: '12px', marginRight: '4px', display: 'inline-block', verticalAlign: 'middle' }} />
+                          <span>{rem ? rem.slice(0, 16) + '...' : 'View / Add Remarks'}</span>
                         </button>
                       </td>
 
@@ -1505,6 +1741,209 @@ const DeliverablesMatrix = () => {
             </form>
           </div>
         </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MODAL: CARRY FORWARD / ROLL OVER CONTINUING CLIENTS                       */}
+      {/* ========================================================================= */}
+      {showRolloverModal && (
+        <div className="modal-overlay" style={{ zIndex: 1100, padding: '16px', position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="modal-content" style={{ width: '100%', maxWidth: '780px', maxHeight: '90vh', overflowY: 'auto', padding: '24px', background: isDark ? '#0f172a' : '#ffffff', borderRadius: '18px', border: isDark ? '1px solid #334155' : '1px solid #e2e8f0', boxShadow: '0 20px 50px rgba(0,0,0,0.5)' }}>
+            
+            {/* Modal Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '18px', borderBottom: isDark ? '1px solid #1e293b' : '1px solid #f1f5f9', paddingBottom: '14px' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ padding: '6px', borderRadius: '8px', background: 'rgba(99, 102, 241, 0.15)', color: '#818cf8' }}>
+                    <RotateCw style={{ width: '18px', height: '18px' }} />
+                  </div>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: '800', margin: 0, color: 'var(--text-primary)' }}>
+                    Carry Forward Continuing Clients
+                  </h3>
+                </div>
+                <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: '6px 0 0 0' }}>
+                  Select the clients continuing for next month. Adjust planned Posts & Reels as needed — entries are generated automatically without manual re-typing.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowRolloverModal(false)}
+                className="btn btn-secondary"
+                style={{ padding: '6px 8px', borderRadius: '8px' }}
+              >
+                <X style={{ width: '16px', height: '16px' }} />
+              </button>
+            </div>
+
+            {/* Target Month & Year Selector */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap', padding: '12px 16px', background: isDark ? 'rgba(30, 41, 59, 0.6)' : '#f8fafc', borderRadius: '12px', marginBottom: '16px', border: isDark ? '1px solid #334155' : '1px solid #e2e8f0' }}>
+              <span style={{ fontSize: '0.82rem', fontWeight: '700', color: 'var(--text-primary)' }}>Target Period:</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <select
+                  value={rolloverTargetMonth}
+                  onChange={e => setRolloverTargetMonth(parseInt(e.target.value, 10))}
+                  className="form-select"
+                  style={{ fontSize: '0.85rem', padding: '6px 12px', fontWeight: '700', color: '#60a5fa' }}
+                >
+                  {MONTH_NAMES.map((m, idx) => (
+                    <option key={m} value={idx + 1}>{m}</option>
+                  ))}
+                </select>
+                <select
+                  value={rolloverTargetYear}
+                  onChange={e => setRolloverTargetYear(parseInt(e.target.value, 10))}
+                  className="form-select"
+                  style={{ fontSize: '0.85rem', padding: '6px 12px', fontWeight: '700', color: '#34d399' }}
+                >
+                  {[2025, 2026, 2027].map(y => (
+                    <option key={y} value={y}>{y}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px' }}>
+                <button
+                  type="button"
+                  onClick={() => toggleSelectAllRollover(true)}
+                  style={{ fontSize: '0.74rem', padding: '4px 10px', borderRadius: '6px', background: 'transparent', border: '1px solid #6366f1', color: '#818cf8', cursor: 'pointer', fontWeight: '600' }}
+                >
+                  Select All
+                </button>
+                <button
+                  type="button"
+                  onClick={() => toggleSelectAllRollover(false)}
+                  style={{ fontSize: '0.74rem', padding: '4px 10px', borderRadius: '6px', background: 'transparent', border: '1px solid #64748b', color: '#94a3b8', cursor: 'pointer', fontWeight: '600' }}
+                >
+                  Deselect All
+                </button>
+              </div>
+            </div>
+
+            {/* Client Checklist Table */}
+            <div style={{ maxHeight: '340px', overflowY: 'auto', border: isDark ? '1px solid #334155' : '1px solid #e2e8f0', borderRadius: '12px', marginBottom: '20px' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
+                <thead>
+                  <tr style={{ background: isDark ? '#1e293b' : '#f1f5f9', borderBottom: isDark ? '1px solid #334155' : '1px solid #cbd5e1', position: 'sticky', top: 0, zIndex: 1 }}>
+                    <th style={{ padding: '10px 12px', textAlign: 'center', width: '45px' }}>
+                      <input
+                        type="checkbox"
+                        checked={rolloverClients.length > 0 && rolloverClients.every(c => c.selected)}
+                        onChange={e => toggleSelectAllRollover(e.target.checked)}
+                        style={{ cursor: 'pointer' }}
+                      />
+                    </th>
+                    <th style={{ padding: '10px 12px', textAlign: 'left' }}>Continuing Client</th>
+                    <th style={{ padding: '10px 12px', textAlign: 'center', width: '90px' }}>Type</th>
+                    <th style={{ padding: '10px 12px', textAlign: 'center', width: '130px' }}>Planned Reels</th>
+                    <th style={{ padding: '10px 12px', textAlign: 'center', width: '130px' }}>Planned Posts</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rolloverClients.map((c, idx) => (
+                    <tr
+                      key={c.clientName || idx}
+                      style={{
+                        borderBottom: isDark ? '1px solid rgba(255,255,255,0.05)' : '1px solid #f1f5f9',
+                        background: c.selected ? (isDark ? 'rgba(99, 102, 241, 0.08)' : 'rgba(99, 102, 241, 0.04)') : 'transparent',
+                        transition: 'background 0.15s'
+                      }}
+                    >
+                      <td style={{ padding: '10px 12px', textAlign: 'center' }}>
+                        <input
+                          type="checkbox"
+                          checked={c.selected}
+                          onChange={e => updateRolloverClientField(idx, 'selected', e.target.checked)}
+                          style={{ cursor: 'pointer', width: '16px', height: '16px' }}
+                        />
+                      </td>
+                      <td style={{ padding: '10px 12px', fontWeight: '700', color: 'var(--text-primary)' }}>
+                        <div>{c.clientName}</div>
+                        <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{c.service}</span>
+                      </td>
+                      <td style={{ padding: '10px 12px', textAlign: 'center' }}>
+                        <span style={{
+                          padding: '2px 8px',
+                          borderRadius: '9999px',
+                          fontSize: '0.68rem',
+                          fontWeight: '800',
+                          background: c.type === 'DM' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(99, 102, 241, 0.15)',
+                          color: c.type === 'DM' ? '#34d399' : '#818cf8'
+                        }}>
+                          {c.type}
+                        </span>
+                      </td>
+                      <td style={{ padding: '10px 12px', textAlign: 'center' }}>
+                        <input
+                          type="number"
+                          min="0"
+                          value={c.reelsPlanned}
+                          onChange={e => updateRolloverClientField(idx, 'reelsPlanned', e.target.value)}
+                          disabled={!c.selected}
+                          className="form-input"
+                          style={{ width: '80px', margin: '0 auto', textAlign: 'center', fontSize: '0.82rem', padding: '4px 6px' }}
+                        />
+                      </td>
+                      <td style={{ padding: '10px 12px', textAlign: 'center' }}>
+                        <input
+                          type="number"
+                          min="0"
+                          value={c.postsPlanned}
+                          onChange={e => updateRolloverClientField(idx, 'postsPlanned', e.target.value)}
+                          disabled={!c.selected}
+                          className="form-input"
+                          style={{ width: '80px', margin: '0 auto', textAlign: 'center', fontSize: '0.82rem', padding: '4px 6px' }}
+                        />
+                      </td>
+                    </tr>
+                  ))}
+                  {rolloverClients.length === 0 && (
+                    <tr>
+                      <td colSpan="5" style={{ padding: '24px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                        No clients found in current view.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Footer with Actions */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+              <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
+                Continuing Clients: <strong style={{ color: '#818cf8' }}>{rolloverClients.filter(c => c.selected).length}</strong> of {rolloverClients.length}
+              </div>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowRolloverModal(false)}
+                  className="btn btn-secondary"
+                  style={{ padding: '8px 16px', fontSize: '0.82rem' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleExecuteRollover}
+                  className="btn gradient-btn-primary"
+                  style={{
+                    padding: '8px 20px',
+                    fontSize: '0.85rem',
+                    fontWeight: '800',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px'
+                  }}
+                >
+                  <span>Carry Forward {rolloverClients.filter(c => c.selected).length} Clients to {MONTH_NAMES[rolloverTargetMonth - 1]}</span>
+                  <ArrowRight style={{ width: '15px', height: '15px' }} />
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      )}
+        </>
       )}
 
     </div>

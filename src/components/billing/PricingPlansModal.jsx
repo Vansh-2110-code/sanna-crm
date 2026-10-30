@@ -56,7 +56,7 @@ const PricingPlansModal = ({ isOpen, onClose, seatLimitAlert = false }) => {
                 tenantId: activeTenant?.id,
                 plan: planName
               });
-              alert(`🎉 Success! Your subscription has been upgraded to ${planName} (${maxSeats} Seats).`);
+              alert(`Success! Your subscription has been upgraded to ${planName} (${maxSeats} Seats).`);
               onClose();
             } catch (err) {
               alert('Payment verification failed: ' + (err.message || 'Error verifying transaction'));
@@ -86,7 +86,7 @@ const PricingPlansModal = ({ isOpen, onClose, seatLimitAlert = false }) => {
             tenantId: activeTenant?.id,
             plan: planName
           });
-          alert(`🎉 Instant Upgrade Complete! Upgraded to ${planName} (${maxSeats} Seats).`);
+          alert(`Instant Upgrade Complete! Upgraded to ${planName} (${maxSeats} Seats).`);
           onClose();
         }
       }

@@ -223,8 +223,9 @@ Based on lead profile ${selectedLead?.name} (${selectedLead?.company}), we recom
             </form>
 
             {isThinking && (
-              <div style={{ marginTop: '12px', fontSize: '0.8rem', color: '#a855f7', fontWeight: '700' }}>
-                ⚡ AI is analyzing lead parameters...
+              <div style={{ marginTop: '12px', fontSize: '0.8rem', color: '#a855f7', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <Zap style={{ width: '14px', height: '14px' }} />
+                <span>AI is analyzing lead parameters...</span>
               </div>
             )}
 

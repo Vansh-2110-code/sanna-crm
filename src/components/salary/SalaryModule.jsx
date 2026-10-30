@@ -2,17 +2,19 @@ import React, { useState, useMemo } from 'react';
 import { useCRM } from '../../context/CRMContext';
 import AttendanceTracker from './AttendanceTracker';
 import LoginSessionsVault from '../security/LoginSessionsVault';
+import CompanyHolidayWidget from '../dashboard/CompanyHolidayWidget';
 import { numberToWordsINR } from '../../utils/numberToWords';
 import {
   DollarSign, Calendar, Download, Eye, CheckCircle2,
   Users, TrendingUp, FileText, Wallet, BadgeIndianRupee,
   Clock, PlusCircle, Printer, CheckSquare, Upload, ShieldCheck,
-  HeartPulse, Sparkles, Shield, Info, Palmtree, UserCheck
+  HeartPulse, Sparkles, Shield, Info, Palmtree, UserCheck, Edit2,
+  CalendarDays
 } from 'lucide-react';
 
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
-const SalaryModule = () => {
+const SalaryModule = ({ onNavigate }) => {
   const {
     employees = [],
     activeTenant,
@@ -272,12 +274,33 @@ const SalaryModule = () => {
           )}
 
           <button
-            onClick={() => setActiveView('sessions')}
+            onClick={() => {
+              if (onNavigate) {
+                onNavigate('daily-logs');
+                setTimeout(() => {
+                  window.dispatchEvent(new CustomEvent('open-submit-work-log'));
+                }, 50);
+              } else {
+                setActiveView('sessions');
+              }
+            }}
             className={`btn ${activeView === 'sessions' ? 'gradient-btn-primary' : 'btn-secondary'}`}
-            style={{ padding: '10px 16px', fontSize: '0.8rem' }}
+            style={{ padding: '10px 16px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '8px' }}
           >
-            <Clock style={{ width: '16px', height: '16px' }} /> {isManagerOrAdmin ? 'Daily Login/Logout Times' : 'Upload Logs & Work Clock'}
+            <Clock style={{ width: '16px', height: '16px' }} />
+            <span>Upload Logs & Work Clock</span>
           </button>
+
+          {isManagerOrAdmin && (
+            <button
+              onClick={() => setActiveView('sessions')}
+              className={`btn ${activeView === 'sessions' ? 'gradient-btn-primary' : 'btn-secondary'}`}
+              style={{ padding: '10px 16px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '8px' }}
+            >
+              <Clock style={{ width: '16px', height: '16px' }} />
+              <span>Daily Login/Logout Times</span>
+            </button>
+          )}
 
           <button
             onClick={() => setActiveView('attendance')}
@@ -285,6 +308,14 @@ const SalaryModule = () => {
             style={{ padding: '10px 16px', fontSize: '0.8rem' }}
           >
             <CheckSquare style={{ width: '16px', height: '16px' }} /> {isManagerOrAdmin ? '31-Day Attendance' : 'Attendance Register'}
+          </button>
+
+          <button
+            onClick={() => setActiveView('holidays')}
+            className={`btn ${activeView === 'holidays' ? 'gradient-btn-primary' : 'btn-secondary'}`}
+            style={{ padding: '10px 16px', fontSize: '0.8rem' }}
+          >
+            <CalendarDays style={{ width: '16px', height: '16px' }} /> Company Holidays
           </button>
 
           {isManagerOrAdmin && (
@@ -432,9 +463,10 @@ const SalaryModule = () => {
                       setNewSalaryVal(emp.basicSalary);
                     }}
                     className="btn btn-secondary"
-                    style={{ padding: '6px 12px', fontSize: '0.75rem', borderRadius: '8px', color: '#818cf8', borderColor: 'rgba(99,102,241,0.3)' }}
+                    style={{ padding: '6px 12px', fontSize: '0.75rem', borderRadius: '8px', color: '#818cf8', borderColor: 'rgba(99,102,241,0.3)', display: 'flex', alignItems: 'center', gap: '4px' }}
                   >
-                    ✏️ Edit Salary
+                    <Edit2 style={{ width: '12px', height: '12px' }} />
+                    <span>Edit Salary</span>
                   </button>
                 )}
               </div>
@@ -455,6 +487,11 @@ const SalaryModule = () => {
         <div className="glass-panel" style={{ padding: '20px' }}>
           <LoginSessionsVault />
         </div>
+      )}
+
+      {/* Universal Company Holiday Calendar View */}
+      {activeView === 'holidays' && (
+        <CompanyHolidayWidget />
       )}
 
       {/* Leave Quota & Balance Vault View (12 Medical + 12 Casual Leaves) */}
@@ -544,7 +581,9 @@ const SalaryModule = () => {
                 {/* Medical Leave Meter */}
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '0.78rem' }}>
-                    <span style={{ color: '#60a5fa', fontWeight: '700' }}>🏥 Medical Leave (ML)</span>
+                    <span style={{ color: '#60a5fa', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                      <HeartPulse style={{ width: '13px', height: '13px' }} /> Medical Leave (ML)
+                    </span>
                     <span style={{ fontWeight: '800', color: 'var(--text-primary)' }}>
                       {emp.remML} / 12 Remaining <span style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>({emp.annualMLUsed} used)</span>
                     </span>
@@ -563,7 +602,9 @@ const SalaryModule = () => {
                 {/* Casual Leave Meter */}
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '0.78rem' }}>
-                    <span style={{ color: '#38bdf8', fontWeight: '700' }}>🌴 Casual Leave (CL)</span>
+                    <span style={{ color: '#38bdf8', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                      <Palmtree style={{ width: '13px', height: '13px' }} /> Casual Leave (CL)
+                    </span>
                     <span style={{ fontWeight: '800', color: 'var(--text-primary)' }}>
                       {emp.remCL} / 12 Remaining <span style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>({emp.annualCLUsed} used)</span>
                     </span>

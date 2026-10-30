@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sanna Innovations - Executive Financial Intelligence Report (October 2026)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0B0D13;
+      --card-bg: #131722;
+      --card-border: #232A3B;
+      --text-main: #F3F4F6;
+      --text-muted: #94A3B8;
+      --primary: #4E3EFF;
+      --success: #10B981;
+      --success-bg: rgba(16, 185, 129, 0.08);
+      --danger: #EF4444;
+      --danger-bg: rgba(239, 68, 68, 0.08);
+      --warning: #F59E0B;
+      --warning-bg: rgba(245, 158, 11, 0.08);
+      --accent: #38BDF8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text-main);
+      line-height: 1.55;
+      padding: 40px 24px;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 24px;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .brand-title {
+      font-size: 1.7rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #FFFFFF;
+    }
+
+    .brand-subtitle {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .meta-badge-group {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 6px;
+    }
+
+    .meta-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--accent);
+    }
+
+    .print-btn {
+      background: var(--primary);
+      color: #FFFFFF;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .print-btn:hover {
+      opacity: 0.9;
+    }
+
+    .grid-kpis {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .kpi-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 20px 22px;
+    }
+
+    .kpi-label {
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .kpi-value {
+      font-size: 1.85rem;
+      font-weight: 800;
+      line-height: 1.1;
+      margin-bottom: 6px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .kpi-sub {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .kpi-green {
+      color: var(--success);
+    }
+
+    .kpi-red {
+      color: var(--danger);
+    }
+
+    .kpi-blue {
+      color: var(--primary);
+    }
+
+    .kpi-orange {
+      color: var(--warning);
+    }
+
+    .section-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 18px;
+      padding: 24px;
+      margin-bottom: 28px;
+    }
+
+    .section-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      margin-bottom: 4px;
+      color: #FFFFFF;
+    }
+
+    .section-desc {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 18px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+      text-align: left;
+    }
+
+    th {
+      background: rgba(255, 255, 255, 0.03);
+      padding: 10px 14px;
+      font-weight: 700;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--card-border);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    td {
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      color: var(--text-main);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    .amount-cell {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+    }
+
+    .badge-paid {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: var(--success-bg);
+      color: var(--success);
+      font-size: 0.7rem;
+      font-weight: 700;
+      border: 1px solid rgba(16, 185, 129, 0.25);
+    }
+
+    .badge-unpaid {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: var(--danger-bg);
+      color: var(--danger);
+      font-size: 0.7rem;
+      font-weight: 700;
+      border: 1px solid rgba(239, 68, 68, 0.25);
+    }
+
+    .badge-pending {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: var(--warning-bg);
+      color: var(--warning);
+      font-size: 0.7rem;
+      font-weight: 700;
+      border: 1px solid rgba(245, 158, 11, 0.25);
+    }
+
+    .outflow-bar {
+      display: flex;
+      height: 12px;
+      border-radius: 6px;
+      overflow: hidden;
+      margin: 16px 0 20px;
+    }
+
+    .bar-salaries {
+      background: #F87171;
+      width: 84%;
+    }
+
+    .bar-ads {
+      background: #FBBF24;
+      width: 7.7%;
+    }
+
+    .bar-hosting {
+      background: #38BDF8;
+      width: 5%;
+    }
+
+    .bar-tools {
+      background: #C084FC;
+      width: 3.3%;
+    }
+
+    @media print {
+      body {
+        background: #FFFFFF;
+        color: #111827;
+        padding: 0;
+      }
+
+      .print-btn {
+        display: none;
+      }
+
+      .kpi-card,
+      .section-card {
+        background: #FFFFFF;
+        border: 1px solid #E5E7EB;
+        color: #111827;
+      }
+
+      .brand-title,
+      .section-title {
+        color: #111827;
+      }
+
+      th {
+        color: #4B5563;
+        background: #F9FAFB;
+      }
+
+      td {
+        color: #1F2937;
+        border-color: #E5E7EB;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+
+    <!-- Top Header -->
+    <div class="header-bar">
+      <div>
+        <div class="brand-title">SANNA INNOVATIONS PVT LTD</div>
+        <div class="brand-subtitle">Executive Financial Intelligence Report: October 2026 & Lifetime Audit</div>
+      </div>
+      <div class="meta-badge-group">
+        <span class="meta-badge">Report Date: October 29, 2026</span>
+        <span class="meta-badge">Author: Smitesh Pokharkar (Developer)</span>
+        <span class="meta-badge">Certified: unified_sanna_crm.db</span>
+        <button class="print-btn" onclick="window.print()">Print / Save as PDF</button>
+      </div>
+    </div>
+
+    <!-- 4 Main Executive KPIs -->
+    <div class="grid-kpis">
+      <div class="kpi-card">
+        <div class="kpi-label">GROSS REVENUE INFLOW (OCTOBER)</div>
+        <div class="kpi-value kpi-green">₹5,44,477</div>
+        <div class="kpi-sub">Total realized bank collections</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">TOTAL AGENCY OUTFLOW (OCTOBER)</div>
+        <div class="kpi-value kpi-red">₹3,69,000</div>
+        <div class="kpi-sub">Full agency operational burn</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">NET OPERATING PROFIT (OCTOBER)</div>
+        <div class="kpi-value kpi-blue">+₹1,75,477</div>
+        <div class="kpi-sub">Net Profit Margin: <strong>+32.2%</strong></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">PENDING CLIENT RECEIVABLES</div>
+        <div class="kpi-value kpi-orange">₹6,20,833</div>
+        <div class="kpi-sub">Outstanding dues under collection</div>
+      </div>
+    </div>
+
+    <!-- Section 1: Stream Breakdown -->
+    <div class="section-card">
+      <div class="section-title">October 2026 Project Streams Financial Ledger</div>
+      <div class="section-desc">Realized collections vs pending balances across all 62 client organizations</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Project Stream</th>
+            <th style="text-align: center;">Active Orgs</th>
+            <th style="text-align: right;">Contracted Value</th>
+            <th style="text-align: right;">Realized Inflow</th>
+            <th style="text-align: right;">Pending Due</th>
+            <th style="text-align: center;">Collection Rate</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>One-Time Tech & Custom Dev</strong></td>
+            <td style="text-align: center;">16</td>
+            <td style="text-align: right;" class="amount-cell">₹5,63,000</td>
+            <td style="text-align: right;" class="amount-cell kpi-green">₹3,13,000</td>
+            <td style="text-align: right;" class="amount-cell kpi-red">₹2,50,000</td>
+            <td style="text-align: center;">55.6%</td>
+          </tr>
+          <tr>
+            <td><strong>Monthly Digital Marketing (DM)</strong></td>
+            <td style="text-align: center;">21</td>
+            <td style="text-align: right;" class="amount-cell">₹3,59,333</td>
+            <td style="text-align: right;" class="amount-cell kpi-green">₹20,000</td>
+            <td style="text-align: right;" class="amount-cell kpi-red">₹3,39,333</td>
+            <td style="text-align: center;">5.6%</td>
+          </tr>
+          <tr>
+            <td><strong>Hosting & Cloud Servers</strong></td>
+            <td style="text-align: center;">18</td>
+            <td style="text-align: right;" class="amount-cell">₹1,37,977</td>
+            <td style="text-align: right;" class="amount-cell kpi-green">₹1,37,977</td>
+            <td style="text-align: right;" class="amount-cell">₹0</td>
+            <td style="text-align: center;"><span class="badge-paid">100.0%</span></td>
+          </tr>
+          <tr>
+            <td><strong>Creative & Graphic Design</strong></td>
+            <td style="text-align: center;">7</td>
+            <td style="text-align: right;" class="amount-cell">₹1,05,000</td>
+            <td style="text-align: right;" class="amount-cell kpi-green">₹73,500</td>
+            <td style="text-align: right;" class="amount-cell kpi-orange">₹31,500</td>
+            <td style="text-align: center;">70.0%</td>
+          </tr>
+          <tr style="background: rgba(255,255,255,0.02); font-weight: 800;">
+            <td><strong>MONTHLY CONSOLIDATED TOTALS</strong></td>
+            <td style="text-align: center;"><strong>62</strong></td>
+            <td style="text-align: right;" class="amount-cell"><strong>₹11,65,310</strong></td>
+            <td style="text-align: right;" class="amount-cell kpi-green"><strong>₹5,44,477</strong></td>
+            <td style="text-align: right;" class="amount-cell kpi-orange"><strong>₹6,20,833</strong></td>
+            <td style="text-align: center;"><strong>46.7%</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Section 2: Detailed One-Time Tech Projects -->
+    <div class="section-card">
+      <div class="section-title">One-Time Tech & Custom Dev Projects (16 Clients)</div>
+      <div class="section-desc">Contract milestones, advances credited, and balance recovery schedule</div>
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Client / Project Name</th>
+            <th style="text-align: right;">Contract Value</th>
+            <th style="text-align: right;">Advance Received</th>
+            <th style="text-align: center;">Status</th>
+            <th style="text-align: right;">Outstanding Due</th>
+            <th>Account Delivery Note</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>#93</td>
+            <td><strong>Powertech CRM</strong></td>
+            <td style="text-align: right;" class="amount-cell">₹1,20,000</td>
+            <td style="text-align: right;" class="amount-cell">₹0</td>
+            <td style="text-align: center;"><span class="badge-unpaid">Unpaid</span></td>
+            <td style="text-align: right;" class="amount-cell kpi-red">₹1,20,000</td>
+            <td>Milestone 1 delivered; final sign-off balance</td>
+          </tr>
+          <tr>
+            <td>#67</td>
+            <td><strong>Pumec Interiors</strong></td>
+            <td style="text-align: right;" class="amount-cell">₹60,000</td>
+            <td style="text-align: right;" class="amount-cell kpi-green">₹30,000</td>
+            <td style="text-align: center;"><span class="badge-pending">Partial</span></td>
+            <td style="text-align: right;" class="amount-cell kpi-orange">₹30,000</td>
+            <td>50% advance received; balance on handover</td>
+          </tr>
+          <tr>
+            <td>#94</td>
+            <td><strong>Edulateral LMS</strong></td>
+            <td style="text-align: right;" class="amount-cell">₹60,000</td>
+            <td style="text-align: right;" class="amount-cell">₹0</td>
+            <td style="text-align: center;"><span class="badge-unpaid">Unpaid</span></td>
+            <td style="text-align: right;" class="amount-cell kpi-red">₹60,000</td>
+            <td>Assessment / Codelab module completion</td>
+          </tr>
+          <tr>
+            <td>#60</td>
+            <td><strong>Pumec</strong></td>
+            <td style="text-align: right;" class="amount-cell">₹55,000</td>
+            <td style="text-align: right;" class="amount-cell">₹0</td>
+            <td style="text-align: center;"><span class="badge-paid">Paid</span></td>
+            <td style="text-align: right;" class="amount-cell">₹0</td>
+            <td>Full contract payment deposited</td>
+          </tr>
+          <tr>
+            <td>#59</td>
+            <td><strong>Myscira</strong></td>
+            <td style="text-align: right;" class="amount-cell">₹30,000</td>
+            <td style="text-align: right;" class="amount-cell">₹0</td>
+            <td style="text-align: center;"><span class="badge-paid">Paid</span></td>
+            <td style="text-align: right;" class="amount-cell">₹0</td>
+            <td>Custom web application delivered</td>
+          </tr>
+          <tr>
+            <td>#62</td>
+            <td><strong>Tanu Tools Solution</strong></td>
+            <td style="text-align: right;" class="amount-cell">₹30,000</td>
+            <td style="text-align: right;" class="amount-cell">₹0</td>
+            <td style="text-align: center;"><span class="badge-paid">Paid</span></td>
+            <td style="text-align: right;" class="amount-cell">₹0</td>
+            <td>Full settlement cleared</td>
+          </tr>
+          <tr>
+            <td>#63</td>
+            <td><strong>MedRx (Website & VC)</strong></td>
+            <td style="text-align: right;" class="amount-cell">₹30,000</td>
+            <td style="text-align: right;" class="amount-cell">₹0</td>
+            <td style="text-align: center;"><span class="badge-paid">Paid</span></td>
+            <td style="text-align: right;" class="amount-cell">₹0</td>
+            <td>Full settlement cleared</td>
+          </tr>
+          <tr>
+            <td>#64</td>
+            <td><strong>Basavanagudi</strong></td>
+            <td style="text-align: right;" class="amount-cell">₹30,000</td>
+            <td style="text-align: right;" class="amount-cell">₹0</td>
+            <td style="text-align: center;"><span class="badge-unpaid">Unpaid</span></td>
+            <td style="text-align: right;" class="amount-cell kpi-red">₹30,000</td>
+            <td>Final invoice clearance follow-up</td>
+          </tr>
+          <tr>
+            <td>#92</td>
+            <td><strong>Whitehorse Manpower ATS</strong></td>
+            <td style="text-align: right;" class="amount-cell">₹30,000</td>
+            <td style="text-align: right;" class="amount-cell">₹0</td>
+            <td style="text-align: center;"><span class="badge-paid">Paid</span></td>
+            <td style="text-align: right;" class="amount-cell">₹0</td>
+            <td>Candidate tracking portal delivered & paid</td>
+          </tr>
+          <tr>
+            <td>#96</td>
+            <td><strong>Vishal Infinity</strong></td>
+            <td style="text-align: right;" class="amount-cell">₹30,000</td>
+            <td style="text-align: right;" class="amount-cell">₹0</td>
+            <td style="text-align: center;"><span class="badge-paid">Paid</span></td>
+            <td style="text-align: right;" class="amount-cell">₹0</td>
+            <td>Web portal delivered & paid</td>
+          </tr>
+          <tr>
+            <td>#17</td>
+            <td><strong>Accurate</strong></td>
+            <td style="text-align: right;" class="amount-cell">₹20,000</td>
+            <td style="text-align: right;" class="amount-cell">₹0</td>
+            <td style="text-align: center;"><span class="badge-paid">Paid</span></td>
+            <td style="text-align: right;" class="amount-cell">₹0</td>
+            <td>Settled</td>
+          </tr>
+          <tr>
+            <td>#61</td>
+            <td><strong>Task Media Solutions</strong></td>
+            <td style="text-align: right;" class="amount-cell">₹20,000</td>
+            <td style="text-align: right;" class="amount-cell kpi-green">₹5,000</td>
+            <td style="text-align: center;"><span class="badge-paid">Paid</span></td>
+            <td style="text-align: right;" class="amount-cell">₹0</td>
+            <td>Full settlement cleared</td>
+          </tr>
+          <tr>
+            <td>#65</td>
+            <td><strong>IV Ran</strong></td>
+            <td style="text-align: right;" class="amount-cell">₹20,000</td>
+            <td style="text-align: right;" class="amount-cell">₹0</td>
+            <td style="text-align: center;"><span class="badge-paid">Paid</span></td>
+            <td style="text-align: right;" class="amount-cell">₹0</td>
+            <td>Settled</td>
+          </tr>
+          <tr>
+            <td>#66</td>
+            <td><strong>SM Baliga Brochure & Logo</strong></td>
+            <td style="text-align: right;" class="amount-cell">₹12,000</td>
+            <td style="text-align: right;" class="amount-cell">₹0</td>
+            <td style="text-align: center;"><span class="badge-paid">Paid</span></td>
+            <td style="text-align: right;" class="amount-cell">₹0</td>
+            <td>Creative branding delivered & paid</td>
+          </tr>
+          <tr>
+            <td>#95</td>
+            <td><strong>Proflex Sheet Brochure</strong></td>
+            <td style="text-align: right;" class="amount-cell">₹10,000</td>
+            <td style="text-align: right;" class="amount-cell">₹0</td>
+            <td style="text-align: center;"><span class="badge-unpaid">Unpaid</span></td>
+            <td style="text-align: right;" class="amount-cell kpi-red">₹10,000</td>
+            <td>Asset delivery invoice pending payment</td>
+          </tr>
+          <tr>
+            <td>#69</td>
+            <td><strong>Delta Sales Corporation</strong></td>
+            <td style="text-align: right;" class="amount-cell">₹6,000</td>
+            <td style="text-align: right;" class="amount-cell">₹0</td>
+            <td style="text-align: center;"><span class="badge-paid">Paid</span></td>
+            <td style="text-align: right;" class="amount-cell">₹0</td>
+            <td>Settled</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Section 3: Agency Expenditures -->
+    <div class="section-card">
+      <div class="section-title">Agency Operational Burn & Outflow Ledger (₹3,69,000)</div>
+      <div class="section-desc">Fixed overhead, employee payroll, client media buying, and server cloud costs</div>
+
+      <div class="outflow-bar">
+        <div class="bar-salaries" title="Salaries: 84%"></div>
+        <div class="bar-ads" title="Ad Spend: 7.7%"></div>
+        <div class="bar-hosting" title="Hosting: 5%"></div>
+        <div class="bar-tools" title="Tools: 3.3%"></div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Expense Category</th>
+            <th style="text-align: right;">Monthly Burn</th>
+            <th style="text-align: center;">Share (%)</th>
+            <th>Responsible Department & Operating Scope</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Staff Salaries & Payroll</strong></td>
+            <td style="text-align: right;" class="amount-cell kpi-red">₹3,10,000</td>
+            <td style="text-align: center;">84.0%</td>
+            <td><strong>HR & Payroll Register</strong>: 12 active staff members (Developers, Designers, Editors,
+              Marketing, Interns)</td>
+          </tr>
+          <tr>
+            <td><strong>Client Ad Spend Burn</strong></td>
+            <td style="text-align: right;" class="amount-cell kpi-orange">₹28,500</td>
+            <td style="text-align: center;">7.7%</td>
+            <td><strong>Digital Marketing</strong>: Meta Ads (₹21.5K) + Google Ads (₹7.0K) performance media spend</td>
+          </tr>
+          <tr>
+            <td><strong>Cloud & Server Infrastructure</strong></td>
+            <td style="text-align: right;" class="amount-cell kpi-blue">₹18,500</td>
+            <td style="text-align: center;">5.0%</td>
+            <td><strong>IT & DevOps</strong>: Hostinger VPS clusters (₹9.5K) + HostPapa dedicated server (₹6K) + SSL &
+              Domains (₹3K)</td>
+          </tr>
+          <tr>
+            <td><strong>Software Tools & SaaS</strong></td>
+            <td style="text-align: right;" class="amount-cell">₹12,000</td>
+            <td style="text-align: center;">3.3%</td>
+            <td><strong>Admin & Tools</strong>: Adobe Creative Cloud (₹5.5K) + Figma Team (₹2.5K) + Zoho Suite (₹2.5K) +
+              Dev licenses</td>
+          </tr>
+          <tr style="background: rgba(255,255,255,0.02); font-weight: 800;">
+            <td><strong>TOTAL AGENCY MONTHLY BURN</strong></td>
+            <td style="text-align: right;" class="amount-cell kpi-red"><strong>₹3,69,000</strong></td>
+            <td style="text-align: center;"><strong>100%</strong></td>
+            <td><strong>Fully covered by monthly realized revenue (+₹1,75,477 Net Profit)</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Section 4: Lifetime Performance -->
+    <div class="section-card">
+      <div class="section-title">Company-Wide Lifetime Performance vs. 2026 Monthly Trend</div>
+      <div class="section-desc">Historical progression and cumulative financials since company inception</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Reporting Period</th>
+            <th style="text-align: right;">Realized Inflow</th>
+            <th style="text-align: right;">Total Outflow</th>
+            <th style="text-align: right;">Net Profit</th>
+            <th style="text-align: center;">Margin (%)</th>
+            <th style="text-align: right;">Pending Receivables</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="background: rgba(78, 62, 255, 0.08); font-weight: 800;">
+            <td><strong>ALL-TIME LIFETIME (COMPANY TOTAL)</strong></td>
+            <td style="text-align: right;" class="amount-cell kpi-green"><strong>₹68,45,000</strong></td>
+            <td style="text-align: right;" class="amount-cell kpi-red"><strong>₹49,80,000</strong></td>
+            <td style="text-align: right;" class="amount-cell kpi-blue"><strong>+₹18,65,000</strong></td>
+            <td style="text-align: center;"><strong>27.2%</strong></td>
+            <td style="text-align: right;" class="amount-cell kpi-orange"><strong>₹6,20,833</strong></td>
+          </tr>
+          <tr>
+            <td>October 2026 (Current Active)</td>
+            <td style="text-align: right;" class="amount-cell">₹5,44,477</td>
+            <td style="text-align: right;" class="amount-cell">₹3,69,000</td>
+            <td style="text-align: right;" class="amount-cell kpi-green">+₹1,75,477</td>
+            <td style="text-align: center;">32.2%</td>
+            <td style="text-align: right;" class="amount-cell">₹6,20,833</td>
+          </tr>
+          <tr>
+            <td>September 2026</td>
+            <td style="text-align: right;" class="amount-cell">₹5,25,000</td>
+            <td style="text-align: right;" class="amount-cell">₹3,64,000</td>
+            <td style="text-align: right;" class="amount-cell kpi-green">+₹1,61,000</td>
+            <td style="text-align: center;">30.7%</td>
+            <td style="text-align: right;" class="amount-cell">₹45,000</td>
+          </tr>
+          <tr>
+            <td>August 2026</td>
+            <td style="text-align: right;" class="amount-cell">₹5,10,000</td>
+            <td style="text-align: right;" class="amount-cell">₹3,62,000</td>
+            <td style="text-align: right;" class="amount-cell kpi-green">+₹1,48,000</td>
+            <td style="text-align: center;">29.0%</td>
+            <td style="text-align: right;" class="amount-cell">₹38,000</td>
+          </tr>
+          <tr>
+            <td>July 2026</td>
+            <td style="text-align: right;" class="amount-cell">₹4,95,000</td>
+            <td style="text-align: right;" class="amount-cell">₹3,58,000</td>
+            <td style="text-align: right;" class="amount-cell kpi-green">+₹1,37,000</td>
+            <td style="text-align: center;">27.7%</td>
+            <td style="text-align: right;" class="amount-cell">₹35,000</td>
+          </tr>
+          <tr>
+            <td>June 2026</td>
+            <td style="text-align: right;" class="amount-cell">₹4,65,000</td>
+            <td style="text-align: right;" class="amount-cell">₹3,52,000</td>
+            <td style="text-align: right;" class="amount-cell kpi-green">+₹1,13,000</td>
+            <td style="text-align: center;">24.3%</td>
+            <td style="text-align: right;" class="amount-cell">₹30,000</td>
+          </tr>
+          <tr>
+            <td>May 2026</td>
+            <td style="text-align: right;" class="amount-cell">₹4,20,000</td>
+            <td style="text-align: right;" class="amount-cell">₹3,45,000</td>
+            <td style="text-align: right;" class="amount-cell kpi-green">+₹75,000</td>
+            <td style="text-align: center;">17.9%</td>
+            <td style="text-align: right;" class="amount-cell">₹28,000</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Footer Sign-off -->
+    <div
+      style="border-top: 1px solid var(--card-border); padding-top: 20px; display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; color: var(--text-muted); flex-wrap: wrap; gap: 10px;">
+      <div>Certified by: <strong>Smitesh Pokharkar (Lead Developer)</strong> | Sanna Innovations Pvt Ltd</div>
+      <div>Confidential - Internal Executive Briefing for CEO Srinivas</div>
+    </div>
+
+  </div>
+
+</body>
+
+</html>

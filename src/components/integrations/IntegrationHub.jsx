@@ -1,4 +1,4 @@
-import { Boxes, MessageSquare, Mail, CreditCard, Database, PhoneCall, CheckCircle2, RefreshCw, Plus, Share2, Zap, ExternalLink, Copy, Check, FileText } from 'lucide-react';
+import { Boxes, MessageSquare, Mail, CreditCard, Database, PhoneCall, CheckCircle2, RefreshCw, Plus, Share2, Zap, ExternalLink, Copy, Check, FileText, Settings, BookOpen } from 'lucide-react';
 
 const ICON_MAP = {
   MessageSquare: MessageSquare,
@@ -214,30 +214,36 @@ const IntegrationHub = () => {
                 style={{
                   flex: 1, padding: '8px 12px', borderRadius: '8px', border: 'none', fontSize: '0.8rem', fontWeight: '700', cursor: 'pointer',
                   background: metaTab === 'config' ? 'var(--accent-blue)' : 'transparent',
-                  color: metaTab === 'config' ? '#fff' : 'var(--text-muted)'
+                  color: metaTab === 'config' ? '#fff' : 'var(--text-muted)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px'
                 }}
               >
-                ⚙️ API Credentials & Webhook URL
+                <Settings style={{ width: '13px', height: '13px' }} />
+                <span>API Credentials & Webhook URL</span>
               </button>
               <button
                 onClick={() => setMetaTab('test')}
                 style={{
                   flex: 1, padding: '8px 12px', borderRadius: '8px', border: 'none', fontSize: '0.8rem', fontWeight: '700', cursor: 'pointer',
                   background: metaTab === 'test' ? '#10b981' : 'transparent',
-                  color: metaTab === 'test' ? '#fff' : 'var(--text-muted)'
+                  color: metaTab === 'test' ? '#fff' : 'var(--text-muted)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px'
                 }}
               >
-                ⚡ Live Webhook Simulator
+                <Zap style={{ width: '13px', height: '13px' }} />
+                <span>Live Webhook Simulator</span>
               </button>
               <button
                 onClick={() => setMetaTab('guide')}
                 style={{
                   flex: 1, padding: '8px 12px', borderRadius: '8px', border: 'none', fontSize: '0.8rem', fontWeight: '700', cursor: 'pointer',
                   background: metaTab === 'guide' ? '#f59e0b' : 'transparent',
-                  color: metaTab === 'guide' ? '#fff' : 'var(--text-muted)'
+                  color: metaTab === 'guide' ? '#fff' : 'var(--text-muted)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px'
                 }}
               >
-                📖 Step-by-Step Setup Guide
+                <BookOpen style={{ width: '13px', height: '13px' }} />
+                <span>Step-by-Step Setup Guide</span>
               </button>
             </div>
 
@@ -246,7 +252,7 @@ const IntegrationHub = () => {
               <div>
                 <div style={{ background: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.3)', padding: '14px', borderRadius: '12px', marginBottom: '16px' }}>
                   <div style={{ fontSize: '0.8rem', fontWeight: '700', color: '#60a5fa', marginBottom: '4px' }}>
-                    🔗 Meta Webhook Callback Endpoint URL (Enter this in Meta Developer Console)
+                    Meta Webhook Callback Endpoint URL (Enter this in Meta Developer Console)
                   </div>
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                     <code style={{ flex: 1, background: 'var(--bg-input)', padding: '8px 12px', borderRadius: '6px', fontSize: '0.8rem', color: '#34d399', fontWeight: '700' }}>
@@ -388,7 +394,7 @@ const IntegrationHub = () => {
                   
                   <div className="glass-card" style={{ padding: '16px', borderLeft: '4px solid #1877f2' }}>
                     <div style={{ fontWeight: '800', fontSize: '0.95rem', color: '#1877f2', marginBottom: '6px' }}>
-                      1️⃣ Step 1: Create a Meta Developer App
+                      Step 1: Create a Meta Developer App
                     </div>
                     <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                       Log into <strong>developers.facebook.com</strong>, click <strong>Create App</strong>, choose <strong>Other &gt; Business</strong> as the app type, and name your app (e.g. <code>Sanna CRM Intake</code>).
@@ -397,7 +403,7 @@ const IntegrationHub = () => {
 
                   <div className="glass-card" style={{ padding: '16px', borderLeft: '4px solid #10b981' }}>
                     <div style={{ fontWeight: '800', fontSize: '0.95rem', color: '#10b981', marginBottom: '6px' }}>
-                      2️⃣ Step 2: Subscribe to Webhooks ('leadgen')
+                      Step 2: Subscribe to Webhooks ('leadgen')
                     </div>
                     <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5, marginBottom: '8px' }}>
                       Go to App Dashboard &gt; <strong>Webhooks</strong> &gt; <strong>Page</strong>. Set Callback URL to:
@@ -412,7 +418,7 @@ const IntegrationHub = () => {
 
                   <div className="glass-card" style={{ padding: '16px', borderLeft: '4px solid #8b5cf6' }}>
                     <div style={{ fontWeight: '800', fontSize: '0.95rem', color: '#8b5cf6', marginBottom: '6px' }}>
-                      3️⃣ Step 3: Generate System User Access Token
+                      Step 3: Generate System User Access Token
                     </div>
                     <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                       In <strong>business.facebook.com/settings</strong>, create an Admin System User, assign your Facebook Page, and click <strong>Generate Token</strong> with <code>leads_retrieval</code> and <code>pages_read_engagement</code> permissions.
@@ -421,7 +427,7 @@ const IntegrationHub = () => {
 
                   <div className="glass-card" style={{ padding: '16px', borderLeft: '4px solid #f59e0b' }}>
                     <div style={{ fontWeight: '800', fontSize: '0.95rem', color: '#f59e0b', marginBottom: '6px' }}>
-                      4️⃣ Step 4: Test with Meta's Lead Ads Testing Tool
+                      Step 4: Test with Meta's Lead Ads Testing Tool
                     </div>
                     <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5, marginBottom: '8px' }}>
                       Open <strong>developers.facebook.com/tools/lead-ads-testing</strong>, pick your Page &amp; Form, click <strong>Create Lead</strong>, then click <strong>Track Status</strong> to verify <code>200 OK</code> response.

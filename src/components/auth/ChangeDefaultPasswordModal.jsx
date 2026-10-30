@@ -96,9 +96,33 @@ const ChangeDefaultPasswordModal = ({ isOpen, onClose, onPasswordChanged }) => {
           background: 'linear-gradient(90deg, #6366f1 0%, #a855f7 50%, #38bdf8 100%)'
         }} />
 
-        <div style={{ padding: '28px 32px 32px 32px' }}>
+        <div style={{ padding: '28px 32px 32px 32px', position: 'relative' }}>
+          {/* Close button */}
+          <button
+            onClick={onClose}
+            type="button"
+            style={{
+              position: 'absolute',
+              top: '20px',
+              right: '20px',
+              background: 'rgba(255, 255, 255, 0.06)',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
+              borderRadius: '10px',
+              color: '#94A3B8',
+              cursor: 'pointer',
+              padding: '6px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 0.15s ease'
+            }}
+            title="Close"
+          >
+            <X style={{ width: '16px', height: '16px' }} />
+          </button>
+
           {/* Header Icon & Title */}
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px', marginBottom: '20px' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px', marginBottom: '20px', paddingRight: '36px' }}>
             <div style={{
               width: '48px',
               height: '48px',
@@ -121,7 +145,7 @@ const ChangeDefaultPasswordModal = ({ isOpen, onClose, onPasswordChanged }) => {
                 margin: 0,
                 letterSpacing: '-0.01em'
               }}>
-                Update Default Password
+                Change Account Password
               </h2>
               <p style={{
                 fontSize: '0.82rem',
@@ -129,7 +153,7 @@ const ChangeDefaultPasswordModal = ({ isOpen, onClose, onPasswordChanged }) => {
                 margin: '4px 0 0 0',
                 lineHeight: 1.4
               }}>
-                Welcome, <strong style={{ color: '#e2e8f0' }}>{currentUser?.name || currentUser?.username}</strong>! Please change your initial default password for account security.
+                Update password for <strong style={{ color: '#e2e8f0' }}>{currentUser?.name || currentUser?.username}</strong>. Choose a strong, secure password.
               </p>
             </div>
           </div>
