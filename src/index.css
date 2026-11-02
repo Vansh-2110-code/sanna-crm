@@ -486,8 +486,9 @@ body {
   border-bottom: none;
 }
 
-/* Modal Overlay */
-.modal-overlay {
+/* Modal Overlay & Backdrop */
+.modal-overlay,
+.modal-backdrop {
   position: fixed;
   top: 0;
   left: 0;
@@ -497,11 +498,11 @@ body {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
   overflow-y: auto;
   z-index: 9999;
-  padding: 85px 20px 40px 20px;
+  padding: 40px 20px;
   box-sizing: border-box;
 }
 

@@ -2365,8 +2365,8 @@ const ProjectDeliverablesHub = () => {
 
             {/* Add One-Time Project Modal */}
             {showAddCreativeModal && (
-              <div className="modal-backdrop" style={{ zIndex: 9999 }}>
-                <div className="glass-panel" style={{ maxWidth: '480px', width: '100%', padding: '24px', borderRadius: '20px', background: 'var(--bg-card)' }}>
+              <div className="modal-backdrop" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.85)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999, padding: '20px' }}>
+                <div className="glass-panel" style={{ maxWidth: '480px', width: '100%', padding: '24px', borderRadius: '20px', background: 'var(--bg-card)', border: '1px solid var(--border-color)', boxShadow: '0 25px 60px rgba(0,0,0,0.75)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                     <h3 style={{ fontSize: '1.2rem', fontWeight: '800', margin: 0, color: 'var(--text-primary)' }}>
                       Add One-Time Graphic Design Project
@@ -2441,8 +2441,8 @@ const ProjectDeliverablesHub = () => {
 
             {/* Edit One-Time Project Modal */}
             {editingCreative && (
-              <div className="modal-backdrop" style={{ zIndex: 9999 }}>
-                <div className="glass-panel" style={{ maxWidth: '480px', width: '100%', padding: '24px', borderRadius: '20px', background: 'var(--bg-card)' }}>
+              <div className="modal-backdrop" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.85)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999, padding: '20px' }}>
+                <div className="glass-panel" style={{ maxWidth: '480px', width: '100%', padding: '24px', borderRadius: '20px', background: 'var(--bg-card)', border: '1px solid var(--border-color)', boxShadow: '0 25px 60px rgba(0,0,0,0.75)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                     <h3 style={{ fontSize: '1.2rem', fontWeight: '800', margin: 0, color: 'var(--text-primary)' }}>
                       Edit Graphic Design Project
@@ -2536,8 +2536,8 @@ const ProjectDeliverablesHub = () => {
 
       {/* Video Rejection / Rework Modal */}
       {rejectionModalItem && (
-        <div className="modal-backdrop" style={{ zIndex: 9999 }}>
-          <div className="glass-panel" style={{ maxWidth: '460px', width: '100%', padding: '24px', borderRadius: '20px', background: 'var(--bg-card)' }}>
+        <div className="modal-backdrop" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.85)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999, padding: '20px' }}>
+          <div className="glass-panel" style={{ maxWidth: '480px', width: '100%', padding: '24px', borderRadius: '20px', background: 'var(--bg-card)', border: '1px solid rgba(239, 68, 68, 0.35)', boxShadow: '0 25px 60px rgba(0,0,0,0.75)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
               <h3 style={{ fontSize: '1.15rem', fontWeight: '800', margin: 0, color: '#f87171', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Video style={{ width: '18px', height: '18px' }} />
