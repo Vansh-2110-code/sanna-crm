@@ -67,7 +67,7 @@ export const REAL_CRM_DATA = {
       "salary": 10000,
       "birthday": "1996-11-04",
       "avatar": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100&auto=format&fit=crop&q=80",
-      "status": "Active"
+      "status": "Disabled"
     },
     {
       "id": "EMP-SANNA-009",
@@ -95,7 +95,7 @@ export const REAL_CRM_DATA = {
       "salary": 12000,
       "birthday": "2003-05-18",
       "avatar": "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=100&auto=format&fit=crop&q=80",
-      "status": "Active"
+      "status": "Disabled"
     },
     {
       "id": "EMP-SANNA-013",
@@ -109,7 +109,7 @@ export const REAL_CRM_DATA = {
       "salary": 12000,
       "birthday": "2003-09-17",
       "avatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80",
-      "status": "Active"
+      "status": "Disabled"
     },
     {
       "id": "EMP-SANNA-014",
@@ -123,7 +123,7 @@ export const REAL_CRM_DATA = {
       "salary": 50000,
       "birthday": "2002-08-22",
       "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80",
-      "status": "Active"
+      "status": "Disabled"
     },
     {
       "id": "EMP-SANNA-015",
@@ -165,7 +165,7 @@ export const REAL_CRM_DATA = {
       "salary": 15000,
       "birthday": "1994-06-21",
       "avatar": "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=100&auto=format&fit=crop&q=80",
-      "status": "Active"
+      "status": "Disabled"
     },
     {
       "id": "EMP-SANNA-023",
@@ -193,7 +193,7 @@ export const REAL_CRM_DATA = {
       "salary": 1000,
       "birthday": "2003-07-30",
       "avatar": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=80",
-      "status": "Active"
+      "status": "Disabled"
     },
     {
       "id": "EMP-SANNA-039",
@@ -203,10 +203,38 @@ export const REAL_CRM_DATA = {
       "designation": "Lead Developer",
       "role": "Lead Software Developer",
       "roleId": "role-dev",
-      "baseSalary": 10000,
-      "salary": 10000,
-      "birthday": "2002-04-14",
+      "baseSalary": 12000,
+      "salary": 12000,
+      "birthday": "2005-08-28",
       "avatar": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&auto=format&fit=crop&q=80",
+      "status": "Active"
+    },
+    {
+      "id": "EMP-SANNA-46350",
+      "name": "NARASIMHA MURTHY",
+      "username": "narsimha",
+      "email": "nmnsimha@gmail.com",
+      "designation": "Sales Executive",
+      "role": "Sales Executive",
+      "roleId": "role-exec",
+      "baseSalary": 45000,
+      "salary": 45000,
+      "birthday": "1983-02-23",
+      "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80",
+      "status": "Active"
+    },
+    {
+      "id": "EMP-SANNA-71920",
+      "name": "Anant Prakash",
+      "username": "anant",
+      "email": "anantprakash50@gmail.com",
+      "designation": "Video Editor",
+      "role": "Video Editor",
+      "roleId": "role-video",
+      "baseSalary": 15000,
+      "salary": 15000,
+      "birthday": "2003-09-01",
+      "avatar": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100&auto=format&fit=crop&q=80",
       "status": "Active"
     }
   ],

@@ -105,7 +105,9 @@ const AttendanceTracker = () => {
   // Combined Staff List (Employees + Active Interns)
   const allStaffList = useMemo(() => {
     let list = [];
-    const empItems = employees.map(e => ({
+    const empItems = employees
+      .filter(e => (e.status || '').toLowerCase() !== 'disabled' && (e.status || '').toLowerCase() !== 'inactive')
+      .map(e => ({
       id: e.id,
       name: e.name,
       type: 'Employee',

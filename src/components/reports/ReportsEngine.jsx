@@ -324,7 +324,8 @@ const ReportsEngine = () => {
 
   // 4. Monthly Payroll & Salary
   const handleExportPayroll = () => {
-    const rows = employees.map(e => {
+    const activeStaff = (employees || []).filter(e => (e.status || '').toLowerCase() !== 'disabled' && (e.status || '').toLowerCase() !== 'inactive');
+    const rows = activeStaff.map(e => {
       const base = e.baseSalary || e.salary || 50000;
       const gross = Math.round(base * 1.6);
       const deductions = Math.round(gross * 0.22);
@@ -346,8 +347,9 @@ const ReportsEngine = () => {
   // 5. 31-Day Attendance & LOP Register
   const handleExportAttendance = () => {
     const rows = [];
+    const activeStaff = (employees || []).filter(e => (e.status || '').toLowerCase() !== 'disabled' && (e.status || '').toLowerCase() !== 'inactive');
     const allStaff = [
-      ...employees.map(e => ({ id: e.id, name: e.name, type: 'Employee' })),
+      ...activeStaff.map(e => ({ id: e.id, name: e.name, type: 'Employee' })),
       ...interns.map(i => ({ id: i.id, name: `${i.name} (Intern)`, type: 'Intern' }))
     ];
 
@@ -604,7 +606,7 @@ const ReportsEngine = () => {
       category: 'hr',
       icon: Wallet,
       color: '#f59e0b',
-      recordsCount: employees.length,
+      recordsCount: (employees || []).filter(e => (e.status || '').toLowerCase() !== 'disabled').length,
       description: 'Base salary, gross earnings, statutory PF/ESI/TDS deductions, and net payouts.',
       onExport: handleExportPayroll
     },
@@ -614,7 +616,7 @@ const ReportsEngine = () => {
       category: 'hr',
       icon: Calendar,
       color: '#06b6d4',
-      recordsCount: employees.length + interns.length,
+      recordsCount: (employees || []).filter(e => (e.status || '').toLowerCase() !== 'disabled').length + interns.length,
       description: 'Daily P/A/HD/LOP matrix entries, leave types, and loss of pay deduction math.',
       onExport: handleExportAttendance
     },

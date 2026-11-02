@@ -3228,8 +3228,8 @@ export const CRMProvider = ({ children }) => {
   }, [kycDocumentsQuery.data, localKYCDocuments]);
 
   const [deletedEmpIds, setDeletedEmpIds] = useState(() => {
-    const saved = localStorage.getItem('astra_deleted_emp_ids');
-    return saved ? JSON.parse(saved) : [];
+    try { localStorage.removeItem('astra_deleted_emp_ids'); } catch (e) {}
+    return [];
   });
   useEffect(() => {
     try { localStorage.setItem('astra_deleted_emp_ids', JSON.stringify(deletedEmpIds)); } catch (e) {}
@@ -3481,22 +3481,14 @@ export const CRMProvider = ({ children }) => {
           roleId: e.roleId || localMatch?.roleId || 'role-exec',
           baseSalary: salaryVal,
           salary: salaryVal,
+          status: e.status || localMatch?.status || 'Active',
           birthday: (localMatch?.birthday !== undefined && localMatch?.birthday !== null && localMatch?.birthday !== '')
             ? localMatch.birthday
             : (e.birthday || realMatch?.birthday || null)
         };
       });
 
-    const apiIds = new Set(apiEmps.map(e => e.id));
-    const apiEmails = new Set(apiEmps.map(e => (e.email || '').toLowerCase()));
-    const extraLocals = (localEmployees || []).filter(le => 
-      !deletedEmpIds.includes(le.id) && 
-      !deletedEmpIds.includes(le.email) && 
-      !apiIds.has(le.id) && 
-      !apiEmails.has((le.email || '').toLowerCase())
-    );
-
-    resolvedEmployees = [...apiEmps, ...extraLocals];
+    resolvedEmployees = apiEmps;
   } else {
     const fallbackList = (localEmployees && localEmployees.length > 0)
       ? localEmployees

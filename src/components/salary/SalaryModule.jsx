@@ -75,7 +75,9 @@ const SalaryModule = ({ onNavigate }) => {
 
   // Employee salary configurations with attendance-driven per-day computation
   const employeeSalaryData = useMemo(() => {
-    return (employees || []).map((emp, i) => {
+    return (employees || [])
+      .filter(emp => (emp.status || '').toLowerCase() !== 'disabled' && (emp.status || '').toLowerCase() !== 'inactive')
+      .map((emp, i) => {
       const base = emp.baseSalary || emp.salary || [65000, 55000, 42000, 60000, 48000][i % 5];
       const hra = Math.round(base * 0.40);
       const transport = 3000;
@@ -123,7 +125,9 @@ const SalaryModule = ({ onNavigate }) => {
 
   const currentYearNum = today.getFullYear();
   const employeeLeaveData = useMemo(() => {
-    return (employees || []).map(emp => {
+    return (employees || [])
+      .filter(emp => (emp.status || '').toLowerCase() !== 'disabled' && (emp.status || '').toLowerCase() !== 'inactive')
+      .map(emp => {
       let annualMLUsed = 0;
       let annualCLUsed = 0;
       for (let m = 1; m <= 12; m++) {
