@@ -83,8 +83,17 @@ const ProjectDeliverablesHub = () => {
     deals = [],
     employees = [],
     leads = [],
-    campaigns = []
+    campaigns = [],
+    currentUser
   } = useCRM();
+
+  const isAdmin = currentUser?.username === 'admin' ||
+    currentUser?.roleId === 'role-admin' ||
+    currentUser?.roleId === 'role-ops' ||
+    currentUser?.username === 'smitesh' ||
+    (currentUser?.role || '').toLowerCase().includes('admin') ||
+    (currentUser?.role || '').toLowerCase().includes('ceo') ||
+    (currentUser?.role || '').toLowerCase().includes('lead developer');
 
   const [activeSubTab, setActiveSubTab] = useState('deliverables'); // 'deliverables' | 'holiday_posts' | 'ad_spend' | 'editors' | 'servers' | 'performance'
 
@@ -1476,6 +1485,10 @@ const ProjectDeliverablesHub = () => {
           'Approved & Completed'
         ];
 
+        const allowedStageOptions = isAdmin
+          ? STAGE_OPTIONS
+          : STAGE_OPTIONS.filter(opt => opt !== 'Approved & Completed');
+
         const getStageStyle = (status) => {
           const s = (status || '').toLowerCase();
           if (s.includes('approved') || s.includes('complete') || s.includes('delivered')) {
@@ -1491,9 +1504,16 @@ const ProjectDeliverablesHub = () => {
         };
 
         const handleDirectStatusChange = (editorId, newStatus, extraUpdates = {}) => {
+          if (!isAdmin && newStatus === 'Approved & Completed') {
+            alert('Approval restricted: Only Admin can approve completed videos and authorize payout clearance.');
+            return;
+          }
           const updates = { status: newStatus, ...extraUpdates };
           if (newStatus === 'Approved & Completed' && !updates.completedDate) {
             updates.completedDate = new Date().toISOString().split('T')[0];
+          }
+          if (newStatus === 'Internal Review') {
+            alert('Video has been submitted for Internal Review. Request sent to Admin for approval!');
           }
           updateEditorAssignment(editorId, updates);
         };
@@ -1691,58 +1711,64 @@ const ProjectDeliverablesHub = () => {
                                   cursor: 'pointer'
                                 }}
                               >
-                                {STAGE_OPTIONS.map(opt => (
+                                {allowedStageOptions.map(opt => (
                                   <option key={opt} value={opt} style={{ background: '#0f172a', color: '#fff' }}>
                                     {opt}
                                   </option>
                                 ))}
                               </select>
 
-                              {/* Admin Approval / Rejection Action buttons */}
+                              {/* Admin Approval / Rejection Action buttons OR Editor Review Requested Badge */}
                               {stage.label === 'Internal Review' && (
-                                <div style={{ display: 'flex', gap: '4px', justifyContent: 'center', marginTop: '6px' }}>
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      handleDirectStatusChange(ed.id, 'Approved & Completed', {
-                                        paymentStatus: 'Approved for Payout'
-                                      });
-                                    }}
-                                    style={{
-                                      padding: '2px 7px',
-                                      borderRadius: '4px',
-                                      fontSize: '0.66rem',
-                                      fontWeight: '800',
-                                      background: 'rgba(16, 185, 129, 0.2)',
-                                      color: '#10b981',
-                                      border: '1px solid rgba(16, 185, 129, 0.4)',
-                                      cursor: 'pointer'
-                                    }}
-                                    title="Admin Approve: Marks approved and authorizes payment"
-                                  >
-                                    ✓ Approve & Pay
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setRejectionModalItem(ed);
-                                      setRejectionFeedback(ed.adminFeedback || '');
-                                    }}
-                                    style={{
-                                      padding: '2px 7px',
-                                      borderRadius: '4px',
-                                      fontSize: '0.66rem',
-                                      fontWeight: '800',
-                                      background: 'rgba(239, 68, 68, 0.2)',
-                                      color: '#ef4444',
-                                      border: '1px solid rgba(239, 68, 68, 0.4)',
-                                      cursor: 'pointer'
-                                    }}
-                                    title="Admin Reject: Sends video back to Editing in Progress with rework notes"
-                                  >
-                                    ✕ Reject
-                                  </button>
-                                </div>
+                                isAdmin ? (
+                                  <div style={{ display: 'flex', gap: '4px', justifyContent: 'center', marginTop: '6px' }}>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        handleDirectStatusChange(ed.id, 'Approved & Completed', {
+                                          paymentStatus: 'Approved for Payout'
+                                        });
+                                      }}
+                                      style={{
+                                        padding: '2px 7px',
+                                        borderRadius: '4px',
+                                        fontSize: '0.66rem',
+                                        fontWeight: '800',
+                                        background: 'rgba(16, 185, 129, 0.2)',
+                                        color: '#10b981',
+                                        border: '1px solid rgba(16, 185, 129, 0.4)',
+                                        cursor: 'pointer'
+                                      }}
+                                      title="Admin Approve: Marks approved and authorizes payment"
+                                    >
+                                      ✓ Approve & Pay
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setRejectionModalItem(ed);
+                                        setRejectionFeedback(ed.adminFeedback || '');
+                                      }}
+                                      style={{
+                                        padding: '2px 7px',
+                                        borderRadius: '4px',
+                                        fontSize: '0.66rem',
+                                        fontWeight: '800',
+                                        background: 'rgba(239, 68, 68, 0.2)',
+                                        color: '#ef4444',
+                                        border: '1px solid rgba(239, 68, 68, 0.4)',
+                                        cursor: 'pointer'
+                                      }}
+                                      title="Admin Reject: Sends video back to Editing in Progress with rework notes"
+                                    >
+                                      ✕ Reject
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <div style={{ marginTop: '6px', display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '3px 8px', borderRadius: '4px', background: 'rgba(129, 140, 248, 0.15)', border: '1px solid rgba(129, 140, 248, 0.35)', color: '#818cf8', fontSize: '0.66rem', fontWeight: '800' }}>
+                                    <span>⏳ Request Sent for Review</span>
+                                  </div>
+                                )
                               )}
 
                               {ed.adminFeedback && (stage.label.includes('Progress') || stage.label.includes('Review')) && (
@@ -1915,57 +1941,63 @@ const ProjectDeliverablesHub = () => {
                         </div>
 
                         {stage.label === 'Internal Review' && (
-                          <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                handleDirectStatusChange(ed.id, 'Approved & Completed', {
-                                  paymentStatus: 'Approved for Payout'
-                                });
-                              }}
-                              style={{
-                                flex: 1,
-                                padding: '6px 10px',
-                                borderRadius: '6px',
-                                fontSize: '0.74rem',
-                                fontWeight: '800',
-                                background: 'rgba(16, 185, 129, 0.2)',
-                                color: '#10b981',
-                                border: '1px solid rgba(16, 185, 129, 0.4)',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '4px'
-                              }}
-                            >
-                              ✓ Admin Approve & Pay
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setRejectionModalItem(ed);
-                                setRejectionFeedback(ed.adminFeedback || '');
-                              }}
-                              style={{
-                                flex: 1,
-                                padding: '6px 10px',
-                                borderRadius: '6px',
-                                fontSize: '0.74rem',
-                                fontWeight: '800',
-                                background: 'rgba(239, 68, 68, 0.2)',
-                                color: '#ef4444',
-                                border: '1px solid rgba(239, 68, 68, 0.4)',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '4px'
-                              }}
-                            >
-                              ✕ Reject / Rework
-                            </button>
-                          </div>
+                          isAdmin ? (
+                            <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  handleDirectStatusChange(ed.id, 'Approved & Completed', {
+                                    paymentStatus: 'Approved for Payout'
+                                  });
+                                }}
+                                style={{
+                                  flex: 1,
+                                  padding: '6px 10px',
+                                  borderRadius: '6px',
+                                  fontSize: '0.74rem',
+                                  fontWeight: '800',
+                                  background: 'rgba(16, 185, 129, 0.2)',
+                                  color: '#10b981',
+                                  border: '1px solid rgba(16, 185, 129, 0.4)',
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  gap: '4px'
+                                }}
+                              >
+                                ✓ Admin Approve & Pay
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setRejectionModalItem(ed);
+                                  setRejectionFeedback(ed.adminFeedback || '');
+                                }}
+                                style={{
+                                  flex: 1,
+                                  padding: '6px 10px',
+                                  borderRadius: '6px',
+                                  fontSize: '0.74rem',
+                                  fontWeight: '800',
+                                  background: 'rgba(239, 68, 68, 0.2)',
+                                  color: '#ef4444',
+                                  border: '1px solid rgba(239, 68, 68, 0.4)',
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  gap: '4px'
+                                }}
+                              >
+                                ✕ Reject / Rework
+                              </button>
+                            </div>
+                          ) : (
+                            <div style={{ marginTop: '4px', padding: '6px 10px', borderRadius: '6px', background: 'rgba(129, 140, 248, 0.15)', border: '1px solid rgba(129, 140, 248, 0.35)', color: '#818cf8', fontSize: '0.74rem', fontWeight: '800', textAlign: 'center' }}>
+                              ⏳ Request Sent for Review (Awaiting Admin Approval)
+                            </div>
+                          )
                         )}
 
                         {ed.adminFeedback && (stage.label.includes('Progress') || stage.label.includes('Review')) && (
@@ -1991,7 +2023,7 @@ const ProjectDeliverablesHub = () => {
                               cursor: 'pointer'
                             }}
                           >
-                            {STAGE_OPTIONS.map(opt => (
+                            {allowedStageOptions.map(opt => (
                               <option key={opt} value={opt} style={{ background: '#0f172a', color: '#fff' }}>
                                 {opt}
                               </option>
