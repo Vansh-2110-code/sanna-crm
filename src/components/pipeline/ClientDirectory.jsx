@@ -160,6 +160,7 @@ const ClientDirectory = () => {
 
   // Filtering and Search States
   const [categoryFilter, setCategoryFilter] = useState('all'); // 'all' | 'active_dm' | 'hold' | 'one_time' | 'hosting' | 'left'
+  const [paymentFilter, setPaymentFilter] = useState('ALL'); // 'ALL' | 'PAID' | 'UNPAID'
   const [searchQuery, setSearchQuery] = useState('');
 
   // Modal States
@@ -281,15 +282,30 @@ const ClientDirectory = () => {
     });
   }, [clients]);
 
-  // Filtered Clients based on Category and Search
-  const filteredClients = useMemo(() => {
-        return enrichedClients.filter(c => {
+  // Base category clients before payment/search filter for accurate tab counts
+  const categoryBaseClients = useMemo(() => {
+    return enrichedClients.filter(c => {
       if (categoryFilter === 'active_dm' && (c.client_type !== 'active_dm' || c.status === 'upcoming')) return false;
       if (categoryFilter === 'hold' && c.status !== 'hold') return false;
       if (categoryFilter === 'one_time' && (c.client_type !== 'one_time' || c.status === 'upcoming')) return false;
       if (categoryFilter === 'hosting' && (c.client_type !== 'hosting' || c.status === 'upcoming')) return false;
       if (categoryFilter === 'upcoming' && c.status !== 'upcoming' && c.client_type !== 'upcoming' && c.project_status !== 'upcoming') return false;
       if (categoryFilter === 'left' && c.client_type !== 'left') return false;
+      return true;
+    });
+  }, [enrichedClients, categoryFilter]);
+
+  // Filtered Clients based on Category, Payment Status, and Search
+  const filteredClients = useMemo(() => {
+    return categoryBaseClients.filter(c => {
+      // Payment Status filter
+      if (paymentFilter === 'PAID') {
+        const isPaid = (c.payment_status || '').toLowerCase() === 'paid';
+        if (!isPaid) return false;
+      } else if (paymentFilter === 'UNPAID') {
+        const isPaid = (c.payment_status || '').toLowerCase() === 'paid';
+        if (isPaid) return false;
+      }
 
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
@@ -302,7 +318,7 @@ const ClientDirectory = () => {
 
       return true;
     });
-  }, [enrichedClients, categoryFilter, searchQuery]);
+  }, [categoryBaseClients, paymentFilter, searchQuery]);
 
   // Actions
   const handleToggleHold = (id) => {
@@ -863,45 +879,105 @@ const ClientDirectory = () => {
             gap: '14px'
           }}
         >
-          {/* Category Filter Pills */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-            {filterTabs.map((tab) => {
-              const isActive = categoryFilter === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setCategoryFilter(tab.id)}
-                  style={{
-                    border: 'none',
-                    borderRadius: '9999px',
-                    padding: '7px 14px',
-                    fontSize: '0.76rem',
-                    fontWeight: isActive ? '800' : '600',
-                    background: isActive ? '#4E3EFF' : (isDark ? '#1c1c22' : '#F1F4F9'),
-                    color: isActive ? '#FFFFFF' : '#94A3B8',
-                    cursor: 'pointer',
-                    transition: 'all 0.15s ease',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px'
-                  }}
-                >
-                  <span>{tab.label}</span>
-                  <span
+          {/* Category Filter Pills and Payment Status Segments */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+              {filterTabs.map((tab) => {
+                const isActive = categoryFilter === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setCategoryFilter(tab.id)}
                     style={{
-                      background: isActive ? 'rgba(255,255,255,0.2)' : (isDark ? '#23232b' : '#E2E8F0'),
-                      color: isActive ? '#FFFFFF' : '#64748B',
-                      padding: '1px 6px',
+                      border: 'none',
                       borderRadius: '9999px',
-                      fontSize: '0.64rem',
-                      fontWeight: '800'
+                      padding: '7px 14px',
+                      fontSize: '0.76rem',
+                      fontWeight: isActive ? '800' : '600',
+                      background: isActive ? '#4E3EFF' : (isDark ? '#1c1c22' : '#F1F4F9'),
+                      color: isActive ? '#FFFFFF' : '#94A3B8',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
                     }}
                   >
-                    {tab.count}
-                  </span>
-                </button>
-              );
-            })}
+                    <span>{tab.label}</span>
+                    <span
+                      style={{
+                        background: isActive ? 'rgba(255,255,255,0.2)' : (isDark ? '#23232b' : '#E2E8F0'),
+                        color: isActive ? '#FFFFFF' : '#64748B',
+                        padding: '1px 6px',
+                        borderRadius: '9999px',
+                        fontSize: '0.64rem',
+                        fontWeight: '800'
+                      }}
+                    >
+                      {tab.count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Payment Status Segmented Filter */}
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '3px',
+                background: isDark ? '#1a1a24' : '#F1F5F9',
+                padding: '4px',
+                borderRadius: '9999px',
+                border: isDark ? '1px solid #282838' : '1px solid #E2E8F0'
+              }}
+            >
+              <span style={{ fontSize: '0.66rem', fontWeight: '800', color: '#94A3B8', textTransform: 'uppercase', padding: '0 8px' }}>
+                Payment:
+              </span>
+              {[
+                { id: 'ALL', label: 'All', count: categoryBaseClients.length, color: '#4E3EFF' },
+                { id: 'PAID', label: 'Paid', count: categoryBaseClients.filter(c => (c.payment_status || '').toLowerCase() === 'paid').length, color: '#10b981' },
+                { id: 'UNPAID', label: 'Unpaid', count: categoryBaseClients.filter(c => (c.payment_status || '').toLowerCase() !== 'paid').length, color: '#ef4444' }
+              ].map(pTab => {
+                const isActive = paymentFilter === pTab.id;
+                return (
+                  <button
+                    key={pTab.id}
+                    onClick={() => setPaymentFilter(pTab.id)}
+                    style={{
+                      border: 'none',
+                      borderRadius: '9999px',
+                      padding: '5px 12px',
+                      fontSize: '0.72rem',
+                      fontWeight: isActive ? '800' : '600',
+                      background: isActive ? pTab.color : 'transparent',
+                      color: isActive ? '#FFFFFF' : (isDark ? '#94A3B8' : '#64748B'),
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    <span>{pTab.label}</span>
+                    <span
+                      style={{
+                        background: isActive ? 'rgba(255,255,255,0.25)' : (isDark ? '#23232b' : '#E2E8F0'),
+                        color: isActive ? '#FFFFFF' : '#64748B',
+                        padding: '1px 6px',
+                        borderRadius: '9999px',
+                        fontSize: '0.62rem',
+                        fontWeight: '800'
+                      }}
+                    >
+                      {pTab.count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           {/* VERION Search Pill */}

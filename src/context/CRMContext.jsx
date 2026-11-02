@@ -3328,9 +3328,9 @@ export const CRMProvider = ({ children }) => {
   });
 
   const updateEmployeeMutation = useMutation({
-    mutationFn: ({ id, designation, roleId, role, baseSalary, salary, birthday, dob }) => 
-      api.put(`/employees/${id}`, { designation, roleId, role, baseSalary: baseSalary || salary, birthday: birthday || dob, requesterRole: activeRole?.name }),
-    onSuccess: (resData, { id, designation, roleId, role, baseSalary, salary, birthday, dob }) => {
+    mutationFn: ({ id, designation, roleId, role, baseSalary, salary, birthday, dob, status }) => 
+      api.put(`/employees/${id}`, { designation, roleId, role, baseSalary: baseSalary || salary, birthday: birthday || dob, status, requesterRole: activeRole?.name }),
+    onSuccess: (resData, { id, designation, roleId, role, baseSalary, salary, birthday, dob, status }) => {
       const ROLE_MAP = {
         'role-admin': 'Super Admin / Org Admin',
         'role-mgr': 'Sales Manager',
@@ -3355,7 +3355,8 @@ export const CRMProvider = ({ children }) => {
           roleId: roleId !== undefined ? roleId : e.roleId,
           role: resolvedRole || e.role,
           baseSalary: (baseSalary !== undefined || salary !== undefined) ? parseInt(baseSalary || salary, 10) : e.baseSalary,
-          birthday: bdayVal !== undefined ? bdayVal : e.birthday
+          birthday: bdayVal !== undefined ? bdayVal : e.birthday,
+          status: status !== undefined ? status : e.status
         } : e);
       });
 
@@ -3372,6 +3373,7 @@ export const CRMProvider = ({ children }) => {
             }
             if (baseSalary !== undefined || salary !== undefined) up.baseSalary = parseInt(baseSalary || salary, 10);
             if (bdayVal !== undefined) up.birthday = bdayVal;
+            if (status !== undefined) up.status = status;
             return up;
           }
           return e;
@@ -3380,7 +3382,7 @@ export const CRMProvider = ({ children }) => {
         return updated;
       });
     },
-    onError: (err, { id, designation, roleId, role, baseSalary, salary, birthday, dob }) => {
+    onError: (err, { id, designation, roleId, role, baseSalary, salary, birthday, dob, status }) => {
       console.warn('API update employee failed, updating locally:', err);
       const ROLE_MAP = {
         'role-admin': 'Super Admin / Org Admin',
@@ -3406,7 +3408,8 @@ export const CRMProvider = ({ children }) => {
           roleId: roleId !== undefined ? roleId : e.roleId,
           role: resolvedRole || e.role,
           baseSalary: (baseSalary !== undefined || salary !== undefined) ? parseInt(baseSalary || salary, 10) : e.baseSalary,
-          birthday: bdayVal !== undefined ? bdayVal : e.birthday
+          birthday: bdayVal !== undefined ? bdayVal : e.birthday,
+          status: status !== undefined ? status : e.status
         } : e);
       });
 
@@ -3421,6 +3424,7 @@ export const CRMProvider = ({ children }) => {
             }
             if (baseSalary !== undefined || salary !== undefined) up.baseSalary = parseInt(baseSalary || salary, 10);
             if (bdayVal !== undefined) up.birthday = bdayVal;
+            if (status !== undefined) up.status = status;
             return up;
           }
           return e;
@@ -3934,6 +3938,21 @@ export const CRMProvider = ({ children }) => {
     }
   };
 
+  const handleUpdateLead = async (id, updateData) => {
+    setLocalLeads(prev => prev.map(l => (l.id === id || `lead-${l.id}` === id || l.id === `lead-${id}`) ? { ...l, ...updateData } : l));
+
+    queryClient.setQueryData(['leads', activeTenantId], old => {
+      if (!Array.isArray(old)) return old;
+      return old.map(l => (l.id === id || `lead-${l.id}` === id || l.id === `lead-${id}`) ? { ...l, ...updateData } : l);
+    });
+
+    try {
+      await api.put(`/leads/${id}`, updateData);
+    } catch (err) {
+      console.warn('API update lead offline:', err.message);
+    }
+  };
+
   const handleUpdateProduct = async (id, updateData) => {
     setLocalProducts(prev => prev.map(p => p.id === id ? { ...p, ...updateData } : p));
     queryClient.setQueryData(['products', activeTenantId], old => {
@@ -4041,7 +4060,7 @@ export const CRMProvider = ({ children }) => {
         };
         queryClient.setQueryData(['auditLogs', activeTenantId], old => [newLog, ...(old || [])]);
       },
-      leads: resolvedLeads, addLead: addLeadMutation.mutateAsync, batchAddLeads, updateLeadStatus: handleUpdateLeadStatus, deleteLead: handleDeleteLead, updateLeadNotes: handleUpdateLeadNotes,
+      leads: resolvedLeads, addLead: addLeadMutation.mutateAsync, batchAddLeads, updateLead: handleUpdateLead, updateLeadStatus: handleUpdateLeadStatus, deleteLead: handleDeleteLead, updateLeadNotes: handleUpdateLeadNotes,
       products: resolvedProducts, addProduct: (pData) => setLocalProducts(prev => [{ id: `prod-${Date.now()}`, clientId: activeTenantId, ...pData }, ...prev]), updateProduct: handleUpdateProduct, deleteProduct: handleDeleteProduct,
       deals: resolvedDeals, updateDealStage: handleUpdateDealStage, createDeal: createDealMutation.mutateAsync, updateDeal: (id, dealData) => updateDealMutation.mutateAsync({ id, ...dealData }), deleteDeal: handleDeleteDeal,
       quotes: resolvedQuotes, createQuote: createQuoteMutation.mutateAsync, approveQuote: (id) => {

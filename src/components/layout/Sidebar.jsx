@@ -146,17 +146,20 @@ const Sidebar = ({ activeTab, setActiveTab, mobileOpen, onCloseMobile, collapsed
     // Assigned module override
     if (assigned.includes(hubId)) return true;
 
+    // Sales role check
+    const isSales = roleId === 'role-exec' || roleId === 'role-mgr' || roleName.includes('sales') || userName.includes('narasimha') || userEmail.includes('nmnsimha');
+
     switch (hubId) {
       case 'dashboard':
       case 'ongoing-projects':
       case 'client-directory':
       case 'daily-logs':
       case 'salary':
-        // Universal access for all employees (Dev, Intern, Marketer, Video Editor, etc.)
+        // Universal access for all employees (Dev, Intern, Marketer, Video Editor, Sales, etc.)
         return true;
       case 'gst-invoices':
-        // Admin, Finance clearance, or Sowmya
-        return isSowmya || assigned.includes('finance') || assigned.includes('ad-spend') || perms.includes('manage_salary') || perms.includes('view_orders') || perms.includes('view_all');
+        // Admin, Finance clearance, Sales quotes, or Sowmya
+        return isSowmya || isSales || assigned.includes('finance') || assigned.includes('ad-spend') || perms.includes('manage_salary') || perms.includes('view_orders') || perms.includes('view_quotes') || perms.includes('view_all');
       default:
         return false;
     }
@@ -170,9 +173,22 @@ const Sidebar = ({ activeTab, setActiveTab, mobileOpen, onCloseMobile, collapsed
     const userName = (currentUser?.name || '').toLowerCase();
     const assigned = currentUser?.assignedModules || [];
     const isSowmya = userEmail.includes('sowmya') || userName.includes('sowmya');
+    const isSales = roleId === 'role-exec' || roleId === 'role-mgr' || roleName.includes('sales') || userName.includes('narasimha') || userEmail.includes('nmnsimha');
 
     if (roleId === 'role-admin' || perms.includes('super_admin') || perms.includes('view_all')) return true;
     if (assigned.includes(subId)) return true;
+
+    // Dynamic RBAC Permission Overrides
+    if (subId === 'leads' && (perms.includes('view_leads') || perms.includes('manage_leads') || perms.includes('edit_leads') || perms.includes('edit_own_leads') || perms.includes('sales_access'))) return true;
+    if (subId === 'contacts' && (perms.includes('view_contacts') || perms.includes('manage_contacts') || perms.includes('sales_access'))) return true;
+    if (subId === 'pipeline' && (perms.includes('view_pipeline') || perms.includes('manage_deals') || perms.includes('sales_access'))) return true;
+    if (subId === 'quotes' && (perms.includes('view_quotes') || perms.includes('create_quotes'))) return true;
+    if (subId === 'security' && perms.includes('security_admin')) return true;
+
+    // Sales Executive & Sales Managers (Narasimha Murthy)
+    if (isSales) {
+      return ['dashboard', 'client-directory', 'leads', 'contacts', 'pipeline', 'quotes', 'ongoing-projects', 'daily-logs', 'salary', 'kyc'].includes(subId);
+    }
 
     // Developers & Interns share identical permissions
     if (roleId === 'role-dev' || roleId === 'role-intern' || roleName.includes('developer') || roleName.includes('intern')) {

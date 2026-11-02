@@ -18,7 +18,8 @@ import {
   Trash2,
   Download,
   Zap,
-  Gift
+  Gift,
+  UserX
 } from 'lucide-react';
 
 import PricingPlansModal from '../billing/PricingPlansModal';
@@ -927,8 +928,11 @@ const EmployeeRow = ({ emp, roles, isSecurityAdmin, updateEmployeeRoleAndDesigna
   const [roleId, setRoleId] = useState(initialRoleId);
   const [baseSalary, setBaseSalary] = useState(emp.baseSalary || emp.salary || emp.stipend || 50000);
   const [birthday, setBirthday] = useState(emp.birthday || '');
+  const [empStatus, setEmpStatus] = useState(emp.status || 'Active');
   const [isSaving, setIsSaving] = useState(false);
   const [justSaved, setJustSaved] = useState(false);
+
+  const isDisabled = (empStatus || '').toLowerCase() === 'disabled' || (empStatus || '').toLowerCase() === 'inactive';
 
   React.useEffect(() => {
     setDesignation(emp.designation || emp.role || 'Staff Member');
@@ -936,7 +940,8 @@ const EmployeeRow = ({ emp, roles, isSecurityAdmin, updateEmployeeRoleAndDesigna
     setRoleId(autoRoleId);
     setBaseSalary(emp.baseSalary || emp.salary || emp.stipend || 50000);
     setBirthday(emp.birthday || '');
-  }, [emp.id, emp.birthday]);
+    setEmpStatus(emp.status || 'Active');
+  }, [emp.id, emp.birthday, emp.status]);
 
   const matchedRole = roles.find(r => r.id === roleId) || { name: emp.role || 'Representative' };
 
@@ -958,12 +963,19 @@ const EmployeeRow = ({ emp, roles, isSecurityAdmin, updateEmployeeRoleAndDesigna
   const avatarUrl = emp.avatar || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80";
 
   return (
-    <tr>
+    <tr style={{ opacity: isDisabled ? 0.65 : 1, transition: 'all 0.2s ease' }}>
       <td>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <img src={avatarUrl} alt={displayName} style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover' }} />
           <div>
-            <div style={{ fontWeight: '800' }}>{displayName}</div>
+            <div style={{ fontWeight: '800', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span>{displayName}</span>
+              {isDisabled && (
+                <span style={{ fontSize: '0.62rem', background: 'rgba(239, 68, 68, 0.2)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.4)', padding: '1px 6px', borderRadius: '4px', fontWeight: '800' }}>
+                  Disabled
+                </span>
+              )}
+            </div>
             <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{displayEmail}</div>
           </div>
         </div>
@@ -1056,7 +1068,8 @@ const EmployeeRow = ({ emp, roles, isSecurityAdmin, updateEmployeeRoleAndDesigna
                       role: roleName,
                       designation,
                       baseSalary,
-                      birthday
+                      birthday,
+                      status: empStatus
                     });
                   }
                   setJustSaved(true);
@@ -1075,6 +1088,46 @@ const EmployeeRow = ({ emp, roles, isSecurityAdmin, updateEmployeeRoleAndDesigna
               }}
             >
               {isSaving ? 'Saving...' : (justSaved ? '✓ Saved!' : 'Save Profile')}
+            </button>
+            <button
+              disabled={isSaving}
+              onClick={async () => {
+                const nextStatus = isDisabled ? 'Active' : 'Disabled';
+                const actionLabel = isDisabled ? 'Re-enable' : 'Disable';
+                if (window.confirm(`${actionLabel} account for ${displayName}? ${!isDisabled ? 'This will prevent login and immediately exclude their salary from monthly expense reports.' : 'This will restore login access and include them in payroll.'}`)) {
+                  setIsSaving(true);
+                  try {
+                    if (updateEmployeeRoleAndDesignation) {
+                      await updateEmployeeRoleAndDesignation({
+                        id: emp.id,
+                        status: nextStatus
+                      });
+                    }
+                    setEmpStatus(nextStatus);
+                  } catch (e) {
+                    alert('Status change failed');
+                  } finally {
+                    setIsSaving(false);
+                  }
+                }
+              }}
+              title={isDisabled ? 'Account is Disabled. Click to Activate.' : 'Disable Account (Ex-Staff / Intern)'}
+              style={{
+                background: isDisabled ? 'rgba(239, 68, 68, 0.2)' : 'rgba(245, 158, 11, 0.15)',
+                color: isDisabled ? '#ef4444' : '#f59e0b',
+                border: `1px solid ${isDisabled ? 'rgba(239, 68, 68, 0.4)' : 'rgba(245, 158, 11, 0.3)'}`,
+                padding: '6px 10px',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontSize: '0.75rem',
+                fontWeight: '700',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}
+            >
+              <UserX style={{ width: '13px', height: '13px' }} />
+              <span>{isDisabled ? 'Disabled' : 'Disable'}</span>
             </button>
             <button
               onClick={handleDelete}

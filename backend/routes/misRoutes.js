@@ -35,6 +35,38 @@ function run(sql, params = []) {
 
 // Ensure currency column exists on ad_spent_transactions table
 db.run("ALTER TABLE ad_spent_transactions ADD COLUMN currency TEXT DEFAULT 'INR'", () => {});
+db.run("ALTER TABLE editor_assignments ADD COLUMN admin_feedback TEXT DEFAULT ''", () => {});
+db.run("ALTER TABLE editor_assignments ADD COLUMN completed_date TEXT DEFAULT ''", () => {});
+db.run("ALTER TABLE users ADD COLUMN status TEXT DEFAULT 'Active'", () => {});
+
+// Creative One-Time Projects Table for Graphic Designer (Riya Biswas)
+db.run(`
+  CREATE TABLE IF NOT EXISTS creative_one_time_projects (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    project_name TEXT NOT NULL,
+    asset_type TEXT DEFAULT 'Logo Design',
+    designer_name TEXT DEFAULT 'Riya Biswas Dasgupta',
+    assigned_date TEXT DEFAULT '',
+    completed_date TEXT DEFAULT '',
+    turnaround_days INTEGER DEFAULT 0,
+    status TEXT DEFAULT 'In Progress',
+    remarks TEXT DEFAULT '',
+    ticket_size REAL DEFAULT 0,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+  )
+`, () => {
+  db.get('SELECT COUNT(*) as count FROM creative_one_time_projects', [], (err, row) => {
+    if (!err && row && row.count === 0) {
+      db.run(`INSERT INTO creative_one_time_projects (project_name, asset_type, designer_name, assigned_date, completed_date, turnaround_days, status, remarks, ticket_size)
+        VALUES 
+        ('Srinidhi Charitable Trust Logo', 'Logo Design', 'Riya Biswas Dasgupta', '2026-10-30', '', 3, 'In Progress', 'Trust identity and vector branding assets', 5000),
+        ('Sanskar Brochure', 'Brochure Design', 'Riya Biswas Dasgupta', '2026-10-31', '', 2, 'In Progress', 'Bi-fold corporate profile & print brochure', 4000),
+        ('SpeakNova Website UI', 'Website UI Design', 'Riya Biswas Dasgupta', '2026-10-25', '2026-10-29', 4, 'Completed', 'Landing page UI kit & Figma components delivered', 12000),
+        ('INR Industrial Portal UI', 'Website UI Design', 'Riya Biswas Dasgupta', '2026-10-28', '', 5, 'In Progress', 'Industrial manufacturing catalog UI mocks', 32000)
+      `);
+    }
+  });
+});
 
 // 1. Projects & Clients
 router.get('/clients', async (req, res) => {
@@ -69,6 +101,16 @@ router.get('/analytics/financial-summary', async (req, res) => {
     } catch (e) {
       console.warn("ad_spent_reports query fallback:", e.message);
     }
+
+    // Dynamic Active Staff Payroll from users table (Excluding Disabled / Inactive accounts)
+    let activeUsers = [];
+    try {
+      activeUsers = await query("SELECT base_salary, stipend, status FROM users WHERE status != 'Disabled' AND status != 'disabled' AND status != 'Inactive'");
+    } catch (e) {
+      console.warn("users query fallback:", e.message);
+    }
+    const computedActivePayroll = (activeUsers || []).reduce((sum, u) => sum + (parseFloat(u.base_salary || u.stipend || 0)), 0);
+    const activeStaffSalary = computedActivePayroll > 0 ? computedActivePayroll : 310000;
 
     const getAdSpendForMonth = (m, y) => {
       let clientTxMap = new Map();
@@ -351,7 +393,7 @@ router.get('/analytics/financial-summary', async (req, res) => {
       const pendingDues = monthOneTimeDue + monthHostingDue + monthDmDue + monthCreativeDue;
       const bookedRevenue = monthOneTimeGross + monthHostingGross + monthDmGross + monthCreativeGross;
       const monthAdSpend = getAdSpendForMonth(month, year);
-      const salaryPayroll = 310000;
+      const salaryPayroll = activeStaffSalary;
       const hostingCost = 18500;
       const softwareTools = 12000;
       const totalOutflow = salaryPayroll + monthAdSpend + hostingCost + softwareTools;
@@ -467,7 +509,7 @@ router.get('/analytics/financial-summary', async (req, res) => {
       const historicalDmInflow = [0, 0, 0, 0, 0, 175000, 200000, 215000, 220000, 225000, 20000];
       const mInflow = mOneTimeColl + mHostingColl + (historicalDmInflow[m] || 150000) + 73500;
       const mAdSpend = getAdSpendForMonth(m, 2026);
-      const mOutflow = 310000 + mAdSpend + 18500 + 12000;
+      const mOutflow = activeStaffSalary + mAdSpend + 18500 + 12000;
       monthlyTrend.push({
         month: `${monthNamesShort[m]} 2026`,
         inflow: mInflow,
@@ -1203,11 +1245,11 @@ router.get('/editors', async (req, res) => {
 
 router.post('/editors', async (req, res) => {
   try {
-    const { editorName, email, clientProject, taskDescription, assignedDate, submissionDate, status, amount, paymentStatus, deliverableUrl } = req.body;
+    const { editorName, email, clientProject, taskDescription, assignedDate, submissionDate, status, amount, paymentStatus, deliverableUrl, adminFeedback, completedDate } = req.body;
     const insert = await run(
-      `INSERT INTO editor_assignments (editor_name, email, client_project, task_description, assignment_date, submission_date, status, amount, payment_status, deliverable_url)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [editorName, email, clientProject, taskDescription, assignedDate, submissionDate, status || 'In Progress', amount || 0, paymentStatus || 'Pending', deliverableUrl || '']
+      `INSERT INTO editor_assignments (editor_name, email, client_project, task_description, assignment_date, submission_date, status, amount, payment_status, deliverable_url, admin_feedback, completed_date)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [editorName, email, clientProject, taskDescription, assignedDate, submissionDate, status || 'In Progress', amount || 0, paymentStatus || 'Pending', deliverableUrl || '', adminFeedback || '', completedDate || '']
     );
     res.status(201).json({ id: String(insert.id), ...req.body });
   } catch (e) {
@@ -1218,7 +1260,7 @@ router.post('/editors', async (req, res) => {
 router.put('/editors/:id', async (req, res) => {
   try {
     const rawId = parseInt(String(req.params.id).replace('edit-', ''), 10) || req.params.id;
-    const { editorName, email, clientProject, taskDescription, assignedDate, submissionDate, status, amount, paymentStatus, deliverableUrl } = req.body;
+    const { editorName, email, clientProject, taskDescription, assignedDate, submissionDate, status, amount, paymentStatus, deliverableUrl, adminFeedback, completedDate } = req.body;
     await run(
       `UPDATE editor_assignments SET
         editor_name = COALESCE(?, editor_name),
@@ -1230,9 +1272,11 @@ router.put('/editors/:id', async (req, res) => {
         status = COALESCE(?, status),
         amount = COALESCE(?, amount),
         payment_status = COALESCE(?, payment_status),
-        deliverable_url = COALESCE(?, deliverable_url)
+        deliverable_url = COALESCE(?, deliverable_url),
+        admin_feedback = COALESCE(?, admin_feedback),
+        completed_date = COALESCE(?, completed_date)
       WHERE id = ?`,
-      [editorName, email, clientProject, taskDescription, assignedDate, submissionDate, status, amount, paymentStatus, deliverableUrl, rawId]
+      [editorName, email, clientProject, taskDescription, assignedDate, submissionDate, status, amount, paymentStatus, deliverableUrl, adminFeedback, completedDate, rawId]
     );
     res.json({ id: String(rawId), ...req.body });
   } catch (e) {
@@ -1244,6 +1288,76 @@ router.delete('/editors/:id', async (req, res) => {
   try {
     const rawId = parseInt(String(req.params.id).replace('edit-', ''), 10) || req.params.id;
     await run('DELETE FROM editor_assignments WHERE id = ?', [rawId]);
+    res.json({ status: 'deleted' });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// 7b. Creative One-Time Projects for Graphic Designer (Riya Biswas)
+router.get('/creative-projects', async (req, res) => {
+  try {
+    const projects = await query('SELECT * FROM creative_one_time_projects ORDER BY id DESC');
+    res.json(projects.map(p => ({
+      id: String(p.id),
+      rawId: p.id,
+      projectName: p.project_name,
+      assetType: p.asset_type,
+      designerName: p.designer_name || 'Riya Biswas Dasgupta',
+      assignedDate: p.assigned_date,
+      completedDate: p.completed_date || '',
+      turnaroundDays: p.turnaround_days || 0,
+      status: p.status || 'In Progress',
+      remarks: p.remarks || '',
+      ticketSize: parseFloat(p.ticket_size || 0)
+    })));
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+router.post('/creative-projects', async (req, res) => {
+  try {
+    const { projectName, assetType, designerName, assignedDate, completedDate, turnaroundDays, status, remarks, ticketSize } = req.body;
+    const insert = await run(
+      `INSERT INTO creative_one_time_projects (project_name, asset_type, designer_name, assigned_date, completed_date, turnaround_days, status, remarks, ticket_size)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [projectName, assetType || 'Logo Design', designerName || 'Riya Biswas Dasgupta', assignedDate || new Date().toISOString().split('T')[0], completedDate || '', turnaroundDays || 0, status || 'In Progress', remarks || '', ticketSize || 0]
+    );
+    res.status(201).json({ id: String(insert.id), ...req.body });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+router.put('/creative-projects/:id', async (req, res) => {
+  try {
+    const rawId = parseInt(String(req.params.id).replace('cr-', ''), 10) || req.params.id;
+    const { projectName, assetType, designerName, assignedDate, completedDate, turnaroundDays, status, remarks, ticketSize } = req.body;
+    await run(
+      `UPDATE creative_one_time_projects SET
+        project_name = COALESCE(?, project_name),
+        asset_type = COALESCE(?, asset_type),
+        designer_name = COALESCE(?, designer_name),
+        assigned_date = COALESCE(?, assigned_date),
+        completed_date = COALESCE(?, completed_date),
+        turnaround_days = COALESCE(?, turnaround_days),
+        status = COALESCE(?, status),
+        remarks = COALESCE(?, remarks),
+        ticket_size = COALESCE(?, ticket_size)
+      WHERE id = ?`,
+      [projectName, assetType, designerName, assignedDate, completedDate, turnaroundDays, status, remarks, ticketSize, rawId]
+    );
+    res.json({ id: String(rawId), ...req.body });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+router.delete('/creative-projects/:id', async (req, res) => {
+  try {
+    const rawId = parseInt(String(req.params.id).replace('cr-', ''), 10) || req.params.id;
+    await run('DELETE FROM creative_one_time_projects WHERE id = ?', [rawId]);
     res.json({ status: 'deleted' });
   } catch (e) {
     res.status(500).json({ error: e.message });

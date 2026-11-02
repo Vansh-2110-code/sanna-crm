@@ -158,6 +158,7 @@ const MainLayout = () => {
       const assigned = currentUser.assignedModules || [];
       
       const isAdmin = roleId === 'role-admin' || roleName.includes('admin');
+      const isSales = roleId === 'role-exec' || roleId === 'role-mgr' || roleName.includes('sales') || userName.includes('narasimha') || userEmail.includes('nmnsimha');
       const isDev = roleId === 'role-dev' || roleName.includes('software developer') || roleName.includes('developer');
       const isMarketer = roleId === 'role-marketer' || roleName.includes('digital marketer') || roleName.includes('marketer');
       const isVideo = roleId === 'role-video' || roleName.includes('video editor') || roleName.includes('video');
@@ -178,6 +179,11 @@ const MainLayout = () => {
         'kyc',
         ...assigned
       ];
+
+      // Sales Executive access
+      if (isSales) {
+        allowed.push('leads', 'contacts', 'pipeline', 'quotes');
+      }
 
       // Digital Marketers have access to Leads
       if (isMarketer) {

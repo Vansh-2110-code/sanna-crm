@@ -18,6 +18,7 @@ import {
   Building,
   Video,
   Megaphone,
+  Palette,
   Sparkles,
   Shield,
   Layers,
@@ -201,6 +202,32 @@ const ProjectDeliverablesHub = () => {
   const [editorSearchQuery, setEditorSearchQuery] = useState('');
   const [editorStageFilter, setEditorStageFilter] = useState('ALL');
   const [editorViewMode, setEditorViewMode] = useState('cards'); // 'cards' | 'table'
+  const [rejectionModalItem, setRejectionModalItem] = useState(null);
+  const [rejectionFeedback, setRejectionFeedback] = useState('');
+
+  // Graphic Designer (Riya Biswas) One-Time Projects State
+  const [creativeProjects, setCreativeProjects] = useState([]);
+  const [creativeSearchQuery, setCreativeSearchQuery] = useState('');
+  const [creativeTypeFilter, setCreativeTypeFilter] = useState('ALL');
+  const [showAddCreativeModal, setShowAddCreativeModal] = useState(false);
+  const [editingCreative, setEditingCreative] = useState(null);
+
+  // Load Creative Projects from DB
+  const loadCreativeProjects = async () => {
+    try {
+      const res = await fetch('/api/mis/creative-projects');
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) setCreativeProjects(data);
+      }
+    } catch (e) {
+      console.warn('Failed to load creative projects:', e);
+    }
+  };
+
+  React.useEffect(() => {
+    loadCreativeProjects();
+  }, []);
 
   const handleQuickAddTx = (e) => {
     e.preventDefault();
@@ -533,6 +560,7 @@ const ProjectDeliverablesHub = () => {
             { id: 'holiday_posts', label: 'Holiday Creative Planner', icon: Calendar, count: holidayPosts.length },
             { id: 'ad_spend', label: 'Ad Spend Ledger', icon: TrendingUp, count: adSpendLedger.length },
             { id: 'editors', label: 'Video Editor Work Orders', icon: Video, count: editorAssignments.length },
+            { id: 'creative', label: 'Graphic Design (Logo/Web/Brochure)', icon: Palette, count: creativeProjects.length },
             { id: 'servers', label: 'Server Infrastructure Vault', icon: Server, count: serverCredentials.length }
           ].map(tab => {
             const Icon = tab.icon;
@@ -1462,9 +1490,9 @@ const ProjectDeliverablesHub = () => {
           return { label: 'Editing in Progress', color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.15)', border: 'rgba(245, 158, 11, 0.35)' };
         };
 
-        const handleDirectStatusChange = (editorId, newStatus) => {
-          const updates = { status: newStatus };
-          if (newStatus === 'Approved & Completed') {
+        const handleDirectStatusChange = (editorId, newStatus, extraUpdates = {}) => {
+          const updates = { status: newStatus, ...extraUpdates };
+          if (newStatus === 'Approved & Completed' && !updates.completedDate) {
             updates.completedDate = new Date().toISOString().split('T')[0];
           }
           updateEditorAssignment(editorId, updates);
@@ -1669,6 +1697,59 @@ const ProjectDeliverablesHub = () => {
                                   </option>
                                 ))}
                               </select>
+
+                              {/* Admin Approval / Rejection Action buttons */}
+                              {stage.label === 'Internal Review' && (
+                                <div style={{ display: 'flex', gap: '4px', justifyContent: 'center', marginTop: '6px' }}>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      handleDirectStatusChange(ed.id, 'Approved & Completed', {
+                                        paymentStatus: 'Approved for Payout'
+                                      });
+                                    }}
+                                    style={{
+                                      padding: '2px 7px',
+                                      borderRadius: '4px',
+                                      fontSize: '0.66rem',
+                                      fontWeight: '800',
+                                      background: 'rgba(16, 185, 129, 0.2)',
+                                      color: '#10b981',
+                                      border: '1px solid rgba(16, 185, 129, 0.4)',
+                                      cursor: 'pointer'
+                                    }}
+                                    title="Admin Approve: Marks approved and authorizes payment"
+                                  >
+                                    ✓ Approve & Pay
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setRejectionModalItem(ed);
+                                      setRejectionFeedback(ed.adminFeedback || '');
+                                    }}
+                                    style={{
+                                      padding: '2px 7px',
+                                      borderRadius: '4px',
+                                      fontSize: '0.66rem',
+                                      fontWeight: '800',
+                                      background: 'rgba(239, 68, 68, 0.2)',
+                                      color: '#ef4444',
+                                      border: '1px solid rgba(239, 68, 68, 0.4)',
+                                      cursor: 'pointer'
+                                    }}
+                                    title="Admin Reject: Sends video back to Editing in Progress with rework notes"
+                                  >
+                                    ✕ Reject
+                                  </button>
+                                </div>
+                              )}
+
+                              {ed.adminFeedback && (stage.label.includes('Progress') || stage.label.includes('Review')) && (
+                                <div style={{ marginTop: '5px', padding: '3px 6px', borderRadius: '4px', background: 'rgba(239, 68, 68, 0.12)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#f87171', fontSize: '0.66rem', textAlign: 'left', maxWidth: '180px', margin: '5px auto 0' }}>
+                                  <strong>Rework Note:</strong> {ed.adminFeedback}
+                                </div>
+                              )}
                             </td>
                             <td style={{ padding: '10px 10px', textAlign: 'center' }}>
                               {completedDate !== '—' ? (
@@ -1684,7 +1765,25 @@ const ProjectDeliverablesHub = () => {
                             </td>
                             <td style={{ padding: '10px 12px', textAlign: 'right' }}>
                               <div style={{ fontWeight: '800', color: '#34d399' }}>₹{(ed.amount || 0).toLocaleString('en-IN')}</div>
-                              <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>{ed.paymentStatus || 'Pending'}</div>
+                              <select
+                                value={ed.paymentStatus || 'Pending'}
+                                onChange={(e) => updateEditorAssignment(ed.id, { paymentStatus: e.target.value })}
+                                style={{
+                                  marginTop: '3px',
+                                  padding: '2px 5px',
+                                  borderRadius: '4px',
+                                  fontSize: '0.66rem',
+                                  fontWeight: '700',
+                                  background: ed.paymentStatus === 'Paid' ? 'rgba(16, 185, 129, 0.2)' : (ed.paymentStatus?.includes('Approved') ? 'rgba(59, 130, 246, 0.2)' : 'rgba(245, 158, 11, 0.15)'),
+                                  color: ed.paymentStatus === 'Paid' ? '#34d399' : (ed.paymentStatus?.includes('Approved') ? '#60a5fa' : '#fbbf24'),
+                                  border: '1px solid rgba(255,255,255,0.1)',
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                <option value="Pending" style={{ background: '#0f172a', color: '#fff' }}>Pending Clearance</option>
+                                <option value="Approved for Payout" style={{ background: '#0f172a', color: '#fff' }}>Approved for Payout</option>
+                                <option value="Paid" style={{ background: '#0f172a', color: '#fff' }}>Paid</option>
+                              </select>
                             </td>
                             <td style={{ padding: '10px 10px', textAlign: 'center' }}>
                               <div style={{ display: 'flex', justifyContent: 'center', gap: '4px' }}>
@@ -1815,6 +1914,66 @@ const ProjectDeliverablesHub = () => {
                           )}
                         </div>
 
+                        {stage.label === 'Internal Review' && (
+                          <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                handleDirectStatusChange(ed.id, 'Approved & Completed', {
+                                  paymentStatus: 'Approved for Payout'
+                                });
+                              }}
+                              style={{
+                                flex: 1,
+                                padding: '6px 10px',
+                                borderRadius: '6px',
+                                fontSize: '0.74rem',
+                                fontWeight: '800',
+                                background: 'rgba(16, 185, 129, 0.2)',
+                                color: '#10b981',
+                                border: '1px solid rgba(16, 185, 129, 0.4)',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '4px'
+                              }}
+                            >
+                              ✓ Admin Approve & Pay
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setRejectionModalItem(ed);
+                                setRejectionFeedback(ed.adminFeedback || '');
+                              }}
+                              style={{
+                                flex: 1,
+                                padding: '6px 10px',
+                                borderRadius: '6px',
+                                fontSize: '0.74rem',
+                                fontWeight: '800',
+                                background: 'rgba(239, 68, 68, 0.2)',
+                                color: '#ef4444',
+                                border: '1px solid rgba(239, 68, 68, 0.4)',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '4px'
+                              }}
+                            >
+                              ✕ Reject / Rework
+                            </button>
+                          </div>
+                        )}
+
+                        {ed.adminFeedback && (stage.label.includes('Progress') || stage.label.includes('Review')) && (
+                          <div style={{ padding: '8px 12px', borderRadius: '8px', background: 'rgba(239, 68, 68, 0.12)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#f87171', fontSize: '0.74rem' }}>
+                            <strong>Admin Rework Instructions:</strong> {ed.adminFeedback}
+                          </div>
+                        )}
+
                         {/* Interactive Workflow Stage Changer */}
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.03)', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
                           <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: '600' }}>Workflow Stage:</span>
@@ -1848,6 +2007,569 @@ const ProjectDeliverablesHub = () => {
           </div>
         );
       })()}
+
+      {/* ========================================================================= */}
+      {/* VIEW 4b: GRAPHIC DESIGN ONE-TIME PROJECTS (LOGO / WEBSITE / BROCHURE)     */}
+      {/* ========================================================================= */}
+      {activeSubTab === 'creative' && (() => {
+        const filteredCreative = creativeProjects.filter(p => {
+          const q = (creativeSearchQuery || '').toLowerCase();
+          const matchQ = !q || (p.projectName || '').toLowerCase().includes(q) || (p.designerName || '').toLowerCase().includes(q) || (p.assetType || '').toLowerCase().includes(q);
+          if (!matchQ) return false;
+          if (creativeTypeFilter !== 'ALL' && p.assetType !== creativeTypeFilter) return false;
+          return true;
+        });
+
+        const activeCount = creativeProjects.filter(p => (p.status || '').toLowerCase() !== 'completed').length;
+        const completedCount = creativeProjects.filter(p => (p.status || '').toLowerCase() === 'completed').length;
+        const totalValue = creativeProjects.reduce((s, p) => s + (parseFloat(p.ticketSize) || 0), 0);
+
+        const calculateTurnaround = (assigned, completed) => {
+          if (!assigned) return '—';
+          const start = new Date(assigned);
+          const end = completed ? new Date(completed) : new Date();
+          const diffMs = end - start;
+          const days = Math.max(1, Math.round(diffMs / (1000 * 60 * 60 * 24)));
+          return days;
+        };
+
+        const handleSaveCreativeProject = async (e, formData, isEdit = false, rawId = null) => {
+          e.preventDefault();
+          try {
+            const url = isEdit ? `/api/mis/creative-projects/${rawId}` : '/api/mis/creative-projects';
+            const method = isEdit ? 'PUT' : 'POST';
+            const res = await fetch(url, {
+              method,
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(formData)
+            });
+            if (res.ok) {
+              await loadCreativeProjects();
+              setShowAddCreativeModal(false);
+              setEditingCreative(null);
+            }
+          } catch (err) {
+            alert('Failed to save project: ' + err.message);
+          }
+        };
+
+        const handleMarkCompleted = async (project) => {
+          const today = new Date().toISOString().split('T')[0];
+          const turnaround = calculateTurnaround(project.assignedDate, today);
+          try {
+            const res = await fetch(`/api/mis/creative-projects/${project.id || project.rawId}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                ...project,
+                completedDate: today,
+                status: 'Completed',
+                turnaroundDays: turnaround
+              })
+            });
+            if (res.ok) {
+              await loadCreativeProjects();
+            }
+          } catch (err) {
+            alert('Error updating status');
+          }
+        };
+
+        const handleDeleteCreative = async (id, name) => {
+          if (window.confirm(`Delete creative project "${name}"?`)) {
+            try {
+              const res = await fetch(`/api/mis/creative-projects/${id}`, { method: 'DELETE' });
+              if (res.ok) await loadCreativeProjects();
+            } catch (err) {
+              alert('Error deleting project');
+            }
+          }
+        };
+
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+            
+            {/* Header & Controls Bar */}
+            <div className="glass-panel" style={{ padding: '20px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
+              <div>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: '900', margin: '0 0 4px 0', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Palette style={{ width: '20px', height: '20px', color: '#f59e0b' }} />
+                  Graphic Design One-Time Deliverables Tracker
+                </h3>
+                <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: 0 }}>
+                  Assigned to <strong>Riya Biswas Dasgupta</strong>. Automated turnaround telemetry tracking days taken to deliver logos, brochures, and web designs.
+                </p>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                <div style={{ position: 'relative', width: '220px' }}>
+                  <Search style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', width: '13px', height: '13px', color: 'var(--text-muted)' }} />
+                  <input
+                    type="text"
+                    placeholder="Search logo, brochure, web..."
+                    value={creativeSearchQuery}
+                    onChange={(e) => setCreativeSearchQuery(e.target.value)}
+                    className="form-input"
+                    style={{ paddingLeft: '30px', fontSize: '0.78rem', padding: '6px 12px 6px 30px' }}
+                  />
+                </div>
+
+                <select
+                  value={creativeTypeFilter}
+                  onChange={(e) => setCreativeTypeFilter(e.target.value)}
+                  className="form-select"
+                  style={{ fontSize: '0.78rem', padding: '6px 10px' }}
+                >
+                  <option value="ALL">All Asset Types</option>
+                  <option value="Logo Design">Logo Design</option>
+                  <option value="Brochure Design">Brochure Design</option>
+                  <option value="Website UI Design">Website UI Design</option>
+                </select>
+
+                <button
+                  type="button"
+                  onClick={() => setShowAddCreativeModal(true)}
+                  className="btn gradient-btn-primary"
+                  style={{ padding: '7px 14px', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '6px' }}
+                >
+                  <Plus style={{ width: '14px', height: '14px' }} />
+                  <span>Add One-Time Project</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Quick KPI Overview Cards */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
+              <div className="glass-card" style={{ padding: '16px', borderLeft: '4px solid #f59e0b' }}>
+                <div style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: '800', textTransform: 'uppercase' }}>Total One-Time Projects</div>
+                <div style={{ fontSize: '1.6rem', fontWeight: '900', color: '#f59e0b', marginTop: '4px' }}>{creativeProjects.length}</div>
+                <div style={{ fontSize: '0.7rem', color: '#64748b', marginTop: '2px' }}>Logos, brochures & web mockups</div>
+              </div>
+
+              <div className="glass-card" style={{ padding: '16px', borderLeft: '4px solid #38bdf8' }}>
+                <div style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: '800', textTransform: 'uppercase' }}>In Progress / Running</div>
+                <div style={{ fontSize: '1.6rem', fontWeight: '900', color: '#38bdf8', marginTop: '4px' }}>{activeCount}</div>
+                <div style={{ fontSize: '0.7rem', color: '#64748b', marginTop: '2px' }}>Active design deliverables</div>
+              </div>
+
+              <div className="glass-card" style={{ padding: '16px', borderLeft: '4px solid #10b981' }}>
+                <div style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: '800', textTransform: 'uppercase' }}>Delivered & Completed</div>
+                <div style={{ fontSize: '1.6rem', fontWeight: '900', color: '#10b981', marginTop: '4px' }}>{completedCount}</div>
+                <div style={{ fontSize: '0.7rem', color: '#64748b', marginTop: '2px' }}>Final vector/PDF assets shipped</div>
+              </div>
+
+              <div className="glass-card" style={{ padding: '16px', borderLeft: '4px solid #a855f7' }}>
+                <div style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: '800', textTransform: 'uppercase' }}>Pipeline Contract Value</div>
+                <div style={{ fontSize: '1.6rem', fontWeight: '900', color: '#a855f7', marginTop: '4px' }}>₹{totalValue.toLocaleString('en-IN')}</div>
+                <div style={{ fontSize: '0.7rem', color: '#64748b', marginTop: '2px' }}>Sanna creative services billable</div>
+              </div>
+            </div>
+
+            {/* Main Creative Projects Data Table */}
+            <div className="glass-card" style={{ padding: '18px', overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.78rem' }}>
+                <thead>
+                  <tr style={{ background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid var(--border-color)', color: 'var(--text-muted)' }}>
+                    <th style={{ padding: '10px 12px', textAlign: 'left' }}>Project Name</th>
+                    <th style={{ padding: '10px 10px', textAlign: 'center' }}>Asset Type</th>
+                    <th style={{ padding: '10px 12px', textAlign: 'left' }}>Assigned Designer</th>
+                    <th style={{ padding: '10px 10px', textAlign: 'center' }}>Start Date</th>
+                    <th style={{ padding: '10px 10px', textAlign: 'center' }}>Completed Date</th>
+                    <th style={{ padding: '10px 12px', textAlign: 'center' }}>Turnaround (Days to Complete)</th>
+                    <th style={{ padding: '10px 10px', textAlign: 'center' }}>Status</th>
+                    <th style={{ padding: '10px 12px', textAlign: 'right' }}>Contract Value</th>
+                    <th style={{ padding: '10px 10px', textAlign: 'center' }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredCreative.length === 0 ? (
+                    <tr>
+                      <td colSpan={9} style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                        No one-time creative projects found matching this filter. Click "+ Add One-Time Project" to create one.
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredCreative.map(p => {
+                      const isDone = (p.status || '').toLowerCase() === 'completed';
+                      const turnaroundDays = p.turnaroundDays > 0 ? p.turnaroundDays : calculateTurnaround(p.assignedDate, p.completedDate);
+
+                      return (
+                        <tr key={p.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                          <td style={{ padding: '11px 12px', fontWeight: '800', color: 'var(--text-primary)' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <Sparkles style={{ width: '14px', height: '14px', color: '#f59e0b', flexShrink: 0 }} />
+                              <span>{p.projectName}</span>
+                            </div>
+                            {p.remarks && <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '2px' }}>{p.remarks}</div>}
+                          </td>
+
+                          <td style={{ padding: '11px 10px', textAlign: 'center' }}>
+                            <span style={{
+                              padding: '3px 8px',
+                              borderRadius: '6px',
+                              fontSize: '0.7rem',
+                              fontWeight: '800',
+                              background: p.assetType?.includes('Logo') ? 'rgba(245, 158, 11, 0.15)' : (p.assetType?.includes('Brochure') ? 'rgba(168, 85, 247, 0.15)' : 'rgba(56, 189, 248, 0.15)'),
+                              color: p.assetType?.includes('Logo') ? '#f59e0b' : (p.assetType?.includes('Brochure') ? '#c084fc' : '#38bdf8'),
+                              border: '1px solid rgba(255,255,255,0.08)'
+                            }}>
+                              {p.assetType || 'Logo Design'}
+                            </span>
+                          </td>
+
+                          <td style={{ padding: '11px 12px' }}>
+                            <div style={{ fontWeight: '700', color: 'var(--text-primary)' }}>{p.designerName || 'Riya Biswas Dasgupta'}</div>
+                            <div style={{ fontSize: '0.68rem', color: '#818cf8' }}>Sr. Graphic Designer</div>
+                          </td>
+
+                          <td style={{ padding: '11px 10px', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                            <span style={{ padding: '2px 7px', borderRadius: '5px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-color)', fontSize: '0.73rem' }}>
+                              {p.assignedDate || '—'}
+                            </span>
+                          </td>
+
+                          <td style={{ padding: '11px 10px', textAlign: 'center' }}>
+                            {p.completedDate ? (
+                              <span style={{ padding: '2px 7px', borderRadius: '5px', background: 'rgba(16, 185, 129, 0.12)', color: '#34d399', fontWeight: '700', fontSize: '0.73rem', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
+                                ✓ {p.completedDate}
+                              </span>
+                            ) : (
+                              <span style={{ color: 'var(--text-muted)', fontSize: '0.73rem' }}>In Progress</span>
+                            )}
+                          </td>
+
+                          {/* Turnaround Metric (Days to Complete) */}
+                          <td style={{ padding: '11px 12px', textAlign: 'center' }}>
+                            {isDone ? (
+                              <span style={{ padding: '3px 9px', borderRadius: '6px', background: 'rgba(16, 185, 129, 0.15)', color: '#10b981', fontWeight: '800', fontSize: '0.74rem', border: '1px solid rgba(16, 185, 129, 0.35)' }}>
+                                ✓ {turnaroundDays} Days Completed
+                              </span>
+                            ) : (
+                              <span style={{ padding: '3px 9px', borderRadius: '6px', background: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b', fontWeight: '800', fontSize: '0.74rem', border: '1px solid rgba(245, 158, 11, 0.35)' }}>
+                                Running: {turnaroundDays} Days
+                              </span>
+                            )}
+                          </td>
+
+                          <td style={{ padding: '11px 10px', textAlign: 'center' }}>
+                            <select
+                              value={p.status || 'In Progress'}
+                              onChange={async (e) => {
+                                const newSt = e.target.value;
+                                const today = new Date().toISOString().split('T')[0];
+                                const completed = newSt === 'Completed' ? today : (p.completedDate || '');
+                                const turn = calculateTurnaround(p.assignedDate, completed);
+                                try {
+                                  await fetch(`/api/mis/creative-projects/${p.id || p.rawId}`, {
+                                    method: 'PUT',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ ...p, status: newSt, completedDate: completed, turnaroundDays: turn })
+                                  });
+                                  await loadCreativeProjects();
+                                } catch (err) {}
+                              }}
+                              style={{
+                                padding: '4px 8px',
+                                borderRadius: '6px',
+                                fontSize: '0.72rem',
+                                fontWeight: '700',
+                                background: isDone ? 'rgba(16, 185, 129, 0.15)' : 'rgba(245, 158, 11, 0.15)',
+                                color: isDone ? '#34d399' : '#fbbf24',
+                                border: '1px solid rgba(255,255,255,0.1)',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              <option value="Assigned" style={{ background: '#0f172a', color: '#fff' }}>Assigned</option>
+                              <option value="In Progress" style={{ background: '#0f172a', color: '#fff' }}>In Progress</option>
+                              <option value="Under Review" style={{ background: '#0f172a', color: '#fff' }}>Under Review</option>
+                              <option value="Completed" style={{ background: '#0f172a', color: '#fff' }}>Completed</option>
+                            </select>
+                          </td>
+
+                          <td style={{ padding: '11px 12px', textAlign: 'right', fontWeight: '800', color: '#34d399' }}>
+                            ₹{(p.ticketSize || 0).toLocaleString('en-IN')}
+                          </td>
+
+                          <td style={{ padding: '11px 10px', textAlign: 'center' }}>
+                            <div style={{ display: 'flex', justifyContent: 'center', gap: '6px' }}>
+                              {!isDone && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleMarkCompleted(p)}
+                                  className="btn"
+                                  style={{ padding: '3px 8px', background: 'rgba(16, 185, 129, 0.2)', color: '#10b981', border: '1px solid rgba(16, 185, 129, 0.4)', borderRadius: '6px', fontSize: '0.68rem', fontWeight: '800', cursor: 'pointer' }}
+                                  title="Mark completed today"
+                                >
+                                  ✓ Done
+                                </button>
+                              )}
+                              <button
+                                type="button"
+                                onClick={() => setEditingCreative({ ...p })}
+                                className="btn btn-secondary"
+                                style={{ padding: '4px 6px', color: '#818cf8', fontSize: '0.7rem' }}
+                                title="Edit project"
+                              >
+                                <Edit2 style={{ width: '12px', height: '12px' }} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteCreative(p.id || p.rawId, p.projectName)}
+                                className="btn btn-secondary"
+                                style={{ padding: '4px 6px', color: '#f87171', fontSize: '0.7rem' }}
+                                title="Delete"
+                              >
+                                <Trash2 style={{ width: '12px', height: '12px' }} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Add One-Time Project Modal */}
+            {showAddCreativeModal && (
+              <div className="modal-backdrop" style={{ zIndex: 9999 }}>
+                <div className="glass-panel" style={{ maxWidth: '480px', width: '100%', padding: '24px', borderRadius: '20px', background: 'var(--bg-card)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                    <h3 style={{ fontSize: '1.2rem', fontWeight: '800', margin: 0, color: 'var(--text-primary)' }}>
+                      Add One-Time Graphic Design Project
+                    </h3>
+                    <button onClick={() => setShowAddCreativeModal(false)} style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer' }}>
+                      <X style={{ width: '18px', height: '18px' }} />
+                    </button>
+                  </div>
+
+                  <form onSubmit={e => {
+                    const fd = new FormData(e.target);
+                    const data = {
+                      projectName: fd.get('projectName'),
+                      assetType: fd.get('assetType'),
+                      designerName: fd.get('designerName') || 'Riya Biswas Dasgupta',
+                      assignedDate: fd.get('assignedDate'),
+                      completedDate: fd.get('completedDate') || '',
+                      turnaroundDays: 0,
+                      status: fd.get('status') || 'In Progress',
+                      ticketSize: parseFloat(fd.get('ticketSize') || 0),
+                      remarks: fd.get('remarks') || ''
+                    };
+                    handleSaveCreativeProject(e, data, false);
+                  }} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    <div>
+                      <label style={{ fontSize: '0.75rem', fontWeight: '700', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>Project / Client Name *</label>
+                      <input type="text" name="projectName" required placeholder="e.g. Apex Legal Logo & Vector Branding" className="form-input" style={{ width: '100%', padding: '8px 12px' }} />
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                      <div>
+                        <label style={{ fontSize: '0.75rem', fontWeight: '700', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>Asset Category *</label>
+                        <select name="assetType" className="form-select" style={{ width: '100%', padding: '8px 10px' }}>
+                          <option value="Logo Design">Logo Design</option>
+                          <option value="Brochure Design">Brochure Design</option>
+                          <option value="Website UI Design">Website UI Design</option>
+                          <option value="Social Banner">Social Banner</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label style={{ fontSize: '0.75rem', fontWeight: '700', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>Designer</label>
+                        <input type="text" name="designerName" defaultValue="Riya Biswas Dasgupta" className="form-input" style={{ width: '100%', padding: '8px 12px' }} />
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                      <div>
+                        <label style={{ fontSize: '0.75rem', fontWeight: '700', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>Start / Assigned Date *</label>
+                        <input type="date" name="assignedDate" required defaultValue={new Date().toISOString().split('T')[0]} className="form-input" style={{ width: '100%', padding: '8px 10px' }} />
+                      </div>
+
+                      <div>
+                        <label style={{ fontSize: '0.75rem', fontWeight: '700', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>Contract Value (₹)</label>
+                        <input type="number" name="ticketSize" defaultValue="5000" className="form-input" style={{ width: '100%', padding: '8px 12px' }} />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label style={{ fontSize: '0.75rem', fontWeight: '700', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>Project Notes / Deliverable Scope</label>
+                      <input type="text" name="remarks" placeholder="e.g. 3 concepts, monochrome + color palette" className="form-input" style={{ width: '100%', padding: '8px 12px' }} />
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
+                      <button type="button" onClick={() => setShowAddCreativeModal(false)} className="btn btn-secondary" style={{ padding: '8px 16px', fontSize: '0.8rem' }}>Cancel</button>
+                      <button type="submit" className="btn gradient-btn-primary" style={{ padding: '8px 18px', fontSize: '0.8rem' }}>Create Project</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
+
+            {/* Edit One-Time Project Modal */}
+            {editingCreative && (
+              <div className="modal-backdrop" style={{ zIndex: 9999 }}>
+                <div className="glass-panel" style={{ maxWidth: '480px', width: '100%', padding: '24px', borderRadius: '20px', background: 'var(--bg-card)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                    <h3 style={{ fontSize: '1.2rem', fontWeight: '800', margin: 0, color: 'var(--text-primary)' }}>
+                      Edit Graphic Design Project
+                    </h3>
+                    <button onClick={() => setEditingCreative(null)} style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer' }}>
+                      <X style={{ width: '18px', height: '18px' }} />
+                    </button>
+                  </div>
+
+                  <form onSubmit={e => {
+                    const fd = new FormData(e.target);
+                    const completedDate = fd.get('completedDate') || '';
+                    const assignedDate = fd.get('assignedDate');
+                    const turnaround = calculateTurnaround(assignedDate, completedDate);
+                    const data = {
+                      projectName: fd.get('projectName'),
+                      assetType: fd.get('assetType'),
+                      designerName: fd.get('designerName') || 'Riya Biswas Dasgupta',
+                      assignedDate,
+                      completedDate,
+                      turnaroundDays: turnaround,
+                      status: fd.get('status'),
+                      ticketSize: parseFloat(fd.get('ticketSize') || 0),
+                      remarks: fd.get('remarks') || ''
+                    };
+                    handleSaveCreativeProject(e, data, true, editingCreative.id || editingCreative.rawId);
+                  }} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    <div>
+                      <label style={{ fontSize: '0.75rem', fontWeight: '700', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>Project Name</label>
+                      <input type="text" name="projectName" defaultValue={editingCreative.projectName} required className="form-input" style={{ width: '100%', padding: '8px 12px' }} />
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                      <div>
+                        <label style={{ fontSize: '0.75rem', fontWeight: '700', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>Asset Category</label>
+                        <select name="assetType" defaultValue={editingCreative.assetType} className="form-select" style={{ width: '100%', padding: '8px 10px' }}>
+                          <option value="Logo Design">Logo Design</option>
+                          <option value="Brochure Design">Brochure Design</option>
+                          <option value="Website UI Design">Website UI Design</option>
+                          <option value="Social Banner">Social Banner</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label style={{ fontSize: '0.75rem', fontWeight: '700', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>Status</label>
+                        <select name="status" defaultValue={editingCreative.status} className="form-select" style={{ width: '100%', padding: '8px 10px' }}>
+                          <option value="Assigned">Assigned</option>
+                          <option value="In Progress">In Progress</option>
+                          <option value="Under Review">Under Review</option>
+                          <option value="Completed">Completed</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                      <div>
+                        <label style={{ fontSize: '0.75rem', fontWeight: '700', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>Start Date</label>
+                        <input type="date" name="assignedDate" defaultValue={editingCreative.assignedDate} className="form-input" style={{ width: '100%', padding: '8px 10px' }} />
+                      </div>
+
+                      <div>
+                        <label style={{ fontSize: '0.75rem', fontWeight: '700', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>Completed Date</label>
+                        <input type="date" name="completedDate" defaultValue={editingCreative.completedDate || ''} className="form-input" style={{ width: '100%', padding: '8px 10px' }} />
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                      <div>
+                        <label style={{ fontSize: '0.75rem', fontWeight: '700', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>Contract Value (₹)</label>
+                        <input type="number" name="ticketSize" defaultValue={editingCreative.ticketSize || 0} className="form-input" style={{ width: '100%', padding: '8px 12px' }} />
+                      </div>
+
+                      <div>
+                        <label style={{ fontSize: '0.75rem', fontWeight: '700', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>Scope Notes</label>
+                        <input type="text" name="remarks" defaultValue={editingCreative.remarks || ''} className="form-input" style={{ width: '100%', padding: '8px 12px' }} />
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
+                      <button type="button" onClick={() => setEditingCreative(null)} className="btn btn-secondary" style={{ padding: '8px 16px', fontSize: '0.8rem' }}>Cancel</button>
+                      <button type="submit" className="btn gradient-btn-primary" style={{ padding: '8px 18px', fontSize: '0.8rem' }}>Save Changes</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
+
+          </div>
+        );
+      })()}
+
+      {/* Video Rejection / Rework Modal */}
+      {rejectionModalItem && (
+        <div className="modal-backdrop" style={{ zIndex: 9999 }}>
+          <div className="glass-panel" style={{ maxWidth: '460px', width: '100%', padding: '24px', borderRadius: '20px', background: 'var(--bg-card)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+              <h3 style={{ fontSize: '1.15rem', fontWeight: '800', margin: 0, color: '#f87171', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Video style={{ width: '18px', height: '18px' }} />
+                Reject Video & Request Rework
+              </h3>
+              <button onClick={() => setRejectionModalItem(null)} style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer' }}>
+                <X style={{ width: '18px', height: '18px' }} />
+              </button>
+            </div>
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: '0 0 12px 0' }}>
+              Returning project <strong>{rejectionModalItem.projectName || rejectionModalItem.clientProject}</strong> back to <strong>Editing in Progress</strong> for editor <strong>{rejectionModalItem.editorName}</strong>.
+            </p>
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ fontSize: '0.75rem', fontWeight: '700', color: '#94a3b8', display: 'block', marginBottom: '6px' }}>
+                What needs to be revised / fixed? *
+              </label>
+              <textarea
+                rows={4}
+                required
+                placeholder="e.g. Cut pacing is too slow in the hook. Audio has background hum. Color grading needs saturation boost."
+                value={rejectionFeedback}
+                onChange={e => setRejectionFeedback(e.target.value)}
+                className="form-input"
+                style={{ width: '100%', padding: '10px 12px', fontSize: '0.82rem', lineHeight: '1.4' }}
+              />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+              <button
+                type="button"
+                onClick={() => setRejectionModalItem(null)}
+                className="btn btn-secondary"
+                style={{ padding: '8px 16px', fontSize: '0.8rem' }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={!rejectionFeedback.trim()}
+                onClick={() => {
+                  updateEditorAssignment(rejectionModalItem.id, {
+                    status: 'Editing in Progress',
+                    adminFeedback: rejectionFeedback
+                  });
+                  setRejectionModalItem(null);
+                  setRejectionFeedback('');
+                }}
+                className="btn"
+                style={{
+                  padding: '8px 18px',
+                  fontSize: '0.8rem',
+                  background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '10px',
+                  fontWeight: '700',
+                  cursor: 'pointer'
+                }}
+              >
+                Send Rework Request
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ========================================================================= */}
       {/* VIEW 5: SERVER INFRASTRUCTURE & CREDENTIALS VAULT                         */}

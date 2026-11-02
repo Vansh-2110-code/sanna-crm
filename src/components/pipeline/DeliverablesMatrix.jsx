@@ -659,7 +659,22 @@ const DeliverablesMatrix = () => {
             <thead>
               {/* Grouped Header Row 1 */}
               <tr style={{ background: '#111827', borderBottom: '1px solid rgba(255, 255, 255, 0.1)', color: '#94a3b8' }}>
-                <th rowSpan="2" style={{ padding: '10px 14px', fontWeight: '700', minWidth: '150px' }}>Client Name</th>
+                <th
+                  rowSpan="2"
+                  style={{
+                    padding: '10px 14px',
+                    fontWeight: '700',
+                    minWidth: '170px',
+                    position: 'sticky',
+                    left: 0,
+                    zIndex: 30,
+                    background: '#111827',
+                    boxShadow: '4px 0 10px rgba(0, 0, 0, 0.45)',
+                    borderRight: '1px solid rgba(255, 255, 255, 0.1)'
+                  }}
+                >
+                  Client Name
+                </th>
                 <th rowSpan="2" style={{ padding: '10px 10px', fontWeight: '700', minWidth: '85px', textAlign: 'center' }}>Type</th>
                 <th rowSpan="2" style={{ padding: '10px 10px', fontWeight: '700', minWidth: '110px', textAlign: 'center' }}>Delivery Date</th>
                 
@@ -750,8 +765,21 @@ const DeliverablesMatrix = () => {
                         transition: 'background 0.15s ease'
                       }}
                     >
-                      {/* 1. Client Name */}
-                      <td style={{ padding: '8px 14px', fontWeight: '700', color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>
+                      {/* 1. Client Name (Sticky on horizontal scroll) */}
+                      <td
+                        style={{
+                          padding: '8px 14px',
+                          fontWeight: '700',
+                          color: 'var(--text-primary)',
+                          whiteSpace: 'nowrap',
+                          position: 'sticky',
+                          left: 0,
+                          zIndex: 15,
+                          background: idx % 2 === 0 ? '#0b0f19' : '#111827',
+                          boxShadow: '4px 0 10px rgba(0, 0, 0, 0.45)',
+                          borderRight: '1px solid rgba(255, 255, 255, 0.08)'
+                        }}
+                      >
                         {row.clientName || row.projectName || 'Unnamed Client'}
                       </td>
 
@@ -1238,7 +1266,21 @@ const DeliverablesMatrix = () => {
               {/* === BOTTOM TOTAL SUMMARY ROW === */}
               {filteredDeliverables.length > 0 && (
                 <tr style={{ background: '#111827', borderTop: '2px solid rgba(99, 102, 241, 0.4)', fontWeight: '800' }}>
-                  <td style={{ padding: '12px 14px', color: '#fff', fontSize: '0.85rem' }}>Total</td>
+                  <td
+                    style={{
+                      padding: '12px 14px',
+                      color: '#fff',
+                      fontSize: '0.85rem',
+                      position: 'sticky',
+                      left: 0,
+                      zIndex: 15,
+                      background: '#111827',
+                      boxShadow: '4px 0 10px rgba(0, 0, 0, 0.45)',
+                      borderRight: '1px solid rgba(255, 255, 255, 0.1)'
+                    }}
+                  >
+                    Total
+                  </td>
                   <td style={{ padding: '12px 10px', textAlign: 'center', color: 'var(--text-muted)' }}>—</td>
                   <td style={{ padding: '12px 10px', textAlign: 'center', color: 'var(--text-muted)' }}>—</td>
                   

@@ -24,7 +24,7 @@ exports.updateEmployee = async (req, res) => {
   try {
     const tenantId = req.tenant?.id || 'client-sanna';
     const { id } = req.params;
-    const { designation, roleId, role, baseSalary, salary, birthday, dob, name, full_name, requesterRole } = req.body;
+    const { designation, roleId, role, baseSalary, salary, birthday, dob, name, full_name, status, requesterRole } = req.body;
     const employee = await EmployeeService.updateEmployee(
       tenantId,
       id,
@@ -34,7 +34,8 @@ exports.updateEmployee = async (req, res) => {
         role,
         baseSalary: baseSalary !== undefined ? baseSalary : salary,
         birthday: birthday !== undefined ? birthday : dob,
-        name: name || full_name
+        name: name || full_name,
+        status
       },
       requesterRole
     );

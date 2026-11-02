@@ -165,7 +165,7 @@ class EmployeeService {
   }
 
   async updateEmployee(tenantId, id, updateData, requesterRole) {
-    const { designation, roleId, role, baseSalary, salary, birthday, dob } = updateData;
+    const { designation, roleId, role, baseSalary, salary, birthday, dob, status } = updateData;
     const salaryVal = parseInt(baseSalary || salary || 50000, 10);
     const birthdayVal = birthday || dob;
     const ROLE_MAP = {
@@ -210,6 +210,10 @@ class EmployeeService {
       if (birthdayVal !== undefined) {
         updates.push('birthday = ?');
         params.push(birthdayVal);
+      }
+      if (status !== undefined) {
+        updates.push('status = ?');
+        params.push(status);
       }
 
       if (updates.length > 0) {
@@ -280,9 +284,15 @@ class EmployeeService {
       const sqlite3 = require('sqlite3').verbose();
       const path = require('path');
       const db = new sqlite3.Database(path.join(__dirname, '..', 'unified_sanna_crm.db'));
-      db.run('DELETE FROM users WHERE id = ? OR email = ? OR username = ?', [id, id, id], (err) => {
-        db.close();
-      });
+      const numMatch = String(id).match(/\d+/);
+      const numId = numMatch ? parseInt(numMatch[0], 10) : null;
+      db.run(
+        'DELETE FROM users WHERE id = ? OR id = ? OR email = ? OR username = ? OR LOWER(email) = LOWER(?) OR LOWER(username) = LOWER(?)',
+        [id, numId, id, id, id, id],
+        (err) => {
+          db.close();
+        }
+      );
     } catch (e) {
       console.warn('SQLite delete employee:', e.message);
     }
