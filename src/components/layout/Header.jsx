@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useCRM } from '../../context/CRMContext';
 import { getAppConfig } from '../../utils/appMode';
 import {
@@ -22,7 +22,11 @@ import {
   Gift,
   PartyPopper,
   Sparkles,
-  ChevronDown
+  ChevronDown,
+  Video,
+  FileCheck,
+  Wallet,
+  AlertCircle
 } from 'lucide-react';
 
 const TAB_TITLES = {
@@ -82,8 +86,30 @@ const Header = ({ activeTab = 'dashboard', onNavigate, onOpenQuickCreate, onTogg
 
   const [showNotifications, setShowNotifications] = useState(false);
   const [showBirthdayMenu, setShowBirthdayMenu] = useState(false);
+  const notifRef = useRef(null);
   const [elapsedTime, setElapsedTime] = useState('');
-  const unreadCount = notifications.filter(n => n.unread).length;
+  const [readIds, setReadIds] = useState(() => {
+    try {
+      return new Set(JSON.parse(localStorage.getItem('astra_read_notif_ids') || '[]'));
+    } catch (e) {
+      return new Set();
+    }
+  });
+  const unreadCount = (notifications || []).filter(n => n.unread && !readIds.has(n.id)).length;
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (notifRef.current && !notifRef.current.contains(e.target)) {
+        setShowNotifications(false);
+      }
+    };
+    if (showNotifications) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showNotifications]);
 
   const today = new Date();
   const currentMonthNum = today.getMonth() + 1; // 1-12
@@ -134,7 +160,17 @@ const Header = ({ activeTab = 'dashboard', onNavigate, onOpenQuickCreate, onTogg
   }, [employees]);
 
   const markAllRead = () => {
-    setNotifications(prev => prev.map(n => ({ ...n, unread: false })));
+    const allIds = (notifications || []).map(n => n.id);
+    setReadIds(new Set(allIds));
+    try { localStorage.setItem('astra_read_notif_ids', JSON.stringify(allIds)); } catch (e) {}
+  };
+
+  const markAsRead = (id) => {
+    setReadIds(prev => {
+      const next = new Set(prev).add(id);
+      try { localStorage.setItem('astra_read_notif_ids', JSON.stringify([...next])); } catch (e) {}
+      return next;
+    });
   };
 
   const currentTabMeta = TAB_TITLES[activeTab] || { title: 'Executive CRM', category: 'Main' };
@@ -601,7 +637,7 @@ const Header = ({ activeTab = 'dashboard', onNavigate, onOpenQuickCreate, onTogg
         </div>
 
         {/* Notifications Pill */}
-        <div style={{ position: 'relative' }}>
+        <div ref={notifRef} style={{ position: 'relative' }}>
           <button
             onClick={() => {
               setShowNotifications(!showNotifications);
@@ -703,42 +739,80 @@ const Header = ({ activeTab = 'dashboard', onNavigate, onOpenQuickCreate, onTogg
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '8px',
-                  maxHeight: '250px',
+                  maxHeight: '340px',
                   overflowY: 'auto'
                 }}
               >
-                {notifications.map(n => (
-                  <div
-                    key={n.id}
-                    style={{
-                      padding: '10px 12px',
-                      borderRadius: '10px',
-                      background: n.unread
-                        ? (theme === 'dark' ? 'rgba(78, 62, 255, 0.12)' : '#F1F4F9')
-                        : (theme === 'dark' ? '#1F2937' : '#FAFAFA'),
-                      border: theme === 'dark' ? '1px solid #374151' : '1px solid #E2E8F0',
-                      fontSize: '0.8rem'
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
-                      {n.unread ? (
-                        <AlertTriangle style={{ width: '13px', height: '13px', color: '#F59E0B' }} />
-                      ) : (
-                        <CheckCircle2 style={{ width: '13px', height: '13px', color: '#10B981' }} />
-                      )}
-                      <span
-                        style={{
-                          fontWeight: '800',
-                          color: n.unread ? '#4E3EFF' : (theme === 'dark' ? '#F9FAFB' : '#1E1F24')
-                        }}
-                      >
-                        {n.title}
-                      </span>
-                    </div>
-                    <div style={{ color: '#64748B', fontSize: '0.72rem' }}>{n.message}</div>
-                    <div style={{ fontSize: '0.64rem', color: '#94A3B8', marginTop: '4px' }}>{n.time}</div>
+                {(!notifications || notifications.length === 0) ? (
+                  <div style={{ textAlign: 'center', padding: '24px 12px', color: '#64748B', fontSize: '0.78rem' }}>
+                    All caught up! No active notifications.
                   </div>
-                ))}
+                ) : (
+                  notifications.map(n => {
+                    const isUnread = n.unread && !readIds.has(n.id);
+                    const getIcon = () => {
+                      if (n.type === 'review') return <Video style={{ width: '14px', height: '14px', color: '#818cf8' }} />;
+                      if (n.type === 'kyc') return <FileCheck style={{ width: '14px', height: '14px', color: '#06b6d4' }} />;
+                      if (n.type === 'finance') return <Wallet style={{ width: '14px', height: '14px', color: '#f59e0b' }} />;
+                      if (n.type === 'warning') return <AlertCircle style={{ width: '14px', height: '14px', color: '#ef4444' }} />;
+                      if (n.type === 'success') return <CheckCircle2 style={{ width: '14px', height: '14px', color: '#10b981' }} />;
+                      return <AlertTriangle style={{ width: '14px', height: '14px', color: '#f59e0b' }} />;
+                    };
+
+                    return (
+                      <div
+                        key={n.id}
+                        onClick={() => {
+                          markAsRead(n.id);
+                          if (n.tab && typeof onNavigate === 'function') {
+                            onNavigate(n.tab);
+                            setShowNotifications(false);
+                          }
+                        }}
+                        style={{
+                          padding: '10px 12px',
+                          borderRadius: '10px',
+                          background: isUnread
+                            ? (theme === 'dark' ? 'rgba(78, 62, 255, 0.15)' : '#F1F4F9')
+                            : (theme === 'dark' ? '#1F2937' : '#FAFAFA'),
+                          border: isUnread
+                            ? '1px solid rgba(78, 62, 255, 0.35)'
+                            : (theme === 'dark' ? '1px solid #374151' : '1px solid #E2E8F0'),
+                          fontSize: '0.8rem',
+                          cursor: n.tab ? 'pointer' : 'default',
+                          transition: 'all 0.15s ease'
+                        }}
+                        title={n.tab ? `Click to open ${n.tab}` : ''}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '3px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            {getIcon()}
+                            <span
+                              style={{
+                                fontWeight: '800',
+                                color: isUnread ? '#818cf8' : (theme === 'dark' ? '#F9FAFB' : '#1E1F24')
+                              }}
+                            >
+                              {n.title}
+                            </span>
+                          </div>
+                          {isUnread && (
+                            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#6366f1' }}></span>
+                          )}
+                        </div>
+                        <div style={{ color: theme === 'dark' ? '#94a3b8' : '#64748B', fontSize: '0.74rem', lineHeight: 1.35 }}>
+                          {n.message}
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px', fontSize: '0.66rem', color: '#64748B' }}>
+                          <span>{n.time}</span>
+                          {n.tab && (
+                            <span style={{ color: '#818cf8', fontWeight: '700' }}>Open &rarr;</span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
               </div>
             </div>
           )}

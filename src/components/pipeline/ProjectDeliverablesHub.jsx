@@ -84,7 +84,8 @@ const ProjectDeliverablesHub = () => {
     employees = [],
     leads = [],
     campaigns = [],
-    currentUser
+    currentUser,
+    addNotification
   } = useCRM();
 
   const isAdmin = currentUser?.username === 'admin' ||
@@ -1505,7 +1506,14 @@ const ProjectDeliverablesHub = () => {
 
         const handleDirectStatusChange = (editorId, newStatus, extraUpdates = {}) => {
           if (!isAdmin && newStatus === 'Approved & Completed') {
-            alert('Approval restricted: Only Admin can approve completed videos and authorize payout clearance.');
+            if (typeof addNotification === 'function') {
+              addNotification({
+                title: 'Approval Restricted',
+                message: 'Only Admin can approve completed videos and authorize payout clearance.',
+                type: 'warning',
+                tab: 'deliverables'
+              });
+            }
             return;
           }
           const updates = { status: newStatus, ...extraUpdates };
@@ -1513,7 +1521,23 @@ const ProjectDeliverablesHub = () => {
             updates.completedDate = new Date().toISOString().split('T')[0];
           }
           if (newStatus === 'Internal Review') {
-            alert('Video has been submitted for Internal Review. Request sent to Admin for approval!');
+            if (typeof addNotification === 'function') {
+              addNotification({
+                title: 'Video Submitted for Review',
+                message: 'Work order has been submitted for Internal Review. Request sent to Admin for approval.',
+                type: 'review',
+                tab: 'deliverables'
+              });
+            }
+          } else if (newStatus === 'Approved & Completed') {
+            if (typeof addNotification === 'function') {
+              addNotification({
+                title: 'Video Approved & Cleared',
+                message: 'Deliverable has been approved and authorized for payout clearance.',
+                type: 'success',
+                tab: 'deliverables'
+              });
+            }
           }
           updateEditorAssignment(editorId, updates);
         };
@@ -2079,9 +2103,24 @@ const ProjectDeliverablesHub = () => {
               await loadCreativeProjects();
               setShowAddCreativeModal(false);
               setEditingCreative(null);
+              if (typeof addNotification === 'function') {
+                addNotification({
+                  title: editingCreative ? 'Project Updated' : 'Creative Project Created',
+                  message: `Project "${formData.projectName || 'Design'}" saved successfully.`,
+                  type: 'success',
+                  tab: 'deliverables'
+                });
+              }
             }
           } catch (err) {
-            alert('Failed to save project: ' + err.message);
+            if (typeof addNotification === 'function') {
+              addNotification({
+                title: 'Save Failed',
+                message: 'Failed to save project: ' + err.message,
+                type: 'warning',
+                tab: 'deliverables'
+              });
+            }
           }
         };
 
@@ -2101,9 +2140,24 @@ const ProjectDeliverablesHub = () => {
             });
             if (res.ok) {
               await loadCreativeProjects();
+              if (typeof addNotification === 'function') {
+                addNotification({
+                  title: 'Project Completed',
+                  message: `Design deliverable "${project.projectName}" marked complete (${turnaround}d turnaround).`,
+                  type: 'success',
+                  tab: 'deliverables'
+                });
+              }
             }
           } catch (err) {
-            alert('Error updating status');
+            if (typeof addNotification === 'function') {
+              addNotification({
+                title: 'Update Error',
+                message: 'Failed to update project status.',
+                type: 'warning',
+                tab: 'deliverables'
+              });
+            }
           }
         };
 
@@ -2111,9 +2165,26 @@ const ProjectDeliverablesHub = () => {
           if (window.confirm(`Delete creative project "${name}"?`)) {
             try {
               const res = await fetch(`/api/mis/creative-projects/${id}`, { method: 'DELETE' });
-              if (res.ok) await loadCreativeProjects();
+              if (res.ok) {
+                await loadCreativeProjects();
+                if (typeof addNotification === 'function') {
+                  addNotification({
+                    title: 'Project Deleted',
+                    message: `Creative project "${name}" has been deleted.`,
+                    type: 'info',
+                    tab: 'deliverables'
+                  });
+                }
+              }
             } catch (err) {
-              alert('Error deleting project');
+              if (typeof addNotification === 'function') {
+                addNotification({
+                  title: 'Delete Error',
+                  message: 'Failed to delete project.',
+                  type: 'warning',
+                  tab: 'deliverables'
+                });
+              }
             }
           }
         };
@@ -2581,6 +2652,14 @@ const ProjectDeliverablesHub = () => {
                     status: 'Editing in Progress',
                     adminFeedback: rejectionFeedback
                   });
+                  if (typeof addNotification === 'function') {
+                    addNotification({
+                      title: 'Rework Dispatched',
+                      message: `Revision instructions dispatched to ${rejectionModalItem.editorName || 'editor'} for "${rejectionModalItem.projectName || rejectionModalItem.clientProject}".`,
+                      type: 'warning',
+                      tab: 'deliverables'
+                    });
+                  }
                   setRejectionModalItem(null);
                   setRejectionFeedback('');
                 }}

@@ -1388,7 +1388,31 @@ export const CRMProvider = ({ children }) => {
 
   // Search & Global UI State
   const [globalSearch, setGlobalSearch] = useState('');
-  const [notifications, setNotifications] = useState([]);
+
+  // Real-Time Notification System (Admin & Staff)
+  const [customNotifications, setCustomNotifications] = useState(() => {
+    try {
+      const saved = localStorage.getItem('astra_custom_notifications');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
+  });
+
+  const addNotification = (notif) => {
+    const item = {
+      id: `notif-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      time: 'Just now',
+      unread: true,
+      timestamp: Date.now(),
+      ...notif
+    };
+    setCustomNotifications(prev => {
+      const updated = [item, ...prev].slice(0, 40);
+      try { localStorage.setItem('astra_custom_notifications', JSON.stringify(updated)); } catch (e) {}
+      return updated;
+    });
+  };
 
   // Keep activeTenantId synchronized with currentUser's tenant
   useEffect(() => {
@@ -2848,7 +2872,11 @@ export const CRMProvider = ({ children }) => {
 
     if (!isUserAdmin) {
       console.warn('Access Denied: Only Super Admin / Org Admin can revoke sessions.');
-      alert('Access Denied: Only Super Admin / Org Admin has permission to forcibly revoke active user sessions.');
+      addNotification({
+        title: 'Access Denied',
+        message: 'Only Super Admin / Org Admin has permission to forcibly revoke active user sessions.',
+        type: 'warning'
+      });
       return { success: false, error: 'Unauthorized: Only Admins can revoke active user sessions.' };
     }
 
@@ -3506,6 +3534,116 @@ export const CRMProvider = ({ children }) => {
     ? [...salarySlipsQuery.data, ...localSalarySlips]
     : localSalarySlips;
 
+  const dynamicNotifications = useMemo(() => {
+    const list = [...customNotifications];
+    const roleStr = (currentUser?.role || '').toLowerCase();
+    const desigStr = (currentUser?.designation || '').toLowerCase();
+    const nameStr = (currentUser?.name || '').toLowerCase();
+    const userStr = (currentUser?.username || '').toLowerCase();
+
+    const isUserAdmin = userStr === 'admin' ||
+      userStr === 'srinivas' ||
+      userStr === 'smitesh' ||
+      currentUser?.roleId === 'role-admin' ||
+      currentUser?.roleId === 'role-ops' ||
+      nameStr.includes('srinivas') ||
+      nameStr.includes('smitesh') ||
+      roleStr.includes('admin') ||
+      roleStr.includes('ceo') ||
+      roleStr.includes('lead developer') ||
+      roleStr.includes('director') ||
+      roleStr.includes('founder') ||
+      desigStr.includes('ceo') ||
+      desigStr.includes('admin');
+
+    if (isUserAdmin) {
+      // 1. Video Review Requests
+      (resolvedEditorAssignments || []).forEach(ed => {
+        const s = (ed.status || '').toLowerCase();
+        if (s.includes('review')) {
+          list.push({
+            id: `dyn-ed-rev-${ed.id}`,
+            title: 'Video Review Requested',
+            message: `${ed.editorName || 'Editor'} submitted "${ed.projectName || ed.clientProject}" for admin approval.`,
+            time: ed.submissionDate || 'Pending Approval',
+            unread: true,
+            type: 'review',
+            tab: 'deliverables'
+          });
+        }
+      });
+
+      // 2. Pending KYC Approvals
+      (resolvedKYCDocuments || []).forEach(k => {
+        if ((k.status || '').toLowerCase().includes('pending')) {
+          list.push({
+            id: `dyn-kyc-${k.id}`,
+            title: 'KYC Document Pending',
+            message: `${k.userName || k.entityName || 'Staff Member'} uploaded ${k.docType || 'KYC Documents'} for verification.`,
+            time: 'Needs Verification',
+            unread: true,
+            type: 'kyc',
+            tab: 'kyc'
+          });
+        }
+      });
+
+      // 3. Overdue Client Invoices
+      (localClientsProjects || []).forEach(c => {
+        if (c.payment_status === 'Unpaid' && (c.days_due >= 30 || c.amount_due >= 25000)) {
+          list.push({
+            id: `dyn-pay-${c.id}`,
+            title: 'Payment Overdue Notice',
+            message: `${c.name || c.client_name} has ₹${(c.amount_due || c.ticket_size || 0).toLocaleString('en-IN')} pending balance.`,
+            time: 'Payment Due',
+            unread: false,
+            type: 'finance',
+            tab: 'ongoing-projects'
+          });
+        }
+      });
+    } else {
+      // Non-admin (Editor / Designer / Staff)
+      (resolvedEditorAssignments || []).forEach(ed => {
+        const isMyTask = ed.editorName === currentUser?.name || (ed.email && ed.email === currentUser?.email);
+        if (isMyTask) {
+          if (ed.adminFeedback && (ed.status || '').toLowerCase().includes('progress')) {
+            list.push({
+              id: `dyn-ed-rew-${ed.id}`,
+              title: 'Rework Requested by Admin',
+              message: `Revision notes on "${ed.projectName || ed.clientProject}": ${ed.adminFeedback}`,
+              time: 'Needs Rework',
+              unread: true,
+              type: 'warning',
+              tab: 'deliverables'
+            });
+          }
+          if ((ed.status || '').toLowerCase().includes('approved')) {
+            list.push({
+              id: `dyn-ed-app-${ed.id}`,
+              title: 'Video Approved for Payout',
+              message: `Admin approved "${ed.projectName || ed.clientProject}" (${ed.paymentStatus || 'Approved for Payout'}).`,
+              time: ed.completedDate || 'Approved',
+              unread: false,
+              type: 'success',
+              tab: 'deliverables'
+            });
+          }
+        }
+      });
+    }
+
+    const seen = new Set();
+    const deduped = [];
+    for (const item of list) {
+      if (!seen.has(item.id)) {
+        seen.add(item.id);
+        deduped.push(item);
+      }
+    }
+    return deduped;
+  }, [customNotifications, resolvedEditorAssignments, resolvedKYCDocuments, localClientsProjects, currentUser]);
+
   // MUTATIONS (Write Operations)
   const addLeadMutation = useMutation({
     mutationFn: (leadData) => api.post('/leads', leadData),
@@ -4068,7 +4206,9 @@ export const CRMProvider = ({ children }) => {
       addIntegration: (iData) => setLocalIntegrations(prev => [{ id: `int-${Date.now()}`, status: 'Connected', lastSync: 'Just now', icon: 'Boxes', ...iData }, ...prev]),
       toggleIntegration: (id) => setLocalIntegrations(prev => prev.map(i => i.id === id ? { ...i, status: i.status === 'Connected' ? 'Disconnected' : 'Connected' } : i)),
       globalSearch, setGlobalSearch,
-      notifications, setNotifications,
+      notifications: dynamicNotifications,
+      setNotifications: setCustomNotifications,
+      addNotification,
       createRazorpayOrder, verifyRazorpayPayment,
       attendanceRecords: localAttendance, batchMarkAttendance, markAttendance: () => {},
       attendanceMatrix, updateAttendanceDay, batchUpdateAttendanceMonth, markAllStaffDayAttendance, autoMarkAttendanceFromSessions, syncAllSessionsToAttendance,
