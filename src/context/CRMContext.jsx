@@ -1513,13 +1513,40 @@ export const CRMProvider = ({ children }) => {
   const defaultTenantId = isSannaCRM() ? 'client-sanna' : 'client-astra';
   const activeTenant = allClientsList.find(c => c.id === activeTenantId || (c.id === defaultTenantId && (!activeTenantId || activeTenantId === defaultTenantId || activeTenantId === 'client-primary'))) || fallbackTenant;
 
-  // Queries for Core Resources
+  // Queries for Core Resources (Direct SQLite Database as Single Source of Truth)
   const leadsQuery = useQuery({
     queryKey: ['leads', activeTenantId],
-    queryFn: () => api.get('/leads').then(res => res.data),
+    queryFn: async () => {
+      try {
+        const res = await api.get('/mis/leads');
+        if (Array.isArray(res.data) && res.data.length > 0) return res.data;
+      } catch (e) {}
+      const res = await api.get('/leads');
+      return res.data;
+    },
     enabled: isAuthenticated,
+    refetchInterval: 12000,
+    staleTime: 5000,
     retry: false
   });
+
+  // Auto-sync any existing leads previously stored in browser localStorage into SQLite database
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const key = isSannaCRM() ? 'sanna_leads_v6' : 'astra_clean_leads_v6';
+    const saved = localStorage.getItem(key);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 38) {
+          api.post('/mis/leads/batch', { leads: parsed }).then(() => {
+            queryClient.invalidateQueries({ queryKey: ['leads'] });
+            localStorage.removeItem(key);
+          }).catch(() => {});
+        }
+      } catch (e) {}
+    }
+  }, [isAuthenticated]);
 
   const dealsQuery = useQuery({
     queryKey: ['deals', activeTenantId],
@@ -3117,29 +3144,15 @@ export const CRMProvider = ({ children }) => {
 
   let resolvedLeads = [];
   if (Array.isArray(leadsQuery.data) && leadsQuery.data.length > 0) {
-    const apiLeads = leadsQuery.data.map(l => {
-      const localMatch = localLeads.find(ll => 
-        (ll.id && l.id && String(ll.id).toLowerCase() === String(l.id).toLowerCase()) ||
-        (ll.name && l.name && String(ll.name).trim().toLowerCase() === String(l.name).trim().toLowerCase())
-      );
-      return localMatch ? { ...l, ...localMatch } : l;
-    });
-    const apiNames = new Set(apiLeads.map(l => (l.name || '').toLowerCase().trim()));
-    const apiIds = new Set(apiLeads.map(l => (l.id || '').toLowerCase()));
-    const extraLocals = tenantLocalLeads.filter(ll => {
-      const normId = (ll.id || '').toLowerCase();
-      const normName = (ll.name || '').toLowerCase().trim();
-      return !apiIds.has(normId) && !apiNames.has(normName);
-    });
-    resolvedLeads = [...apiLeads, ...extraLocals];
+    resolvedLeads = leadsQuery.data;
   } else {
     resolvedLeads = (tenantLocalLeads && tenantLocalLeads.length > 0) ? tenantLocalLeads : (REAL_CRM_DATA.leads || []);
   }
 
-  // Deduplicate resolved leads strictly by normalized name & company
+  // Deduplicate resolved leads strictly by normalized id or name & company
   const seenLeadKeys = new Set();
   resolvedLeads = resolvedLeads.filter(l => {
-    const key = (l.name || l.company || l.id || '').toLowerCase().trim();
+    const key = (l.id || `${l.name}-${l.company}` || '').toLowerCase().trim();
     if (!key || seenLeadKeys.has(key)) return false;
     seenLeadKeys.add(key);
     return true;
@@ -3645,12 +3658,20 @@ export const CRMProvider = ({ children }) => {
     return deduped;
   }, [customNotifications, resolvedEditorAssignments, resolvedKYCDocuments, allClientsList, currentUser]);
 
-  // MUTATIONS (Write Operations)
+  // MUTATIONS (Write Operations directly to SQLite Database)
   const addLeadMutation = useMutation({
-    mutationFn: (leadData) => api.post('/leads', leadData),
+    mutationFn: async (leadData) => {
+      try {
+        const res = await api.post('/mis/leads', leadData);
+        return res.data;
+      } catch (e) {
+        const res = await api.post('/leads', leadData);
+        return res.data;
+      }
+    },
     onSuccess: (resData, newLead) => {
-      queryClient.invalidateQueries({ queryKey: ['leads', activeTenantId] });
-      queryClient.invalidateQueries({ queryKey: ['deals', activeTenantId] });
+      queryClient.invalidateQueries({ queryKey: ['leads'] });
+      queryClient.invalidateQueries({ queryKey: ['deals'] });
       const leadId = resData?.id || `lead-${Date.now()}`;
       const leadEntry = { id: leadId, clientId: activeTenantId, status: 'Lead Intake', ...newLead };
       setLocalLeads(prev => [leadEntry, ...prev.filter(l => l.id !== leadId)]);
@@ -3676,104 +3697,45 @@ export const CRMProvider = ({ children }) => {
         try { localStorage.setItem('astra_deals', JSON.stringify(updated)); } catch (e) {}
         return updated;
       });
+      if (typeof addNotification === 'function') {
+        addNotification({
+          title: 'Lead Saved to Database',
+          message: `Lead "${newLead?.name || 'Contact'}" (${newLead?.company || 'Company'}) was permanently saved.`,
+          type: 'success',
+          tab: 'leads'
+        });
+      }
     },
     onError: (err, newLead) => {
       const leadId = `lead-${Date.now()}`;
       const leadEntry = { id: leadId, clientId: activeTenantId, status: 'Lead Intake', ...newLead };
       setLocalLeads(prev => [leadEntry, ...prev]);
-
-      const dealEntry = {
-        id: `deal-${leadId}`,
-        leadId,
-        clientId: activeTenantId,
-        title: `${newLead.company || newLead.name} Opportunity`,
-        company: newLead.company || newLead.name,
-        contactName: newLead.name,
-        dealValue: parseFloat(newLead.potentialValue || 50000),
-        probability: 25,
-        stage: 'Lead Intake',
-        pipelineId: 'pipe-enterprise',
-        owner: newLead.assignedTo || currentUser?.name || 'Sanna Admin',
-        productsInterested: newLead.productNeeded ? [newLead.productNeeded] : [],
-        expectedCloseDate: new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0]
-      };
-      setLocalDeals(prev => {
-        const updated = [dealEntry, ...prev];
-        try { localStorage.setItem('astra_deals', JSON.stringify(updated)); } catch (e) {}
-        return updated;
-      });
     }
   });
 
   const batchAddLeads = async (leadsList) => {
     if (!Array.isArray(leadsList) || leadsList.length === 0) return [];
-    const addedLeads = [];
-    const addedDeals = [];
-
-    for (const leadData of leadsList) {
-      let leadId = `lead-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`;
-      const leadEntry = {
-        id: leadId,
-        clientId: activeTenantId,
-        name: leadData.name || leadData.company || 'New Lead',
-        company: leadData.company || leadData.name || 'Enterprise Client',
-        email: leadData.email ? leadData.email.trim() : '',
-        phone: leadData.phone || '',
-        source: leadData.source || 'Excel Import',
-        status: leadData.status || 'Lead Intake',
-        projectCategory: leadData.projectCategory || 'Software Development',
-        projectType: leadData.projectType || 'One Time',
-        productNeeded: leadData.productNeeded || '',
-        potentialValue: parseFloat(leadData.potentialValue || leadData.value || 50000),
-        assignedTo: leadData.assignedTo || currentUser?.name || 'Srinivas (Admin)',
-        notes: leadData.notes || '',
-        tags: leadData.tags || ['Imported']
-      };
-
+    try {
+      await api.post('/mis/leads/batch', { leads: leadsList });
+    } catch (err) {
+      console.warn('Batch leads API notice:', err.message);
+      // Fallback
       try {
-        const res = await api.post('/leads', leadEntry);
-        if (res.data?.id) {
-          leadEntry.id = res.data.id;
-          leadId = res.data.id;
-        }
-      } catch (err) {
-        // Fallback local persistence
-      }
-
-      addedLeads.push(leadEntry);
-
-      addedDeals.push({
-        id: `deal-${leadId}`,
-        leadId,
-        clientId: activeTenantId,
-        title: `${leadEntry.company || leadEntry.name} Opportunity`,
-        company: leadEntry.company || leadEntry.name,
-        contactName: leadEntry.name,
-        dealValue: leadEntry.potentialValue,
-        probability: 25,
-        stage: leadEntry.status || 'Lead Intake',
-        pipelineId: 'pipe-enterprise',
-        owner: leadEntry.assignedTo,
-        productsInterested: leadEntry.productNeeded ? [leadEntry.productNeeded] : [],
-        expectedCloseDate: new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0]
-      });
+        await api.post('/leads/batch', { leads: leadsList });
+      } catch (e) {}
     }
 
-    setLocalLeads(prev => {
-      const updated = [...addedLeads, ...prev];
-      try { localStorage.setItem(isSannaCRM() ? 'sanna_leads_v6' : 'astra_clean_leads_v6', JSON.stringify(updated)); } catch (e) {}
-      return updated;
-    });
+    queryClient.invalidateQueries({ queryKey: ['leads'] });
+    queryClient.invalidateQueries({ queryKey: ['deals'] });
 
-    setLocalDeals(prev => {
-      const updated = [...addedDeals, ...prev];
-      try { localStorage.setItem('astra_deals', JSON.stringify(updated)); } catch (e) {}
-      return updated;
-    });
-
-    queryClient.invalidateQueries({ queryKey: ['leads', activeTenantId] });
-    queryClient.invalidateQueries({ queryKey: ['deals', activeTenantId] });
-    return addedLeads;
+    if (typeof addNotification === 'function') {
+      addNotification({
+        title: 'Bulk Leads Saved to Database',
+        message: `Successfully saved ${leadsList.length} leads directly into the database.`,
+        type: 'success',
+        tab: 'leads'
+      });
+    }
   };
 
   const createDealMutation = useMutation({

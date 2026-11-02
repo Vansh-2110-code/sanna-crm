@@ -2434,4 +2434,226 @@ router.put('/roles/:id', async (req, res) => {
   }
 });
 
+// ============================================================================
+// MIS LEADS DIRECT DATABASE ENDPOINTS (Single Source of Truth in SQLite)
+// ============================================================================
+router.get('/leads', async (req, res) => {
+  try {
+    const rows = await query(`
+      SELECT 
+        id,
+        client_id as clientId,
+        name,
+        company,
+        email,
+        phone,
+        source,
+        assigned_to as assignedTo,
+        notes,
+        tags,
+        status,
+        score,
+        potential_value as potentialValue,
+        project_category as projectCategory,
+        project_type as projectType,
+        createdAt,
+        updatedAt
+      FROM leads
+      ORDER BY createdAt DESC
+    `);
+    const mapped = rows.map(r => {
+      let parsedTags = [];
+      try {
+        if (typeof r.tags === 'string' && r.tags.startsWith('[')) {
+          parsedTags = JSON.parse(r.tags);
+        } else if (Array.isArray(r.tags)) {
+          parsedTags = r.tags;
+        } else if (r.tags) {
+          parsedTags = [r.tags];
+        }
+      } catch (e) {
+        parsedTags = [];
+      }
+      return {
+        ...r,
+        tags: parsedTags,
+        potentialValue: parseFloat(r.potentialValue) || 0,
+        score: parseInt(r.score, 10) || 50
+      };
+    });
+    res.json(mapped);
+  } catch (err) {
+    console.error('Error fetching leads from DB:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/leads', async (req, res) => {
+  try {
+    const l = req.body;
+    const now = new Date().toISOString();
+    const leadId = l.id || `lead-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
+    const clientId = l.clientId || 'client-sanna';
+    const name = l.name || l.company || 'New Lead';
+    const company = l.company || l.name || 'Enterprise Client';
+    const email = l.email ? String(l.email).trim() : '';
+    const phone = l.phone ? String(l.phone).trim() : '';
+    const source = l.source || 'Website Forms';
+    const assignedTo = l.assignedTo || 'Srinivas (Admin)';
+    const notes = l.notes || '';
+    const tags = JSON.stringify(Array.isArray(l.tags) ? l.tags : (l.tags ? [l.tags] : []));
+    const status = l.status || 'Lead Intake';
+    const score = parseInt(l.score, 10) || 50;
+    const potentialValue = parseFloat(l.potentialValue || l.value || 0) || 0;
+    const projectCategory = l.projectCategory || 'Software Development';
+    const projectType = l.projectType || 'One Time';
+
+    await run(`
+      INSERT INTO leads (
+        id, client_id, name, company, email, phone, source, assigned_to,
+        notes, tags, status, score, potential_value, project_category, project_type,
+        createdAt, updatedAt
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(id) DO UPDATE SET
+        name = excluded.name,
+        company = excluded.company,
+        email = excluded.email,
+        phone = excluded.phone,
+        source = excluded.source,
+        assigned_to = excluded.assigned_to,
+        notes = excluded.notes,
+        tags = excluded.tags,
+        status = excluded.status,
+        score = excluded.score,
+        potential_value = excluded.potential_value,
+        project_category = excluded.project_category,
+        project_type = excluded.project_type,
+        updatedAt = excluded.updatedAt
+    `, [
+      leadId, clientId, name, company, email, phone, source, assignedTo,
+      notes, tags, status, score, potentialValue, projectCategory, projectType,
+      now, now
+    ]);
+
+    res.status(201).json({
+      id: leadId, clientId, name, company, email, phone, source,
+      assignedTo, notes, tags: JSON.parse(tags), status, score,
+      potentialValue, projectCategory, projectType, createdAt: now, updatedAt: now
+    });
+  } catch (err) {
+    console.error('Error inserting lead to DB:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/leads/batch', async (req, res) => {
+  try {
+    const leadsList = Array.isArray(req.body.leads) ? req.body.leads : (Array.isArray(req.body) ? req.body : []);
+    if (!leadsList.length) return res.json({ success: true, count: 0 });
+
+    const now = new Date().toISOString();
+    let insertedCount = 0;
+
+    for (let i = 0; i < leadsList.length; i++) {
+      const l = leadsList[i];
+      if (!l.name && !l.company) continue;
+
+      const leadId = l.id || `lead-${Date.now()}-${i}-${Math.random().toString(36).substr(2, 5)}`;
+      const clientId = l.clientId || 'client-sanna';
+      const name = l.name || l.company || `Lead #${i + 1}`;
+      const company = l.company || l.name || 'Enterprise Client';
+      const email = l.email ? String(l.email).trim() : '';
+      const phone = l.phone ? String(l.phone).trim() : '';
+      const source = l.source || 'Excel Import';
+      const assignedTo = l.assignedTo || 'Srinivas (Admin)';
+      const notes = l.notes || '';
+      const tags = JSON.stringify(Array.isArray(l.tags) ? l.tags : (l.tags ? [l.tags] : ['Imported']));
+      const status = l.status || 'Lead Intake';
+      const score = parseInt(l.score, 10) || 50;
+      const potentialValue = parseFloat(l.potentialValue || l.value || 0) || 0;
+      const projectCategory = l.projectCategory || 'Software Development';
+      const projectType = l.projectType || 'One Time';
+
+      await run(`
+        INSERT INTO leads (
+          id, client_id, name, company, email, phone, source, assigned_to,
+          notes, tags, status, score, potential_value, project_category, project_type,
+          createdAt, updatedAt
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(id) DO UPDATE SET
+          name = excluded.name,
+          company = excluded.company,
+          email = excluded.email,
+          phone = excluded.phone,
+          source = excluded.source,
+          assigned_to = excluded.assigned_to,
+          notes = excluded.notes,
+          tags = excluded.tags,
+          status = excluded.status,
+          score = excluded.score,
+          potential_value = excluded.potential_value,
+          project_category = excluded.project_category,
+          project_type = excluded.project_type,
+          updatedAt = excluded.updatedAt
+      `, [
+        leadId, clientId, name, company, email, phone, source, assignedTo,
+        notes, tags, status, score, potentialValue, projectCategory, projectType,
+        now, now
+      ]);
+      insertedCount++;
+    }
+
+    res.json({ success: true, count: insertedCount });
+  } catch (err) {
+    console.error('Error batch inserting leads to DB:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.put('/leads/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const l = req.body;
+    const now = new Date().toISOString();
+
+    const updates = [];
+    const params = [];
+
+    if (l.name !== undefined) { updates.push('name = ?'); params.push(l.name); }
+    if (l.company !== undefined) { updates.push('company = ?'); params.push(l.company); }
+    if (l.email !== undefined) { updates.push('email = ?'); params.push(l.email); }
+    if (l.phone !== undefined) { updates.push('phone = ?'); params.push(l.phone); }
+    if (l.source !== undefined) { updates.push('source = ?'); params.push(l.source); }
+    if (l.assignedTo !== undefined) { updates.push('assigned_to = ?'); params.push(l.assignedTo); }
+    if (l.notes !== undefined) { updates.push('notes = ?'); params.push(l.notes); }
+    if (l.tags !== undefined) { updates.push('tags = ?'); params.push(JSON.stringify(l.tags)); }
+    if (l.status !== undefined) { updates.push('status = ?'); params.push(l.status); }
+    if (l.score !== undefined) { updates.push('score = ?'); params.push(parseInt(l.score, 10) || 50); }
+    if (l.potentialValue !== undefined) { updates.push('potential_value = ?'); params.push(parseFloat(l.potentialValue) || 0); }
+    if (l.projectCategory !== undefined) { updates.push('project_category = ?'); params.push(l.projectCategory); }
+    if (l.projectType !== undefined) { updates.push('project_type = ?'); params.push(l.projectType); }
+
+    updates.push('updatedAt = ?');
+    params.push(now);
+    params.push(id);
+
+    await run(`UPDATE leads SET ${updates.join(', ')} WHERE id = ?`, params);
+    res.json({ success: true, id });
+  } catch (err) {
+    console.error('Error updating lead in DB:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.delete('/leads/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    await run('DELETE FROM leads WHERE id = ? OR id = ?', [id, id.replace(/^lead-/, '')]);
+    res.json({ success: true, id });
+  } catch (err) {
+    console.error('Error deleting lead from DB:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;
