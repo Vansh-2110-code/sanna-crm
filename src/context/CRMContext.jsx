@@ -3589,12 +3589,13 @@ export const CRMProvider = ({ children }) => {
       });
 
       // 3. Overdue Client Invoices
-      (localClientsProjects || []).forEach(c => {
-        if (c.payment_status === 'Unpaid' && (c.days_due >= 30 || c.amount_due >= 25000)) {
+      (allClientsList || []).forEach(c => {
+        const payStatus = c.payment_status || c.paymentStatus;
+        if (payStatus === 'Unpaid' && (c.days_due >= 30 || c.amount_due >= 25000)) {
           list.push({
             id: `dyn-pay-${c.id}`,
             title: 'Payment Overdue Notice',
-            message: `${c.name || c.client_name} has ₹${(c.amount_due || c.ticket_size || 0).toLocaleString('en-IN')} pending balance.`,
+            message: `${c.name || c.client_name || 'Client'} has ₹${(c.amount_due || c.ticket_size || 0).toLocaleString('en-IN')} pending balance.`,
             time: 'Payment Due',
             unread: false,
             type: 'finance',
@@ -3642,7 +3643,7 @@ export const CRMProvider = ({ children }) => {
       }
     }
     return deduped;
-  }, [customNotifications, resolvedEditorAssignments, resolvedKYCDocuments, localClientsProjects, currentUser]);
+  }, [customNotifications, resolvedEditorAssignments, resolvedKYCDocuments, allClientsList, currentUser]);
 
   // MUTATIONS (Write Operations)
   const addLeadMutation = useMutation({
