@@ -38,6 +38,8 @@ db.run("ALTER TABLE ad_spent_transactions ADD COLUMN currency TEXT DEFAULT 'INR'
 db.run("ALTER TABLE editor_assignments ADD COLUMN admin_feedback TEXT DEFAULT ''", () => {});
 db.run("ALTER TABLE editor_assignments ADD COLUMN completed_date TEXT DEFAULT ''", () => {});
 db.run("ALTER TABLE users ADD COLUMN status TEXT DEFAULT 'Active'", () => {});
+db.run("ALTER TABLE clients_projects ADD COLUMN brochure_pdf TEXT DEFAULT ''", () => {});
+db.run("ALTER TABLE clients_projects ADD COLUMN requirement_doc_name TEXT DEFAULT ''", () => {});
 
 // Creative One-Time Projects Table for Graphic Designer (Riya Biswas)
 db.run(`
@@ -556,7 +558,9 @@ router.post('/clients', async (req, res) => {
           advance_payment = COALESCE(?, advance_payment),
           payment_status = COALESCE(?, payment_status),
           status = COALESCE(?, status),
-          onboarded_date = COALESCE(?, onboarded_date)
+          onboarded_date = COALESCE(?, onboarded_date),
+          brochure_pdf = COALESCE(?, brochure_pdf),
+          requirement_doc_name = COALESCE(?, requirement_doc_name)
          WHERE id = ?`,
         [
           c.client_name || name,
@@ -567,6 +571,8 @@ router.post('/clients', async (req, res) => {
           c.payment_status || null,
           c.status || null,
           c.onboarded_date || null,
+          c.brochure_pdf !== undefined ? c.brochure_pdf : null,
+          c.requirement_doc_name !== undefined ? c.requirement_doc_name : null,
           existingId
         ]
       );
@@ -575,8 +581,8 @@ router.post('/clients', async (req, res) => {
     }
 
     const result = await run(
-      `INSERT INTO clients_projects (name, client_name, client_type, is_dm, billing_cycle, ticket_size, advance_payment, payment_status, status, onboarded_date, deadline, assigned_lead, contact_person, contact_email)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO clients_projects (name, client_name, client_type, is_dm, billing_cycle, ticket_size, advance_payment, payment_status, status, onboarded_date, deadline, assigned_lead, contact_person, contact_email, brochure_pdf, requirement_doc_name)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         name,
         c.client_name || name,
@@ -591,7 +597,9 @@ router.post('/clients', async (req, res) => {
         c.deadline || null,
         c.assigned_lead || 'Smitesh Pokharkar',
         c.contact_person || '',
-        c.contact_email || ''
+        c.contact_email || '',
+        c.brochure_pdf || '',
+        c.requirement_doc_name || ''
       ]
     );
     const inserted = await get('SELECT * FROM clients_projects WHERE id = ?', [result.id]);
@@ -676,7 +684,9 @@ router.put('/clients/:id', async (req, res) => {
         onboarded_date = COALESCE(?, onboarded_date),
         assigned_lead = COALESCE(?, assigned_lead),
         contact_person = COALESCE(?, contact_person),
-        contact_email = COALESCE(?, contact_email)
+        contact_email = COALESCE(?, contact_email),
+        brochure_pdf = COALESCE(?, brochure_pdf),
+        requirement_doc_name = COALESCE(?, requirement_doc_name)
       WHERE id = ?`,
       [
         c.name !== undefined ? c.name : null,
@@ -691,6 +701,8 @@ router.put('/clients/:id', async (req, res) => {
         c.assigned_lead !== undefined ? c.assigned_lead : null,
         c.contact_person !== undefined ? c.contact_person : null,
         c.contact_email !== undefined ? c.contact_email : null,
+        c.brochure_pdf !== undefined ? c.brochure_pdf : null,
+        c.requirement_doc_name !== undefined ? c.requirement_doc_name : null,
         id
       ]
     );

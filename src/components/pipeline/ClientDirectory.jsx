@@ -36,7 +36,9 @@ import {
   CreditCard,
   Lock,
   Layers,
-  ChevronDown
+  ChevronDown,
+  FileText,
+  Upload
 } from 'lucide-react';
 
 const ClientDirectory = () => {
@@ -199,7 +201,9 @@ const ClientDirectory = () => {
     assigned_lead: 'Naveen Kumar',
     contact_person: '',
     contact_email: '',
-    deadline: ''
+    deadline: '',
+    brochure_pdf: '',
+    requirement_doc_name: ''
   };
   const [projectForm, setProjectForm] = useState(defaultProjectForm);
 
@@ -485,7 +489,9 @@ const ClientDirectory = () => {
       assigned_lead: client.assigned_lead || 'Naveen Kumar',
       contact_person: client.contact_person || '',
       contact_email: client.contact_email || '',
-      deadline: client.deadline || ''
+      deadline: client.deadline || '',
+      brochure_pdf: client.brochure_pdf || '',
+      requirement_doc_name: client.requirement_doc_name || ''
     });
     setShowProjectModal(true);
   };
@@ -1058,7 +1064,35 @@ const ClientDirectory = () => {
                     >
                       {/* Client Name */}
                       <td style={{ padding: '7px 8px', fontWeight: '800', color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>
-                        {c.name || c.client_name}
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                          <span>{c.name || c.client_name}</span>
+                          {c.brochure_pdf && (
+                            <a
+                              href={c.brochure_pdf}
+                              target="_blank"
+                              rel="noreferrer"
+                              download={c.requirement_doc_name || 'Client_Document.pdf'}
+                              title={`View PDF: ${c.requirement_doc_name || 'Document'}`}
+                              onClick={e => e.stopPropagation()}
+                              style={{
+                                background: 'rgba(239, 68, 68, 0.15)',
+                                color: '#ef4444',
+                                border: '1px solid rgba(239, 68, 68, 0.35)',
+                                padding: '1px 5px',
+                                borderRadius: '4px',
+                                fontSize: '0.62rem',
+                                fontWeight: '800',
+                                textDecoration: 'none',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '3px'
+                              }}
+                            >
+                              <FileText style={{ width: '10px', height: '10px' }} />
+                              PDF
+                            </a>
+                          )}
+                        </div>
                       </td>
 
                       {/* Onboarded Date */}
@@ -1624,6 +1658,106 @@ const ClientDirectory = () => {
                     onChange={e => setProjectForm({ ...projectForm, contact_email: e.target.value })}
                     className="form-input"
                   />
+                </div>
+
+                {/* 📄 Client Brochure / Requirement Document (PDF) */}
+                <div style={{ gridColumn: 'span 2', marginTop: '4px' }}>
+                  <label className="form-label" style={{ fontSize: '0.78rem', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <FileText style={{ width: '14px', height: '14px', color: '#ef4444' }} />
+                    Client Brochure / Requirement Document (PDF)
+                  </label>
+
+                  {projectForm.brochure_pdf ? (
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '10px 14px',
+                      background: 'rgba(239, 68, 68, 0.08)',
+                      border: '1px solid rgba(239, 68, 68, 0.3)',
+                      borderRadius: '10px'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+                        <span style={{ background: '#ef4444', color: '#fff', fontSize: '0.65rem', fontWeight: '800', padding: '2px 6px', borderRadius: '4px' }}>
+                          PDF
+                        </span>
+                        <span style={{ fontSize: '0.8rem', fontWeight: '600', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '280px' }}>
+                          {projectForm.requirement_doc_name || 'Client_Document.pdf'}
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <a
+                          href={projectForm.brochure_pdf}
+                          target="_blank"
+                          rel="noreferrer"
+                          download={projectForm.requirement_doc_name || 'Client_Doc.pdf'}
+                          className="btn"
+                          style={{
+                            padding: '4px 10px',
+                            fontSize: '0.72rem',
+                            fontWeight: '700',
+                            background: 'rgba(255,255,255,0.1)',
+                            color: 'var(--text-primary)',
+                            borderRadius: '6px',
+                            textDecoration: 'none'
+                          }}
+                        >
+                          View PDF
+                        </a>
+                        <button
+                          type="button"
+                          onClick={() => setProjectForm({ ...projectForm, brochure_pdf: '', requirement_doc_name: '' })}
+                          style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '4px' }}
+                          title="Remove PDF"
+                        >
+                          <X style={{ width: '16px', height: '16px' }} />
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      <label style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px',
+                        padding: '14px 12px',
+                        border: '1px dashed rgba(255,255,255,0.2)',
+                        borderRadius: '10px',
+                        background: 'rgba(255,255,255,0.02)',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease'
+                      }}>
+                        <Upload style={{ width: '20px', height: '20px', color: '#818cf8' }} />
+                        <span style={{ fontSize: '0.78rem', fontWeight: '600', color: 'var(--text-primary)' }}>
+                          Click to upload Brochure / Requirement PDF
+                        </span>
+                        <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
+                          Accepts .pdf files (Brochures, Specs, Requirement Briefs)
+                        </span>
+                        <input
+                          type="file"
+                          accept=".pdf,application/pdf"
+                          style={{ display: 'none' }}
+                          onChange={(e) => {
+                            const file = e.target.files && e.target.files[0];
+                            if (file) {
+                              const reader = new FileReader();
+                              reader.onload = (loadEvt) => {
+                                setProjectForm({
+                                  ...projectForm,
+                                  brochure_pdf: loadEvt.target.result,
+                                  requirement_doc_name: file.name
+                                });
+                              };
+                              reader.readAsDataURL(file);
+                            }
+                          }}
+                        />
+                      </label>
+                    </div>
+                  )}
                 </div>
               </div>
 
