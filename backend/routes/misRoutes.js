@@ -2566,7 +2566,9 @@ router.post('/leads/batch', async (req, res) => {
     const now = new Date().toISOString();
     let insertedCount = 0;
 
-    for (let i = 0; i < leadsList.length; i++) {
+    await run('BEGIN IMMEDIATE TRANSACTION');
+    try {
+      for (let i = 0; i < leadsList.length; i++) {
       const l = leadsList[i];
       if (!l.name && !l.company) continue;
 
@@ -2613,6 +2615,11 @@ router.post('/leads/batch', async (req, res) => {
         now, now
       ]);
       insertedCount++;
+      }
+      await run('COMMIT');
+    } catch (txErr) {
+      await run('ROLLBACK').catch(() => {});
+      throw txErr;
     }
 
     res.json({ success: true, count: insertedCount });

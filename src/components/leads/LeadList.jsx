@@ -40,6 +40,7 @@ import BulkImportLeadsModal from './BulkImportLeadsModal';
 
 const LeadList = () => {
   const { leads = [], updateLeadStatus, deleteLead, updateLeadNotes, globalSearch = '' } = useCRM();
+  const [searchTerm, setSearchTerm] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [showBulkImportModal, setShowBulkImportModal] = useState(false);
   const [selectedSource, setSelectedSource] = useState('ALL');
@@ -84,13 +85,16 @@ const LeadList = () => {
     const normStatus = (!l.status || l.status === 'Lead') ? 'Lead Intake' : l.status;
     const matchesSource = selectedSource === 'ALL' || l.source === selectedSource;
     const matchesStatus = selectedStatus === 'ALL' || normStatus === selectedStatus;
-    const sTerm = (globalSearch || '').trim().toLowerCase();
+    const sTerm = (searchTerm || globalSearch || '').trim().toLowerCase();
     const matchesSearch = !sTerm ||
                           (l.name || '').toLowerCase().includes(sTerm) ||
                           (l.company || '').toLowerCase().includes(sTerm) ||
                           (l.email || '').toLowerCase().includes(sTerm) ||
                           (l.phone || '').toLowerCase().includes(sTerm) ||
-                          (l.productNeeded || '').toLowerCase().includes(sTerm);
+                          (l.assignedTo || '').toLowerCase().includes(sTerm) ||
+                          (l.notes || '').toLowerCase().includes(sTerm) ||
+                          (l.productNeeded || '').toLowerCase().includes(sTerm) ||
+                          (l.projectCategory || '').toLowerCase().includes(sTerm);
     return matchesSource && matchesStatus && matchesSearch;
   });
 
@@ -243,43 +247,91 @@ const LeadList = () => {
       )}
 
       {/* Filters Toolbar */}
-      <div className="saas-card" style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
-          <Filter style={{ width: '15px', height: '15px', color: 'var(--text-muted)' }} />
-          <span style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-muted)' }}>Source:</span>
-          
-          <select
-            value={selectedSource}
-            onChange={(e) => setSelectedSource(e.target.value)}
-            className="form-select"
-            style={{ fontSize: '0.8rem', padding: '6px 12px' }}
-          >
-            <option value="ALL">All Sources</option>
-            <option value="Website Forms">Website Forms</option>
-            <option value="Social Media">Social Media</option>
-            <option value="Email Campaigns">Email Campaigns</option>
-            <option value="WhatsApp Campaign">WhatsApp Campaign</option>
-            <option value="Referral">Referrals</option>
-            <option value="Manual Entry">Manual Entry</option>
-          </select>
+      <div className="saas-card" style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap', flex: 1 }}>
+          {/* Dedicated Lead Search Bar */}
+          <div style={{ position: 'relative', minWidth: '220px', maxWidth: '340px', flex: 1 }}>
+            <Search style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', width: '14px', height: '14px', color: 'var(--text-muted)' }} />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search by name, company, email, phone, rep..."
+              className="form-input"
+              style={{
+                width: '100%',
+                paddingLeft: '32px',
+                paddingRight: searchTerm ? '28px' : '10px',
+                fontSize: '0.8rem',
+                height: '34px',
+                borderRadius: '8px',
+                background: 'rgba(255, 255, 255, 0.04)',
+                border: '1px solid rgba(255, 255, 255, 0.1)'
+              }}
+            />
+            {searchTerm && (
+              <button
+                type="button"
+                onClick={() => setSearchTerm('')}
+                style={{
+                  position: 'absolute',
+                  right: '8px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'var(--text-muted)',
+                  cursor: 'pointer',
+                  padding: '2px',
+                  display: 'flex',
+                  alignItems: 'center'
+                }}
+                title="Clear search"
+              >
+                <X style={{ width: '13px', height: '13px' }} />
+              </button>
+            )}
+          </div>
 
-          <span style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-muted)', marginLeft: '8px' }}>Stage:</span>
-          <select
-            value={selectedStatus}
-            onChange={(e) => setSelectedStatus(e.target.value)}
-            className="form-select"
-            style={{ fontSize: '0.8rem', padding: '6px 12px' }}
-          >
-            <option value="ALL">All Lifecycle Stages</option>
-            <option value="Lead Intake">Lead Intake</option>
-            <option value="Qualified">Qualified</option>
-            <option value="Need Analysis">Need Analysis</option>
-            <option value="Proposal Sent">Proposal Sent</option>
-            <option value="Negotiation">Negotiation</option>
-            <option value="Won">Won</option>
-            <option value="Lost">Lost</option>
-            <option value="Not Interested">Not Interested</option>
-          </select>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <Filter style={{ width: '14px', height: '14px', color: 'var(--text-muted)' }} />
+            <span style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-muted)' }}>Source:</span>
+            <select
+              value={selectedSource}
+              onChange={(e) => setSelectedSource(e.target.value)}
+              className="form-select"
+              style={{ fontSize: '0.8rem', padding: '6px 12px', height: '34px' }}
+            >
+              <option value="ALL">All Sources</option>
+              <option value="Website Forms">Website Forms</option>
+              <option value="Social Media">Social Media</option>
+              <option value="Email Campaigns">Email Campaigns</option>
+              <option value="WhatsApp Campaign">WhatsApp Campaign</option>
+              <option value="Referral">Referrals</option>
+              <option value="Manual Entry">Manual Entry</option>
+              <option value="Excel Import">Excel Import</option>
+            </select>
+          </div>
+
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <span style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-muted)' }}>Stage:</span>
+            <select
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+              className="form-select"
+              style={{ fontSize: '0.8rem', padding: '6px 12px', height: '34px' }}
+            >
+              <option value="ALL">All Lifecycle Stages</option>
+              <option value="Lead Intake">Lead Intake</option>
+              <option value="Qualified">Qualified</option>
+              <option value="Need Analysis">Need Analysis</option>
+              <option value="Proposal Sent">Proposal Sent</option>
+              <option value="Negotiation">Negotiation</option>
+              <option value="Won">Won</option>
+              <option value="Lost">Lost</option>
+              <option value="Not Interested">Not Interested</option>
+            </select>
+          </div>
         </div>
 
         <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>

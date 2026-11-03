@@ -3727,25 +3727,31 @@ export const CRMProvider = ({ children }) => {
   const batchAddLeads = async (leadsList) => {
     if (!Array.isArray(leadsList) || leadsList.length === 0) return [];
     try {
-      await api.post('/mis/leads/batch', { leads: leadsList });
+      const res = await api.post('/mis/leads/batch', { leads: leadsList });
+      await queryClient.invalidateQueries({ queryKey: ['leads'] });
+      await leadsQuery.refetch();
+      await queryClient.invalidateQueries({ queryKey: ['deals'] });
+      await dealsQuery.refetch();
+
+      if (typeof addNotification === 'function') {
+        addNotification({
+          title: 'Bulk Leads Saved to Database',
+          message: `Successfully saved ${res.data?.count || leadsList.length} leads directly into the database.`,
+          type: 'success',
+          tab: 'leads'
+        });
+      }
+      return res.data;
     } catch (err) {
       console.warn('Batch leads API notice:', err.message);
       // Fallback
       try {
         await api.post('/leads/batch', { leads: leadsList });
-      } catch (e) {}
-    }
-
-    queryClient.invalidateQueries({ queryKey: ['leads'] });
-    queryClient.invalidateQueries({ queryKey: ['deals'] });
-
-    if (typeof addNotification === 'function') {
-      addNotification({
-        title: 'Bulk Leads Saved to Database',
-        message: `Successfully saved ${leadsList.length} leads directly into the database.`,
-        type: 'success',
-        tab: 'leads'
-      });
+        await queryClient.invalidateQueries({ queryKey: ['leads'] });
+        await leadsQuery.refetch();
+      } catch (e) {
+        throw new Error(`Failed to save leads to database: ${err.message}`);
+      }
     }
   };
 

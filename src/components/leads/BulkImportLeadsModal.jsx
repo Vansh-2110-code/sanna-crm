@@ -34,18 +34,29 @@ export const BulkImportLeadsModal = ({ isOpen, onClose, onImportSuccess }) => {
   // Flexible header normalization
   const findValue = (row, ...aliases) => {
     const keys = Object.keys(row);
+    // 1. Exact match with case/punctuation stripped
     for (const alias of aliases) {
       const lowerAlias = alias.toLowerCase().replace(/[^a-z0-9]/g, '');
       const match = keys.find(k => k.toLowerCase().replace(/[^a-z0-9]/g, '') === lowerAlias);
-      if (match && row[match] !== undefined && row[match] !== null) {
+      if (match && row[match] !== undefined && row[match] !== null && String(row[match]).trim() !== '') {
         return String(row[match]).trim();
       }
     }
-    // Partial substring match
+    // 2. Word/substring match protecting against cross-matches (e.g. 'company name' vs 'person name')
     for (const alias of aliases) {
       const lowerAlias = alias.toLowerCase().replace(/[^a-z0-9]/g, '');
-      const match = keys.find(k => k.toLowerCase().replace(/[^a-z0-9]/g, '').includes(lowerAlias));
-      if (match && row[match] !== undefined && row[match] !== null) {
+      if (lowerAlias.length < 3) continue;
+      const match = keys.find(k => {
+        const normK = k.toLowerCase().replace(/[^a-z0-9]/g, '');
+        if (normK === lowerAlias) return true;
+        // Prevent 'company name' from matching alias 'name'
+        if ((lowerAlias === 'name' || lowerAlias === 'leadname' || lowerAlias === 'contact') && 
+            (normK.includes('company') || normK.includes('organization') || normK.includes('business') || normK.includes('firm'))) {
+          return false;
+        }
+        return normK.includes(lowerAlias);
+      });
+      if (match && row[match] !== undefined && row[match] !== null && String(row[match]).trim() !== '') {
         return String(row[match]).trim();
       }
     }
@@ -74,19 +85,19 @@ export const BulkImportLeadsModal = ({ isOpen, onClose, onImportSuccess }) => {
         }
 
         const normalized = rawJson.map((row, idx) => {
-          const name = findValue(row, 'name', 'contact', 'person', 'leadname', 'clientname', 'fullname') || '';
-          const company = findValue(row, 'company', 'companyname', 'organization', 'business', 'client', 'firm') || '';
-          const email = findValue(row, 'email', 'businessemail', 'mail', 'emailaddress') || '';
-          const phone = findValue(row, 'phone', 'phonenumber', 'mobile', 'contactnumber', 'tel') || '';
-          const source = findValue(row, 'source', 'leadsource', 'channel') || 'Excel Import';
-          const status = findValue(row, 'status', 'stage', 'leadstatus') || 'Lead Intake';
-          const projectCategory = findValue(row, 'category', 'projectcategory', 'service', 'domain') || 'Software Development';
-          const projectType = findValue(row, 'type', 'projecttype') || 'One Time';
-          const productNeeded = findValue(row, 'product', 'productneeded', 'requirement', 'interest') || '';
-          const rawVal = findValue(row, 'value', 'dealvalue', 'potentialvalue', 'budget', 'amount', 'price');
+          const name = findValue(row, 'contactpersonname', 'contactperson', 'fullname', 'personname', 'leadname', 'clientname', 'name', 'contact', 'person') || '';
+          const company = findValue(row, 'companyname', 'company', 'organization', 'business', 'client', 'firm', 'brand', 'entity', 'account') || '';
+          const email = findValue(row, 'businessemail', 'emailaddress', 'emailid', 'email', 'mail', 'corporateemail') || '';
+          const phone = findValue(row, 'phonenumber', 'contactnumber', 'mobilenumber', 'mobile', 'phone', 'phoneno', 'tel', 'whatsappnumber') || '';
+          const source = findValue(row, 'leadcapturesource', 'leadsource', 'source', 'channel', 'platform') || 'Excel Import';
+          const status = findValue(row, 'stagestatus', 'leadstatus', 'lifecyclestage', 'stage', 'status') || 'Lead Intake';
+          const projectCategory = findValue(row, 'projectcategory', 'service', 'servicesneeded', 'category', 'requirement', 'domain', 'industry') || 'Software Development';
+          const projectType = findValue(row, 'projecttype', 'type') || 'One Time';
+          const productNeeded = findValue(row, 'productneeded', 'requirement', 'interest', 'interestedin', 'product') || '';
+          const rawVal = findValue(row, 'estimatedvalue', 'estimatedvalueinr', 'estimatedvaluedollar', 'dealvalue', 'potentialvalue', 'budget', 'value', 'amount', 'price', 'ticketsize');
           const potentialValue = parseFloat(String(rawVal).replace(/[^0-9.]/g, '')) || 0;
-          const assignedTo = findValue(row, 'assignedto', 'assigned', 'rep', 'salesrep', 'owner') || currentUser?.name || 'Srinivas (Admin)';
-          const notes = findValue(row, 'notes', 'remarks', 'comment', 'description') || '';
+          const assignedTo = findValue(row, 'assignedsalesexecutive', 'assignedrep', 'assignedto', 'salesrep', 'executive', 'owner', 'assigned') || currentUser?.name || 'Srinivas (Admin)';
+          const notes = findValue(row, 'notes', 'remarks', 'comment', 'comments', 'description', 'auditnotes', 'details') || '';
 
           const resolvedName = name || company || `Lead #${idx + 1}`;
           const resolvedCompany = company || name || 'Corporate Client';
@@ -94,7 +105,7 @@ export const BulkImportLeadsModal = ({ isOpen, onClose, onImportSuccess }) => {
           return {
             name: resolvedName,
             company: resolvedCompany,
-            email: email, // Optional!
+            email: email, // Optional
             phone: phone,
             source: source,
             status: status,
