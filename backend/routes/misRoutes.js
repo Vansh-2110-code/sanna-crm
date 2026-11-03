@@ -73,7 +73,12 @@ db.run(`
 // 1. Projects & Clients
 router.get('/clients', async (req, res) => {
   try {
-    const clients = await query('SELECT * FROM clients_projects ORDER BY id DESC');
+    const clients = await query(`
+      SELECT * FROM clients_projects 
+      ORDER BY 
+        CASE WHEN onboarded_date IS NOT NULL AND onboarded_date != '' THEN onboarded_date ELSE '1970-01-01' END DESC, 
+        id DESC
+    `);
     res.json(clients);
   } catch (e) {
     res.status(500).json({ error: e.message });

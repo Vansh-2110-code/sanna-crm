@@ -225,7 +225,17 @@ const ClientDirectory = () => {
   // Billing & Due Calculations helper matching MIS formula
   const enrichedClients = useMemo(() => {
     const now = new Date();
-    return clients.map(client => {
+    // Prioritize latest onboarded / newly created organizations at the top of All Organizations
+    const sortedClients = [...clients].sort((a, b) => {
+      const dateA = a.onboarded_date || a.created_at || '';
+      const dateB = b.onboarded_date || b.created_at || '';
+      if (dateA && dateB && dateA !== dateB) {
+        return dateB.localeCompare(dateA);
+      }
+      return (Number(b.id) || 0) - (Number(a.id) || 0);
+    });
+
+    return sortedClients.map(client => {
       let monthsDue = 0;
       let amountDue = 0;
       let daysDue = 0;
