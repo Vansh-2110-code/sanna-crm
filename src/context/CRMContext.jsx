@@ -3569,7 +3569,15 @@ export const CRMProvider = ({ children }) => {
       desigStr.includes('ceo') ||
       desigStr.includes('admin');
 
-    if (isUserAdmin) {
+    const isVideoApprover = isUserAdmin ||
+      userStr === 'mohana' ||
+      userStr === 'priya' ||
+      userStr === 'empsi15' ||
+      nameStr.includes('mohana') ||
+      (currentUser?.email || '').toLowerCase().includes('priyadigitaldm') ||
+      (currentUser?.email || '').toLowerCase().includes('empsi15');
+
+    if (isVideoApprover) {
       // 1. Video Review Requests
       (resolvedEditorAssignments || []).forEach(ed => {
         const s = (ed.status || '').toLowerCase();
@@ -3577,7 +3585,7 @@ export const CRMProvider = ({ children }) => {
           list.push({
             id: `dyn-ed-rev-${ed.id}`,
             title: 'Video Review Requested',
-            message: `${ed.editorName || 'Editor'} submitted "${ed.projectName || ed.clientProject}" for admin approval.`,
+            message: `${ed.editorName || 'Editor'} submitted "${ed.projectName || ed.clientProject}" for review and approval.`,
             time: ed.submissionDate || 'Pending Approval',
             unread: true,
             type: 'review',
@@ -3585,6 +3593,9 @@ export const CRMProvider = ({ children }) => {
           });
         }
       });
+    }
+
+    if (isUserAdmin) {
 
       // 2. Pending KYC Approvals
       (resolvedKYCDocuments || []).forEach(k => {

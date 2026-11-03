@@ -96,6 +96,14 @@ const ProjectDeliverablesHub = () => {
     (currentUser?.role || '').toLowerCase().includes('ceo') ||
     (currentUser?.role || '').toLowerCase().includes('lead developer');
 
+  const isVideoApprover = isAdmin ||
+    currentUser?.username === 'mohana' ||
+    currentUser?.username === 'priya' ||
+    currentUser?.username === 'empsi15' ||
+    (currentUser?.name || '').toLowerCase().includes('mohana') ||
+    (currentUser?.email || '').toLowerCase().includes('priyadigitaldm') ||
+    (currentUser?.email || '').toLowerCase().includes('empsi15');
+
   const [activeSubTab, setActiveSubTab] = useState('deliverables'); // 'deliverables' | 'holiday_posts' | 'ad_spend' | 'editors' | 'servers' | 'performance'
 
   // Server & Credential Vault View States
@@ -1486,7 +1494,7 @@ const ProjectDeliverablesHub = () => {
           'Approved & Completed'
         ];
 
-        const allowedStageOptions = isAdmin
+        const allowedStageOptions = isVideoApprover
           ? STAGE_OPTIONS
           : STAGE_OPTIONS.filter(opt => opt !== 'Approved & Completed');
 
@@ -1505,11 +1513,11 @@ const ProjectDeliverablesHub = () => {
         };
 
         const handleDirectStatusChange = (editorId, newStatus, extraUpdates = {}) => {
-          if (!isAdmin && newStatus === 'Approved & Completed') {
+          if (!isVideoApprover && newStatus === 'Approved & Completed') {
             if (typeof addNotification === 'function') {
               addNotification({
                 title: 'Approval Restricted',
-                message: 'Only Admin can approve completed videos and authorize payout clearance.',
+                message: 'Approval restricted: Only Admin and Video Approver (Mohana) can approve completed videos and authorize payout clearance.',
                 type: 'warning',
                 tab: 'deliverables'
               });
@@ -1524,7 +1532,7 @@ const ProjectDeliverablesHub = () => {
             if (typeof addNotification === 'function') {
               addNotification({
                 title: 'Video Submitted for Review',
-                message: 'Work order has been submitted for Internal Review. Request sent to Admin for approval.',
+                message: 'Work order has been submitted for Internal Review. Request sent for approval.',
                 type: 'review',
                 tab: 'deliverables'
               });
@@ -1742,9 +1750,9 @@ const ProjectDeliverablesHub = () => {
                                 ))}
                               </select>
 
-                              {/* Admin Approval / Rejection Action buttons OR Editor Review Requested Badge */}
+                              {/* Video Approval / Rejection Action buttons OR Editor Review Requested Badge */}
                               {stage.label === 'Internal Review' && (
-                                isAdmin ? (
+                                isVideoApprover ? (
                                   <div style={{ display: 'flex', gap: '4px', justifyContent: 'center', marginTop: '6px' }}>
                                     <button
                                       type="button"
@@ -1763,7 +1771,7 @@ const ProjectDeliverablesHub = () => {
                                         border: '1px solid rgba(16, 185, 129, 0.4)',
                                         cursor: 'pointer'
                                       }}
-                                      title="Admin Approve: Marks approved and authorizes payment"
+                                      title="Approve: Marks approved and authorizes payment"
                                     >
                                       ✓ Approve & Pay
                                     </button>
@@ -1783,14 +1791,14 @@ const ProjectDeliverablesHub = () => {
                                         border: '1px solid rgba(239, 68, 68, 0.4)',
                                         cursor: 'pointer'
                                       }}
-                                      title="Admin Reject: Sends video back to Editing in Progress with rework notes"
+                                      title="Reject: Sends video back to Editing in Progress with rework notes"
                                     >
                                       ✕ Reject
                                     </button>
                                   </div>
                                 ) : (
                                   <div style={{ marginTop: '6px', display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '3px 8px', borderRadius: '4px', background: 'rgba(129, 140, 248, 0.15)', border: '1px solid rgba(129, 140, 248, 0.35)', color: '#818cf8', fontSize: '0.66rem', fontWeight: '800' }}>
-                                    <span>⏳ Request Sent for Review</span>
+                                    <span>Request Sent for Review</span>
                                   </div>
                                 )
                               )}
@@ -1965,7 +1973,7 @@ const ProjectDeliverablesHub = () => {
                         </div>
 
                         {stage.label === 'Internal Review' && (
-                          isAdmin ? (
+                          isVideoApprover ? (
                             <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
                               <button
                                 type="button"
@@ -1990,7 +1998,7 @@ const ProjectDeliverablesHub = () => {
                                   gap: '4px'
                                 }}
                               >
-                                ✓ Admin Approve & Pay
+                                ✓ Approve & Pay
                               </button>
                               <button
                                 type="button"
@@ -2019,7 +2027,7 @@ const ProjectDeliverablesHub = () => {
                             </div>
                           ) : (
                             <div style={{ marginTop: '4px', padding: '6px 10px', borderRadius: '6px', background: 'rgba(129, 140, 248, 0.15)', border: '1px solid rgba(129, 140, 248, 0.35)', color: '#818cf8', fontSize: '0.74rem', fontWeight: '800', textAlign: 'center' }}>
-                              ⏳ Request Sent for Review (Awaiting Admin Approval)
+                              Request Sent for Review (Awaiting Approval)
                             </div>
                           )
                         )}
