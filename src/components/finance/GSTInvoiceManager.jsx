@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useCRM } from '../../context/CRMContext';
 import {
   FileText, Plus, Edit2, Trash2, X, Download, Check,
@@ -165,6 +165,17 @@ const GSTInvoiceManager = () => {
   const [previewInvoice, setPreviewInvoice] = useState(null);
   const [previewTemplate, setPreviewTemplate] = useState('red-classic'); // 'red-classic' | 'modern-indigo' | 'clean-mono'
   const [showBankCustomizer, setShowBankCustomizer] = useState(false);
+
+  // Handle Escape key to close preview modal
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && previewInvoice) {
+        setPreviewInvoice(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [previewInvoice]);
 
   const today = new Date().toISOString().split('T')[0];
   const nowYear = new Date().getFullYear();
@@ -981,8 +992,8 @@ const GSTInvoiceManager = () => {
         const isModernIndigo = previewTemplate === 'modern-indigo';
         const isCleanMono = previewTemplate === 'clean-mono';
 
-        let themePrimary = '#990000'; // Default Red Classic
-        let themeStateColor = '#ef4444';
+        let themePrimary = isCashBill ? '#059669' : '#b91c1c'; // Default Red Classic (#b91c1c)
+        let themeStateColor = '#2563eb';
         if (isModernIndigo) {
           themePrimary = '#1e3a8a';
           themeStateColor = '#2563eb';
@@ -1003,85 +1014,171 @@ const GSTInvoiceManager = () => {
 
         return (
           <div 
+            className="modal-overlay"
             style={{
               position: 'fixed',
               top: 0,
               left: 0,
               right: 0,
               bottom: 0,
-              background: 'rgba(0, 0, 0, 0.85)',
+              background: 'rgba(0, 0, 0, 0.84)',
               backdropFilter: 'blur(8px)',
               display: 'flex',
-              alignItems: 'center',
+              alignItems: 'flex-start',
               justifyContent: 'center',
               zIndex: 9999,
-              padding: '16px'
+              overflowY: 'auto',
+              padding: '24px 16px'
             }}
             onClick={() => setPreviewInvoice(null)}
           >
-            <div 
+            {/* Print stylesheet injected to ensure crisp paper output */}
+            <style dangerouslySetInnerHTML={{
+              __html: `
+              @media print {
+                body * {
+                  visibility: hidden !important;
+                }
+                .print-area, .print-area * {
+                  visibility: visible !important;
+                }
+                .print-area {
+                  position: absolute !important;
+                  left: 0 !important;
+                  top: 0 !important;
+                  width: 100% !important;
+                  background: white !important;
+                  color: black !important;
+                  padding: 0 !important;
+                  margin: 0 !important;
+                  box-shadow: none !important;
+                  border: none !important;
+                }
+                .no-print {
+                  display: none !important;
+                }
+              }
+              `
+            }} />
+
+            {/* Floating Close Button on Overlay (Always visible anywhere on screen) */}
+            <button
+              onClick={() => setPreviewInvoice(null)}
+              title="Close Preview (Esc)"
+              className="no-print"
               style={{
-                width: '850px',
-                maxWidth: '100%',
-                background: '#ffffff',
+                position: 'fixed',
+                top: '20px',
+                right: '24px',
+                width: '42px',
+                height: '42px',
+                borderRadius: '50%',
+                background: '#dc2626',
+                color: '#ffffff',
+                border: '2px solid #ffffff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                boxShadow: '0 4px 14px rgba(0,0,0,0.5)',
+                zIndex: 10000,
+                transition: 'transform 0.15s ease'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.08)'}
+              onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+            >
+              <X style={{ width: '22px', height: '22px' }} />
+            </button>
+
+            {/* Document Card Paper Container */}
+            <div 
+              className="modal-content print-area" 
+              style={{ 
+                padding: '28px 34px', 
+                maxWidth: '850px', 
+                width: '100%',
+                background: '#ffffff', 
                 color: '#111827',
-                padding: '28px 32px',
-                borderRadius: '8px',
-                maxHeight: '94vh',
-                overflowY: 'auto'
+                borderRadius: '6px',
+                boxShadow: '0 12px 40px rgba(0,0,0,0.45)',
+                border: '1px solid #e2e8f0',
+                position: 'relative',
+                margin: '0 auto 40px auto'
               }} 
               onClick={e => e.stopPropagation()}
             >
-              {/* Controls Header (Hidden in print) */}
-              <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid #e5e7eb', paddingBottom: '12px', flexWrap: 'wrap', gap: '10px' }}>
+              {/* Sticky Controls Header (Hidden in print) */}
+              <div 
+                className="no-print" 
+                style={{ 
+                  position: 'sticky',
+                  top: '-28px',
+                  margin: '-28px -34px 20px -34px',
+                  padding: '14px 24px',
+                  background: '#ffffff',
+                  borderBottom: '2px solid #e2e8f0',
+                  display: 'flex', 
+                  justifyContent: 'space-between', 
+                  alignItems: 'center', 
+                  flexWrap: 'wrap', 
+                  gap: '12px',
+                  zIndex: 20,
+                  borderTopLeftRadius: '6px',
+                  borderTopRightRadius: '6px',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
+                }}
+              >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <span style={{ fontWeight: '800', fontSize: '0.95rem', color: '#1f2937', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    {isCashBill ? '💵 Official Cash Bill & Receipt' : '🏛️ Official Tax Invoice Document'}
+                  <span style={{ fontWeight: '800', fontSize: '0.95rem', color: '#0f172a' }}>
+                    {isCashBill ? 'OFFICIAL CASH BILL PREVIEW' : 'OFFICIAL TAX INVOICE PREVIEW'}
+                  </span>
+                  <span style={{ fontSize: '0.75rem', padding: '2px 8px', borderRadius: '4px', background: isCashBill ? '#ecfdf5' : '#fef2f2', color: isCashBill ? '#059669' : '#b91c1c', fontWeight: '700', border: `1px solid ${isCashBill ? '#a7f3d0' : '#fecaca'}` }}>
+                    {previewInvoice.invoiceNumber}
                   </span>
                   
                   {/* Template Switcher Buttons */}
-                  <div style={{ display: 'flex', gap: '4px', background: '#f3f4f6', padding: '3px', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+                  <div style={{ display: 'flex', gap: '4px', background: '#f1f5f9', padding: '3px', borderRadius: '6px' }}>
                     <button
                       onClick={() => setPreviewTemplate('red-classic')}
                       style={{
                         padding: '4px 10px',
-                        borderRadius: '6px',
+                        borderRadius: '5px',
                         border: 'none',
                         fontSize: '0.72rem',
                         fontWeight: '700',
                         cursor: 'pointer',
-                        background: isRedClassic ? (isCashBill ? '#059669' : '#990000') : 'transparent',
-                        color: isRedClassic ? '#ffffff' : '#4b5563'
+                        background: isRedClassic ? (isCashBill ? '#059669' : '#b91c1c') : 'transparent',
+                        color: isRedClassic ? '#ffffff' : '#475569'
                       }}
                     >
-                      {isCashBill ? 'Emerald Cash Classic' : 'Red Classic (MIS Official)'}
+                      {isCashBill ? 'Emerald Cash (Official)' : 'Red Classic (Official MIS)'}
                     </button>
                     <button
                       onClick={() => setPreviewTemplate('modern-indigo')}
                       style={{
                         padding: '4px 10px',
-                        borderRadius: '6px',
+                        borderRadius: '5px',
                         border: 'none',
                         fontSize: '0.72rem',
                         fontWeight: '700',
                         cursor: 'pointer',
                         background: isModernIndigo ? '#1e3a8a' : 'transparent',
-                        color: isModernIndigo ? '#ffffff' : '#4b5563'
+                        color: isModernIndigo ? '#ffffff' : '#475569'
                       }}
                     >
-                      Modern Executive
+                      Modern Indigo
                     </button>
                     <button
                       onClick={() => setPreviewTemplate('clean-mono')}
                       style={{
                         padding: '4px 10px',
-                        borderRadius: '6px',
+                        borderRadius: '5px',
                         border: 'none',
                         fontSize: '0.72rem',
                         fontWeight: '700',
                         cursor: 'pointer',
                         background: isCleanMono ? '#18181b' : 'transparent',
-                        color: isCleanMono ? '#ffffff' : '#4b5563'
+                        color: isCleanMono ? '#ffffff' : '#475569'
                       }}
                     >
                       Minimalist
@@ -1089,17 +1186,33 @@ const GSTInvoiceManager = () => {
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', gap: '10px' }}>
-                  <button onClick={() => window.print()} className="btn gradient-btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 14px', fontSize: '0.8rem' }}>
-                    <Printer style={{ width: '15px', height: '15px' }} /> Print / Download PDF
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                  <button onClick={() => window.print()} className="btn gradient-btn-primary" style={{ padding: '7px 16px', fontSize: '0.82rem', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Printer style={{ width: '15px', height: '15px' }} />
+                    <span>Print / Download PDF</span>
                   </button>
-                  <button onClick={() => setPreviewInvoice(null)} className="btn btn-secondary" style={{ color: '#ef4444', padding: '7px 12px', fontSize: '0.8rem' }}>
-                    Close
+                  <button 
+                    onClick={() => setPreviewInvoice(null)} 
+                    className="btn btn-secondary" 
+                    style={{ 
+                      padding: '7px 16px', 
+                      background: '#fef2f2', 
+                      color: '#dc2626', 
+                      border: '1px solid #fca5a5',
+                      fontSize: '0.82rem',
+                      fontWeight: '700',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    <X style={{ width: '16px', height: '16px' }} />
+                    <span>Close Preview</span>
                   </button>
                 </div>
               </div>
 
-              {/* Exact Reference Tax Invoice / Cash Bill Output Document */}
+              {/* Exact Reference Tax Invoice / Cash Bill Output Document (Matches User Reference SS 3) */}
               <div id="printable-tax-invoice" style={{
                 width: '100%',
                 background: '#ffffff',
@@ -1111,39 +1224,24 @@ const GSTInvoiceManager = () => {
               }}>
                 {/* 1. Header Section */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
-                  {/* Left: Sanna Innovations Logo & Tagline */}
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', maxWidth: '240px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <div style={{
-                        width: '46px',
-                        height: '46px',
-                        borderRadius: '50%',
-                        background: isCashBill ? 'linear-gradient(135deg, #10b981 0%, #047857 100%)' : 'linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        boxShadow: isCashBill ? '0 2px 6px rgba(4, 120, 87, 0.3)' : '0 2px 6px rgba(185, 28, 28, 0.3)',
-                        flexShrink: 0
-                      }}>
-                        <span style={{ color: '#ffffff', fontSize: '1.45rem', fontWeight: '900', fontFamily: 'Arial, sans-serif', lineHeight: 1 }}>@</span>
-                      </div>
-                      <div>
-                        <div style={{ color: isCashBill ? '#059669' : themePrimary, fontWeight: '900', fontSize: '1.3rem', letterSpacing: '0.8px', lineHeight: 1 }}>SANNA</div>
-                        <div style={{ color: '#475569', fontWeight: '800', fontSize: '0.68rem', letterSpacing: '2.5px', lineHeight: 1, marginTop: '3px' }}>INNOVATIONS</div>
-                        <div style={{ color: '#94a3b8', fontStyle: 'italic', fontSize: '0.58rem', marginTop: '2px', letterSpacing: '0.3px' }}>Delivering Reality...</div>
-                      </div>
-                    </div>
+                  {/* Left: Authentic Sanna Innovations Logo Branding */}
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                    <img 
+                      src="/sanna_logo.png" 
+                      alt="Sanna Innovations" 
+                      style={{ height: '82px', maxWidth: '240px', objectFit: 'contain' }} 
+                    />
                   </div>
 
-                  {/* Right: Invoice / Cash Bill Type Header Box */}
+                  {/* Right: Invoice / Cash Bill Type Header Box & Key-Value Metadata */}
                   <div style={{ width: '310px', border: '1px solid #1f2937' }}>
                     <div style={{
-                      background: isCashBill ? '#059669' : themePrimary,
+                      background: themePrimary,
                       color: '#ffffff',
-                      fontWeight: '800',
+                      fontWeight: '900',
                       textAlign: 'center',
-                      padding: '5px',
-                      fontSize: '13px',
+                      padding: '7px',
+                      fontSize: '15px',
                       letterSpacing: '0.5px'
                     }}>
                       {isCashBill ? 'CASH BILL / RECEIPT' : (previewInvoice.invoiceType || 'Tax Invoice')}
@@ -1177,7 +1275,15 @@ const GSTInvoiceManager = () => {
 
                 {/* 2. Customer Section */}
                 <div style={{ marginBottom: '14px' }}>
-                  <div style={{ fontSize: '12px', fontWeight: '800', marginBottom: '3px', color: '#111827' }}>
+                  <div style={{
+                    background: themePrimary,
+                    color: '#ffffff',
+                    fontWeight: '800',
+                    padding: '4px 8px',
+                    fontSize: '11.5px',
+                    border: '1px solid #1f2937',
+                    borderBottom: 'none'
+                  }}>
                     {isCashBill ? 'Received With Thanks From:' : 'Customer:'}
                   </div>
                   <div style={{ border: '1px solid #1f2937' }}>
@@ -1220,27 +1326,27 @@ const GSTInvoiceManager = () => {
                   </div>
                 </div>
 
-                {/* 3. Line Items Table */}
-                <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #1f2937', fontSize: '10.5px', marginBottom: '12px' }}>
+                {/* 3. Line Items Table (12 Columns with Crisp Borders) */}
+                <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #1f2937', fontSize: '10.5px', marginBottom: '0px' }}>
                   <thead>
-                    <tr style={{ background: isCashBill ? '#059669' : themePrimary, color: '#ffffff', fontWeight: '700' }}>
-                      <th rowSpan={isTax ? "2" : "1"} style={{ border: '1px solid #1f2937', padding: '5px 3px', width: '5%', textAlign: 'center' }}>SL No.</th>
+                    <tr style={{ background: themePrimary, color: '#ffffff', fontWeight: '800' }}>
+                      <th rowSpan={isTax ? "2" : "1"} style={{ border: '1px solid #1f2937', padding: '5px 4px', width: '5%', textAlign: 'center' }}>SL No.</th>
                       <th rowSpan={isTax ? "2" : "1"} style={{ border: '1px solid #1f2937', padding: '5px 6px', width: isTax ? '27%' : '45%', textAlign: 'center' }}>Description</th>
-                      <th rowSpan={isTax ? "2" : "1"} style={{ border: '1px solid #1f2937', padding: '5px 3px', width: '12%', textAlign: 'center' }}>HSN/SAC</th>
-                      <th rowSpan={isTax ? "2" : "1"} style={{ border: '1px solid #1f2937', padding: '5px 3px', width: '12%', textAlign: 'center' }}>Unit Price</th>
-                      <th rowSpan={isTax ? "2" : "1"} style={{ border: '1px solid #1f2937', padding: '5px 3px', width: '6%', textAlign: 'center' }}>Qty</th>
-                      <th rowSpan={isTax ? "2" : "1"} style={{ border: '1px solid #1f2937', padding: '5px 3px', width: '12%', textAlign: 'center' }}>Net Amount</th>
+                      <th rowSpan={isTax ? "2" : "1"} style={{ border: '1px solid #1f2937', padding: '5px 4px', width: '10%', textAlign: 'center' }}>HSN/SAC Code</th>
+                      <th rowSpan={isTax ? "2" : "1"} style={{ border: '1px solid #1f2937', padding: '5px 4px', width: '9%', textAlign: 'center' }}>Unite price</th>
+                      <th rowSpan={isTax ? "2" : "1"} style={{ border: '1px solid #1f2937', padding: '5px 4px', width: '5%', textAlign: 'center' }}>Qty</th>
+                      <th rowSpan={isTax ? "2" : "1"} style={{ border: '1px solid #1f2937', padding: '5px 4px', width: '9%', textAlign: 'center' }}>Net Amount</th>
                       {isTax && (
                         <>
-                          <th colSpan="2" style={{ border: '1px solid #1f2937', padding: '3px 4px', width: '13%', textAlign: 'center' }}>CGST</th>
-                          <th colSpan="2" style={{ border: '1px solid #1f2937', padding: '3px 4px', width: '13%', textAlign: 'center' }}>SGST</th>
-                          <th rowSpan="2" style={{ border: '1px solid #1f2937', padding: '5px 3px', width: '10%', textAlign: 'center' }}>Total Tax</th>
+                          <th colSpan="2" style={{ border: '1px solid #1f2937', padding: '4px', width: '13%', textAlign: 'center' }}>CGST</th>
+                          <th colSpan="2" style={{ border: '1px solid #1f2937', padding: '4px', width: '13%', textAlign: 'center' }}>SGST</th>
+                          <th rowSpan="2" style={{ border: '1px solid #1f2937', padding: '5px 4px', width: '9%', textAlign: 'center' }}>Total Tax Amount</th>
                         </>
                       )}
-                      <th rowSpan={isTax ? "2" : "1"} style={{ border: '1px solid #1f2937', padding: '5px 3px', width: isTax ? '11%' : '18%', textAlign: 'center' }}>Total Amount</th>
+                      <th rowSpan={isTax ? "2" : "1"} style={{ border: '1px solid #1f2937', padding: '5px 4px', width: isTax ? '12%' : '18%', textAlign: 'center' }}>Total Amount</th>
                     </tr>
                     {isTax && (
-                      <tr style={{ background: themePrimary, color: '#ffffff', fontWeight: '700' }}>
+                      <tr style={{ background: themePrimary, color: '#ffffff', fontWeight: '800' }}>
                         <th style={{ border: '1px solid #1f2937', padding: '3px 2px', width: '4%', textAlign: 'center' }}>%</th>
                         <th style={{ border: '1px solid #1f2937', padding: '3px 4px', width: '9%', textAlign: 'center' }}>Amount</th>
                         <th style={{ border: '1px solid #1f2937', padding: '3px 2px', width: '4%', textAlign: 'center' }}>%</th>
@@ -1262,90 +1368,90 @@ const GSTInvoiceManager = () => {
 
                       return (
                         <tr key={idx} style={{ textAlign: 'center' }}>
-                          <td style={{ border: '1px solid #1f2937', padding: '5px 3px' }}>{idx + 1}</td>
+                          <td style={{ border: '1px solid #1f2937', padding: '5px 4px' }}>{idx + 1}</td>
                           <td style={{ border: '1px solid #1f2937', padding: '5px 6px', textAlign: 'left', fontWeight: '600' }}>{item.description}</td>
-                          <td style={{ border: '1px solid #1f2937', padding: '5px 3px' }}>{item.hsnSac || '998315'}</td>
-                          <td style={{ border: '1px solid #1f2937', padding: '5px 3px', textAlign: 'right' }}>{unitPrice.toFixed(2)}</td>
-                          <td style={{ border: '1px solid #1f2937', padding: '5px 3px' }}>{qty}</td>
-                          <td style={{ border: '1px solid #1f2937', padding: '5px 3px', textAlign: 'right' }}>{netAmount.toFixed(2)}</td>
+                          <td style={{ border: '1px solid #1f2937', padding: '5px 4px' }}>{item.hsnSac || '998314'}</td>
+                          <td style={{ border: '1px solid #1f2937', padding: '5px 4px', textAlign: 'right' }}>{unitPrice.toFixed(2)}</td>
+                          <td style={{ border: '1px solid #1f2937', padding: '5px 4px' }}>{qty}</td>
+                          <td style={{ border: '1px solid #1f2937', padding: '5px 4px', textAlign: 'right' }}>{netAmount.toFixed(2)}</td>
                           {isTax && (
                             <>
                               <td style={{ border: '1px solid #1f2937', padding: '5px 2px' }}>{halfRate}%</td>
-                              <td style={{ border: '1px solid #1f2937', padding: '5px 3px', textAlign: 'right' }}>{lineCgstAmt.toFixed(2)}</td>
+                              <td style={{ border: '1px solid #1f2937', padding: '5px 4px', textAlign: 'right' }}>{lineCgstAmt.toFixed(2)}</td>
                               <td style={{ border: '1px solid #1f2937', padding: '5px 2px' }}>{halfRate}%</td>
-                              <td style={{ border: '1px solid #1f2937', padding: '5px 3px', textAlign: 'right' }}>{lineSgstAmt.toFixed(2)}</td>
-                              <td style={{ border: '1px solid #1f2937', padding: '5px 3px', textAlign: 'right' }}>{lineTaxTotal.toFixed(2)}</td>
+                              <td style={{ border: '1px solid #1f2937', padding: '5px 4px', textAlign: 'right' }}>{lineSgstAmt.toFixed(2)}</td>
+                              <td style={{ border: '1px solid #1f2937', padding: '5px 4px', textAlign: 'right' }}>{lineTaxTotal.toFixed(2)}</td>
                             </>
                           )}
-                          <td style={{ border: '1px solid #1f2937', padding: '5px 3px', textAlign: 'right', fontWeight: '700' }}>
+                          <td style={{ border: '1px solid #1f2937', padding: '5px 4px', textAlign: 'right', fontWeight: '700' }}>
                             {lineTotalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </td>
                         </tr>
                       );
                     })}
 
-                    {/* Subtotals Row */}
+                    {/* Subtotals Row (Matches User Reference SS 3 format) */}
                     <tr style={{ fontWeight: '700' }}>
-                      <td colSpan="5" style={{ border: '1px solid #1f2937', padding: '5px', textAlign: 'right' }}>Subtotal:</td>
-                      <td style={{ border: '1px solid #1f2937', padding: '5px 3px', textAlign: 'right' }}>{subtotal.toFixed(2)}</td>
+                      <td style={{ border: '1px solid #1f2937', padding: '5px' }}>&nbsp;</td>
+                      <td style={{ border: '1px solid #1f2937', padding: '5px' }}>&nbsp;</td>
+                      <td style={{ border: '1px solid #1f2937', padding: '5px' }}>&nbsp;</td>
+                      <td style={{ border: '1px solid #1f2937', padding: '5px' }}>&nbsp;</td>
+                      <td style={{ border: '1px solid #1f2937', padding: '5px' }}>&nbsp;</td>
+                      <td style={{ border: '1px solid #1f2937', padding: '5px 4px', textAlign: 'right' }}>{subtotal.toFixed(2)}</td>
                       {isTax && (
                         <>
-                          <td style={{ border: '1px solid #1f2937', padding: '5px 2px' }}></td>
-                          <td style={{ border: '1px solid #1f2937', padding: '5px 3px', textAlign: 'right' }}>{cgstAmt.toFixed(2)}</td>
-                          <td style={{ border: '1px solid #1f2937', padding: '5px 2px' }}></td>
-                          <td style={{ border: '1px solid #1f2937', padding: '5px 3px', textAlign: 'right' }}>{sgstAmt.toFixed(2)}</td>
-                          <td style={{ border: '1px solid #1f2937', padding: '5px 3px', textAlign: 'right' }}>{totalGST.toFixed(2)}</td>
+                          <td style={{ border: '1px solid #1f2937', padding: '5px 2px' }}>&nbsp;</td>
+                          <td style={{ border: '1px solid #1f2937', padding: '5px 4px', textAlign: 'right' }}>{cgstAmt.toFixed(2)}</td>
+                          <td style={{ border: '1px solid #1f2937', padding: '5px 2px' }}>&nbsp;</td>
+                          <td style={{ border: '1px solid #1f2937', padding: '5px 4px', textAlign: 'right' }}>{sgstAmt.toFixed(2)}</td>
+                          <td style={{ border: '1px solid #1f2937', padding: '5px 4px', textAlign: 'right' }}>{totalGST.toFixed(2)}</td>
                         </>
                       )}
-                      <td style={{ border: '1px solid #1f2937', padding: '5px 3px', textAlign: 'right', fontWeight: '800' }}>
-                        {grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </td>
+                      <td style={{ border: '1px solid #1f2937', padding: '5px 4px' }}>&nbsp;</td>
                     </tr>
                   </tbody>
                 </table>
 
-                {/* 4. Amount in Words & Subtotal/Total Summary Table */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '14px', marginBottom: '16px' }}>
-                  {/* Left: Theme Banner */}
+                {/* 4. Amount In words & Totals Summary Table */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'stretch', marginBottom: '14px' }}>
+                  {/* Left: Solid Theme Banner */}
                   <div style={{
                     flex: 1,
-                    background: isCashBill ? '#059669' : themePrimary,
+                    background: themePrimary,
                     color: '#ffffff',
                     fontWeight: '700',
-                    padding: '7px 10px',
+                    padding: '6px 10px',
                     fontSize: '11px',
                     display: 'flex',
                     alignItems: 'center',
-                    minHeight: '32px',
-                    boxSizing: 'border-box'
+                    boxSizing: 'border-box',
+                    border: '1px solid #1f2937',
+                    borderRight: 'none',
+                    borderTop: 'none'
                   }}>
-                    Amount In words : {numberToWords(grandTotal)}
+                    Amount In words :{numberToWords(grandTotal)}
                   </div>
 
-                  {/* Right: Summary Table */}
-                  <div style={{ width: '250px', border: '1px solid #1f2937' }}>
+                  {/* Right: Summary Subtotal / Shipping / Total Box */}
+                  <div style={{ width: '240px', border: '1px solid #1f2937', borderTop: 'none' }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px' }}>
                       <tbody>
                         <tr>
-                          <td style={{ padding: '4px 8px', fontWeight: '700', borderRight: '1px solid #1f2937', width: '50%' }}>Net Subtotal</td>
+                          <td style={{ padding: '4px 8px', fontWeight: '700', borderRight: '1px solid #1f2937', width: '50%' }}>Subtotal</td>
                           <td style={{ padding: '4px 8px', textAlign: 'right', fontWeight: '700' }}>
-                            {subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            {grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </td>
                         </tr>
-                        {isTax && (
-                          <tr style={{ borderTop: '1px solid #1f2937' }}>
-                            <td style={{ padding: '4px 8px', fontWeight: '700', borderRight: '1px solid #1f2937' }}>Total GST (18%)</td>
-                            <td style={{ padding: '4px 8px', textAlign: 'right', fontWeight: '700' }}>
-                              {totalGST.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                            </td>
-                          </tr>
-                        )}
-                        <tr style={{ borderTop: '1px solid #1f2937', background: isCashBill ? '#ecfdf5' : '#fef2f2' }}>
-                          <td style={{ padding: '5px 8px', fontWeight: '900', borderRight: '1px solid #1f2937', color: isCashBill ? '#047857' : '#990000' }}>
-                            {isCashBill ? 'Cash Total Received' : 'Grand Total'}
+                        <tr style={{ borderTop: '1px solid #1f2937' }}>
+                          <td style={{ padding: '4px 8px', fontWeight: '700', borderRight: '1px solid #1f2937' }}>Shipping</td>
+                          <td style={{ padding: '4px 8px', textAlign: 'right', fontWeight: '700' }}>
+                            {shipping > 0 ? shipping.toFixed(2) : ''}
                           </td>
-                          <td style={{ padding: '5px 8px', textAlign: 'right', fontWeight: '900', color: isCashBill ? '#047857' : '#990000', fontSize: '12px' }}>
-                            ₹{grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </tr>
+                        <tr style={{ borderTop: '1px solid #1f2937' }}>
+                          <td style={{ padding: '4px 8px', fontWeight: '900', borderRight: '1px solid #1f2937', fontSize: '12px' }}>Total</td>
+                          <td style={{ padding: '4px 8px', textAlign: 'right', fontWeight: '900', fontSize: '12px' }}>
+                            {grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </td>
                         </tr>
                       </tbody>
@@ -1353,10 +1459,10 @@ const GSTInvoiceManager = () => {
                   </div>
                 </div>
 
-                {/* 5. Bank / Cash Details & Sign Off */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px', fontSize: '11px' }}>
-                  {/* Left: Kotak Mahindra Account Details or Cash Receipt Ack */}
-                  <div style={{ lineHeight: 1.45, maxWidth: '400px' }}>
+                {/* 5. Terms & Conditions and Bank Details & Sign Off */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px', paddingTop: '4px' }}>
+                  {/* Left: Terms & Conditions and Axis Bank Account Details */}
+                  <div style={{ lineHeight: 1.45, maxWidth: '440px' }}>
                     {isCashBill ? (
                       <div style={{ background: '#f0fdf4', padding: '10px 14px', borderRadius: '6px', border: '1px solid #86efac' }}>
                         <div style={{ fontWeight: '800', color: '#166534', fontSize: '11.5px', marginBottom: '3px' }}>
@@ -1368,60 +1474,105 @@ const GSTInvoiceManager = () => {
                       </div>
                     ) : (
                       <>
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                          <span style={{ fontWeight: '700', width: '105px' }}>Account Details:</span>
-                          <span style={{ fontWeight: '700' }}>{bank.bankName}</span>
+                        <div style={{ textDecoration: 'underline', color: '#0284c7', fontWeight: 'bold', fontSize: '11px', marginBottom: '6px' }}>
+                          Terms & Conditions:
                         </div>
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                          <span style={{ fontWeight: '700', width: '105px' }}>Account Name</span>
-                          <span>{bank.accountName}</span>
+                        <table style={{ width: '100%', fontSize: '10px', borderCollapse: 'collapse', color: '#111827', lineHeight: 1.45 }}>
+                          <tbody>
+                            <tr>
+                              <td style={{ verticalAlign: 'top', fontWeight: '600', width: '55px', padding: '2px 0' }}>Taxes</td>
+                              <td style={{ verticalAlign: 'top', width: '12px', padding: '2px 0' }}>:</td>
+                              <td style={{ verticalAlign: 'top', padding: '2px 0' }}>Taxes extra as mentioned above: Any change in the tax structure at the time of delivery, will be passed on to the customers</td>
+                            </tr>
+                            <tr>
+                              <td style={{ verticalAlign: 'top', fontWeight: '600', padding: '2px 0' }}>Invoice</td>
+                              <td style={{ verticalAlign: 'top', padding: '2px 0' }}>:</td>
+                              <td style={{ verticalAlign: 'top', padding: '2px 0' }}>Invoice will be submitted as per actuals.</td>
+                            </tr>
+                            <tr>
+                              <td style={{ verticalAlign: 'top', fontWeight: '600', padding: '2px 0' }}>Prices</td>
+                              <td style={{ verticalAlign: 'top', padding: '2px 0' }}>:</td>
+                              <td style={{ verticalAlign: 'top', padding: '2px 0' }}>FOR India Only</td>
+                            </tr>
+                          </tbody>
+                        </table>
+
+                        <div style={{ fontWeight: 'bold', fontSize: '11px', marginTop: '10px', marginBottom: '3px', color: '#111827' }}>
+                          Account Details:
                         </div>
-                        <div style={{ paddingLeft: '113px' }}>
-                          <div>Account Number - {bank.accountNumber}</div>
-                          <div>IFSC code - {bank.ifscCode}</div>
-                          <div>Branch {bank.branch}</div>
+                        <div style={{ fontSize: '10.5px', lineHeight: 1.45, color: '#111827' }}>
+                          <div style={{ fontWeight: '700' }}>{bank.bankName || 'Axis Bank'}</div>
+                          <div>Account Name- {bank.accountName || 'Sanna Innovations'}</div>
+                          <div>Account Type- Current Account</div>
+                          <div>Account Number - {bank.accountNumber || '922020048881338'}</div>
+                          <div>IFSC code - {bank.ifscCode || 'UTIB0003568'}</div>
+                          <div>Branch- {bank.branch || 'Rajajinagar 3rd Block Bangalore'}</div>
                         </div>
                       </>
                     )}
                   </div>
 
-                  {/* Right: Signature & Stamp */}
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '190px', textAlign: 'center' }}>
-                    <div style={{ fontSize: '11px', fontWeight: '800', color: '#111827', marginBottom: '2px' }}>
-                      For <span style={{ color: isCashBill ? '#059669' : themePrimary, textTransform: 'uppercase' }}>{seller.companyName}</span>
-                    </div>
-                    <div style={{ position: 'relative', width: '140px', height: '50px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '2px 0' }}>
-                      <svg width="136" height="46" viewBox="0 0 136 46" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <rect x="2" y="2" width="132" height="42" rx="4" stroke={isCashBill ? '#059669' : '#1e40af'} strokeWidth="1.2" strokeDasharray="3 2" opacity="0.4" />
-                        <text x="68" y="13" textAnchor="middle" fill={isCashBill ? '#059669' : '#1e40af'} fontSize="7" fontWeight="bold" letterSpacing="0.5">SANNA INNOVATIONS</text>
-                        <text x="68" y="21" textAnchor="middle" fill={isCashBill ? '#059669' : '#1e40af'} fontSize="5.5" fontStyle="italic">For Sanna Innovations</text>
-                        {/* Signature curve */}
-                        <path d="M 26,35 C 36,15 44,13 52,24 C 56,34 66,26 80,18 C 90,12 96,24 108,20" stroke={isCashBill ? '#047857' : '#1d4ed8'} strokeWidth="2.2" strokeLinecap="round" fill="none" />
-                        <path d="M 42,18 L 48,35" stroke={isCashBill ? '#047857' : '#1d4ed8'} strokeWidth="2" strokeLinecap="round" />
-                        <path d="M 64,22 C 72,30 78,30 86,22" stroke={isCashBill ? '#047857' : '#1d4ed8'} strokeWidth="1.8" fill="none" />
-                        <text x="68" y="39" textAnchor="middle" fill={isCashBill ? '#059669' : '#1e40af'} fontSize="6.5" fontWeight="bold">Authorised Signatory</text>
-                      </svg>
-                    </div>
-                    <div style={{ fontSize: '10px', fontWeight: '700', color: '#4b5563' }}>
-                      Authorised Signatory
-                    </div>
+                  {/* Right: Authentic Sanna Innovations Stamp & Signature */}
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', minWidth: '220px' }}>
+                    <img 
+                      src="/sanna_signature_stamp.png" 
+                      alt="For Sanna Innovations Authorised Signatory" 
+                      style={{ width: '210px', maxWidth: '100%', objectFit: 'contain' }} 
+                    />
                   </div>
                 </div>
 
-                {/* 6. Bottom Address Banner */}
+                {/* 6. Solid Red Bottom Address Banner */}
                 <div style={{
-                  background: isCashBill ? '#059669' : themePrimary,
+                  background: themePrimary,
                   color: '#ffffff',
                   padding: '8px 12px',
                   textAlign: 'center',
                   fontSize: '11px',
                   fontWeight: '700',
                   lineHeight: 1.4,
-                  marginTop: '6px'
+                  marginTop: '12px'
                 }}>
-                  <div>{seller.address}</div>
-                  <div>{seller.website}</div>
+                  <div>#1230, 1st Main, M.C. Layout, Vijayanagar, Bangalore - 560040</div>
+                  <div>www.sannainnovations.com</div>
                 </div>
+              </div>
+
+              {/* Bottom Actions Bar (Hidden in print) */}
+              <div 
+                className="no-print" 
+                style={{ 
+                  display: 'flex', 
+                  justifyContent: 'center', 
+                  alignItems: 'center', 
+                  gap: '12px', 
+                  marginTop: '24px', 
+                  paddingTop: '16px', 
+                  borderTop: '1px solid #e2e8f0' 
+                }}
+              >
+                <button onClick={() => window.print()} className="btn gradient-btn-primary" style={{ padding: '8px 20px', fontSize: '0.82rem', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Printer style={{ width: '15px', height: '15px' }} />
+                  <span>Print / Download PDF</span>
+                </button>
+                <button 
+                  onClick={() => setPreviewInvoice(null)} 
+                  className="btn btn-secondary" 
+                  style={{ 
+                    padding: '8px 20px', 
+                    background: '#f8fafc', 
+                    color: '#334155', 
+                    border: '1px solid #cbd5e1', 
+                    fontSize: '0.82rem', 
+                    fontWeight: '700', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '6px' 
+                  }}
+                >
+                  <X style={{ width: '16px', height: '16px' }} />
+                  <span>Close</span>
+                </button>
               </div>
 
             </div>

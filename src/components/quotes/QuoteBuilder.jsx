@@ -36,24 +36,32 @@ const QuoteBuilder = () => {
 
   // New Quote Form State
   const [customerName, setCustomerName] = useState('');
+  const [customerAddress, setCustomerAddress] = useState('');
+  const [customerAddress2, setCustomerAddress2] = useState('');
+  const [customerState, setCustomerState] = useState('Karnataka');
+  const [projectDescription, setProjectDescription] = useState('Digital Marketing Charges');
   const [contactPerson, setContactPerson] = useState('');
   const [contactEmail, setContactEmail] = useState('');
   const [discountPercent, setDiscountPercent] = useState(0);
   const [notes, setNotes] = useState('');
   const [customLogoUrl, setCustomLogoUrl] = useState('');
-  const [currency, setCurrency] = useState('USD ($)');
+  const [currency, setCurrency] = useState('INR (₹)');
 
   const [lineItems, setLineItems] = useState([]);
 
   const handleOpenWizard = () => {
     setWizardStep(1);
     setCustomerName('');
+    setCustomerAddress('');
+    setCustomerAddress2('');
+    setCustomerState('Karnataka');
+    setProjectDescription('Digital Marketing Charges');
     setContactPerson('');
     setContactEmail('');
     setDiscountPercent(0);
     setNotes('Payment terms: Net 30 days. All prices valid for 30 days from proposal issue date.');
     setCustomLogoUrl('');
-    setCurrency('USD ($)');
+    setCurrency('INR (₹)');
     
     const defaultProd = products[0] || { id: 'svc-01', name: 'Enterprise Cloud Retainer', unitPrice: 2500, taxRatePercent: 18 };
     setLineItems([
@@ -129,6 +137,10 @@ const QuoteBuilder = () => {
 
     createQuote({
       customerName: customerName || 'Enterprise Client',
+      customerAddress: customerAddress || '',
+      customerAddress2: customerAddress2 || '',
+      customerState: customerState || 'Karnataka',
+      projectDescription: projectDescription || notes || 'Digital Marketing Charges',
       contactPerson: contactPerson || 'Corporate Representative',
       contactEmail: contactEmail || 'contact@client.com',
       items: lineItems,
@@ -223,20 +235,20 @@ const QuoteBuilder = () => {
                     </td>
                     <td>
                       <span className="tabular-nums" style={{ fontWeight: '700', color: 'var(--text-secondary)' }}>
-                        ${quote.subtotal.toLocaleString()}
+                        {quote.currency?.includes('$') ? '$' : '₹'}{quote.subtotal?.toLocaleString('en-IN')}
                       </span>
                     </td>
                     <td>
                       <div className="tabular-nums" style={{ fontSize: '0.78rem', color: '#fbbf24', fontWeight: '700' }}>
-                        -{quote.discountPercent}% (${(quote.discountAmount || 0).toLocaleString()})
+                        -{quote.discountPercent}% ({quote.currency?.includes('$') ? '$' : '₹'}{(quote.discountAmount || 0).toLocaleString('en-IN')})
                       </div>
                       <div className="tabular-nums" style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-                        +${(quote.taxTotal || 0).toLocaleString()} Tax
+                        +{quote.currency?.includes('$') ? '$' : '₹'}{(quote.taxTotal || 0).toLocaleString('en-IN')} Tax
                       </div>
                     </td>
                     <td>
                       <span className="tabular-nums" style={{ fontWeight: '900', color: '#34d399', fontSize: '1rem' }}>
-                        ${quote.grandTotal.toLocaleString()}
+                        {quote.currency?.includes('$') ? '$' : '₹'}{quote.grandTotal?.toLocaleString('en-IN')}
                       </span>
                     </td>
                     <td>
@@ -342,28 +354,49 @@ const QuoteBuilder = () => {
                     <input
                       type="text"
                       required
-                      placeholder="e.g. Acme Global Logistics Ltd"
+                      placeholder="e.g. Bharadwaj Enterprises"
                       value={customerName}
                       onChange={(e) => setCustomerName(e.target.value)}
                       className="form-input"
                     />
                   </div>
                   <div className="form-group">
-                    <label className="form-label">Currency Standard</label>
-                    <select
-                      value={currency}
-                      onChange={(e) => setCurrency(e.target.value)}
-                      className="form-select"
-                    >
-                      <option value="USD ($)">USD ($)</option>
-                      <option value="INR (₹)">INR (₹)</option>
-                      <option value="EUR (€)">EUR (€)</option>
-                      <option value="GBP (£)">GBP (£)</option>
-                    </select>
+                    <label className="form-label">Quote / Product Description *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Digital Marketing Charges"
+                      value={projectDescription}
+                      onChange={(e) => setProjectDescription(e.target.value)}
+                      className="form-input"
+                    />
                   </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '14px' }}>
+                  <div className="form-group">
+                    <label className="form-label">Client Billing Address</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 33/10, Canal Bank Road, RA Puram"
+                      value={customerAddress}
+                      onChange={(e) => setCustomerAddress(e.target.value)}
+                      className="form-input"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">City, State & Pincode</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Chennai, Tamil Nadu, 600028"
+                      value={customerState}
+                      onChange={(e) => setCustomerState(e.target.value)}
+                      className="form-input"
+                    />
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px' }}>
                   <div className="form-group">
                     <label className="form-label">Primary Contact Representative *</label>
                     <input
@@ -385,6 +418,19 @@ const QuoteBuilder = () => {
                       onChange={(e) => setContactEmail(e.target.value)}
                       className="form-input"
                     />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Currency Standard</label>
+                    <select
+                      value={currency}
+                      onChange={(e) => setCurrency(e.target.value)}
+                      className="form-select"
+                    >
+                      <option value="INR (₹)">INR (₹)</option>
+                      <option value="USD ($)">USD ($)</option>
+                      <option value="EUR (€)">EUR (€)</option>
+                      <option value="GBP (£)">GBP (£)</option>
+                    </select>
                   </div>
                 </div>
 

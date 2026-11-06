@@ -37,18 +37,19 @@ export const SANNA_SELLER_INFO = {
   companyName: 'Sanna Innovations',
   gstin: '29BNJPS7776J1ZW',
   pan: 'BNJPS7776J',
-  address: '#1203, 1st Main, M.C. Layout, Vijayanagar, Bangalore - 560040',
+  address: '#1230, 1st Main, M.C. Layout, Vijayanagar, Bangalore - 560040',
   website: 'www.sannainnovations.com',
   email: 'billing@sannainnovations.com',
   phone: '+91 80 4123 4567'
 };
 
 export const SANNA_BANK_DETAILS = {
-  bankName: 'Kotak Mahindra Bank',
+  bankName: 'Axis Bank',
   accountName: 'Sanna Innovations',
-  accountNumber: '6450725722',
-  ifscCode: 'KKBK0008035',
-  branch: 'Basaveshwaranagar'
+  accountType: 'Current Account',
+  accountNumber: '922020048881338',
+  ifscCode: 'UTIB0003568',
+  branch: 'Rajajinagar 3rd Block Bangalore'
 };
 
 export const ASTRA_CLEAN_SELLER_INFO = {

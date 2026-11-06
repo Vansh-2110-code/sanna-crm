@@ -1799,25 +1799,8 @@ const OrderInvoiceManager = () => {
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
 
                   {/* Dynamic Logo Rendering */}
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '140px', border: '1px solid #e5e7eb', padding: '8px', borderRadius: '4px', background: '#fafafa' }}>
-                    {activeInvoice.sellerLogo ? (
-                      <img src={activeInvoice.sellerLogo} style={{ maxHeight: '55px', maxWidth: '120px', objectFit: 'contain', marginBottom: '4px' }} alt="Logo" />
-                    ) : (
-                      <>
-                        <div style={{ background: 'linear-gradient(135deg, #ef4444, #b91c1c)', width: '44px', height: '44px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', border: '2px solid #eab308', alignSelf: 'center' }}>
-                          <span style={{ color: '#eab308', fontSize: '1.5rem', fontWeight: '800', fontFamily: 'sans-serif', lineHeight: '44px', textAlign: 'center' }}>
-                            {activeInvoice.sellerName?.charAt(0) || 'S'}
-                          </span>
-                        </div>
-                        <div style={{ color: '#b91c1c', fontWeight: '900', fontSize: '1.1rem', letterSpacing: '1px', marginTop: '4px', fontFamily: 'sans-serif', lineHeight: 1, textTransform: 'uppercase', textAlign: 'center' }}>
-                          {activeInvoice.sellerName?.split(' ')[0] || 'SANNA'}
-                        </div>
-                        <div style={{ color: '#22c55e', fontWeight: '700', fontSize: '0.5rem', letterSpacing: '2px', fontFamily: 'sans-serif', lineHeight: 1, marginTop: '2px', textTransform: 'uppercase', textAlign: 'center' }}>
-                          {activeInvoice.sellerName?.split(' ').slice(1).join(' ') || 'INNOVATIONS'}
-                        </div>
-                      </>
-                    )}
-                    <div style={{ color: '#6b7280', fontStyle: 'italic', fontSize: '0.45rem', marginTop: '2px' }}>Delivering Reality...</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center' }}>
+                    <img src="/sanna_logo.png" style={{ height: '70px', maxWidth: '200px', objectFit: 'contain' }} alt="Sanna Innovations" />
                   </div>
 
                 </div>
@@ -1994,20 +1977,8 @@ const OrderInvoiceManager = () => {
                   </div>
                 </div>
 
-                <div style={{ width: '35%', display: 'flex', flexDirection: 'column', alignSelf: 'stretch', justifyContent: 'space-between', alignItems: 'flex-end', textAlign: 'right' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <div style={{ fontSize: '0.75rem', fontWeight: '700', color: '#1f2937' }}>
-                      For <span style={{ color: '#b91c1c', textTransform: 'uppercase' }}>{activeInvoice.sellerName}</span>
-                    </div>
-                    {/* Simulated Signature Line */}
-                    <div style={{ height: '36px', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', width: '120px', borderBottom: '1px dashed #9ca3af', marginBottom: '2px', position: 'relative' }}>
-                      <span style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', color: '#1d4ed8', fontSize: '1rem', fontWeight: 'bold', transform: 'rotate(-4deg)', display: 'block', position: 'absolute', bottom: '2px' }}>
-                        {activeInvoice.sellerName?.charAt(0) || 'S'}
-                        {activeInvoice.sellerName?.split(' ')[1]?.charAt(0) || 'A'}
-                      </span>
-                    </div>
-                    <div style={{ fontSize: '0.6rem', fontWeight: '700' }}>Authorised Signatory</div>
-                  </div>
+                <div style={{ width: '35%', display: 'flex', flexDirection: 'column', alignSelf: 'stretch', justifyContent: 'flex-end', alignItems: 'flex-end', textAlign: 'right' }}>
+                  <img src="/sanna_signature_stamp.png" style={{ width: '190px', objectFit: 'contain' }} alt="For Sanna Innovations Authorised Signatory" />
                 </div>
               </div>
 
