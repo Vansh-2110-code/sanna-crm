@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useCRM } from '../../context/CRMContext';
 import { ShoppingBag, Truck, Printer, Plus, Trash2, X, Eye, RefreshCw, Building2, Edit2, Edit, Monitor, Palette, Building, Briefcase } from 'lucide-react';
 import { DEFAULT_SELLER_INFO, DEFAULT_BANK_DETAILS } from '../finance/GSTInvoiceManager';
+import { isSannaCRM } from '../../utils/appMode';
 
 // Indian Number System Converter (Lakhs/Crores)
 const numberToWords = (num) => {
