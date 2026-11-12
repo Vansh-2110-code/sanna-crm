@@ -992,7 +992,7 @@ const GSTInvoiceManager = () => {
         const isModernIndigo = previewTemplate === 'modern-indigo';
         const isCleanMono = previewTemplate === 'clean-mono';
 
-        let themePrimary = isCashBill ? '#059669' : '#b91c1c'; // Default Red Classic (#b91c1c)
+        let themePrimary = '#b91c1c'; // Default Red Classic (#b91c1c)
         let themeStateColor = '#2563eb';
         if (isModernIndigo) {
           themePrimary = '#1e3a8a';
@@ -1010,7 +1010,7 @@ const GSTInvoiceManager = () => {
         const grandTotal = parseFloat(previewInvoice.grandTotal || 0);
         const cgstAmt = totalGST / 2;
         const sgstAmt = totalGST / 2;
-        const isTax = !isCashBill && totalGST > 0;
+        const isTax = totalGST > 0;
 
         return (
           <div 
@@ -1132,7 +1132,7 @@ const GSTInvoiceManager = () => {
                   <span style={{ fontWeight: '800', fontSize: '0.95rem', color: '#0f172a' }}>
                     {isCashBill ? 'OFFICIAL CASH BILL PREVIEW' : 'OFFICIAL TAX INVOICE PREVIEW'}
                   </span>
-                  <span style={{ fontSize: '0.75rem', padding: '2px 8px', borderRadius: '4px', background: isCashBill ? '#ecfdf5' : '#fef2f2', color: isCashBill ? '#059669' : '#b91c1c', fontWeight: '700', border: `1px solid ${isCashBill ? '#a7f3d0' : '#fecaca'}` }}>
+                  <span style={{ fontSize: '0.75rem', padding: '2px 8px', borderRadius: '4px', background: '#fef2f2', color: '#b91c1c', fontWeight: '700', border: '1px solid #fecaca' }}>
                     {previewInvoice.invoiceNumber}
                   </span>
                   
@@ -1147,11 +1147,11 @@ const GSTInvoiceManager = () => {
                         fontSize: '0.72rem',
                         fontWeight: '700',
                         cursor: 'pointer',
-                        background: isRedClassic ? (isCashBill ? '#059669' : '#b91c1c') : 'transparent',
+                        background: isRedClassic ? '#b91c1c' : 'transparent',
                         color: isRedClassic ? '#ffffff' : '#475569'
                       }}
                     >
-                      {isCashBill ? 'Emerald Cash (Official)' : 'Red Classic (Official MIS)'}
+                      Red Classic (Official MIS)
                     </button>
                     <button
                       onClick={() => setPreviewTemplate('modern-indigo')}
@@ -1258,7 +1258,7 @@ const GSTInvoiceManager = () => {
                           <td style={{ padding: '4px 8px', fontWeight: '700', borderRight: '1px solid #1f2937' }}>
                             {isCashBill ? 'Bill / Receipt No' : 'Invoice No'}
                           </td>
-                          <td style={{ padding: '4px 8px', fontWeight: '700', color: isCashBill ? '#059669' : undefined }}>
+                          <td style={{ padding: '4px 8px', fontWeight: '700' }}>
                             {previewInvoice.invoiceNumber}
                           </td>
                         </tr>
@@ -1303,7 +1303,7 @@ const GSTInvoiceManager = () => {
                         </tr>
                         <tr style={{ borderTop: '1px solid #1f2937' }}>
                           <td style={{ padding: '4px 8px', fontWeight: '700', borderRight: '1px solid #1f2937' }}>Payment Mode:</td>
-                          <td style={{ padding: '4px 8px', fontWeight: '800', color: isCashBill ? '#059669' : '#1e3a8a' }}>
+                          <td style={{ padding: '4px 8px', fontWeight: '800', color: '#1e3a8a' }}>
                             {previewInvoice.paymentMode || (isCashBill ? 'CASH SETTLEMENT (FULL PAYMENT RECEIVED)' : 'Bank Transfer')}
                           </td>
                         </tr>
@@ -1464,11 +1464,16 @@ const GSTInvoiceManager = () => {
                   {/* Left: Terms & Conditions and Axis Bank Account Details */}
                   <div style={{ lineHeight: 1.45, maxWidth: '440px' }}>
                     {isCashBill ? (
-                      <div style={{ background: '#f0fdf4', padding: '10px 14px', borderRadius: '6px', border: '1px solid #86efac' }}>
-                        <div style={{ fontWeight: '800', color: '#166534', fontSize: '11.5px', marginBottom: '3px' }}>
+                      <div style={{
+                        background: isModernIndigo ? '#eff6ff' : isCleanMono ? '#f4f4f5' : '#fef2f2',
+                        padding: '10px 14px',
+                        borderRadius: '6px',
+                        border: `1px solid ${isModernIndigo ? '#bfdbfe' : isCleanMono ? '#d4d4d8' : '#fecaca'}`
+                      }}>
+                        <div style={{ fontWeight: '800', color: themePrimary, fontSize: '11.5px', marginBottom: '3px' }}>
                           ✓ CASH PAYMENT ACKNOWLEDGEMENT
                         </div>
-                        <div style={{ color: '#15803d', fontSize: '10.5px' }}>
+                        <div style={{ color: isModernIndigo ? '#1e3a8a' : isCleanMono ? '#27272a' : '#7f1d1d', fontSize: '10.5px' }}>
                           Received full cash payment of <strong>₹{grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</strong> from <strong>{previewInvoice.clientName}</strong>. Official Cash Voucher entry cleared.
                         </div>
                       </div>
