@@ -203,7 +203,8 @@ const ClientDirectory = () => {
     contact_email: '',
     deadline: '',
     brochure_pdf: '',
-    requirement_doc_name: ''
+    requirement_doc_name: '',
+    domain_with_us: ''
   };
   const [projectForm, setProjectForm] = useState(defaultProjectForm);
 
@@ -395,6 +396,24 @@ const ClientDirectory = () => {
     }
   };
 
+  const handleDomainWithUsChange = async (id, newValue) => {
+    setClients(prev => {
+      const updated = prev.map(c => c.id === id ? { ...c, domain_with_us: newValue } : c);
+      try { localStorage.setItem('astra_client_directory_v1', JSON.stringify(updated)); } catch (e) {}
+      return updated;
+    });
+
+    try {
+      await fetch(`/api/mis/clients/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ domain_with_us: newValue })
+      });
+    } catch (e) {
+      console.warn('Domain status sync error:', e);
+    }
+  };
+
   const handleDeleteClient = async (id, name) => {
     const targetName = name || '';
     if (window.confirm(`Are you sure you want to permanently delete client project "${targetName}"?`)) {
@@ -501,7 +520,8 @@ const ClientDirectory = () => {
       contact_email: client.contact_email || '',
       deadline: client.deadline || '',
       brochure_pdf: client.brochure_pdf || '',
-      requirement_doc_name: client.requirement_doc_name || ''
+      requirement_doc_name: client.requirement_doc_name || '',
+      domain_with_us: client.domain_with_us || ''
     });
     setShowProjectModal(true);
   };
@@ -1048,6 +1068,9 @@ const ClientDirectory = () => {
                 <th style={{ padding: '8px 6px', textAlign: 'right', fontWeight: '800', color: 'var(--text-muted)', fontSize: '0.68rem', textTransform: 'uppercase' }}>Amount Due</th>
                 <th style={{ padding: '8px 6px', textAlign: 'center', fontWeight: '800', color: 'var(--text-muted)', fontSize: '0.68rem', textTransform: 'uppercase' }}>Days Due</th>
                 <th style={{ padding: '8px 6px', textAlign: 'center', fontWeight: '800', color: 'var(--text-muted)', fontSize: '0.68rem', textTransform: 'uppercase' }}>Type</th>
+                {categoryFilter === 'hosting' && (
+                  <th style={{ padding: '8px 6px', textAlign: 'center', fontWeight: '800', color: 'var(--text-muted)', fontSize: '0.68rem', textTransform: 'uppercase' }}>Domain With Us</th>
+                )}
                 <th style={{ padding: '8px 6px', textAlign: 'center', fontWeight: '800', color: 'var(--text-muted)', fontSize: '0.68rem', textTransform: 'uppercase' }}>Status</th>
                 <th style={{ padding: '8px 8px', textAlign: 'right', fontWeight: '800', color: 'var(--text-muted)', fontSize: '0.68rem', textTransform: 'uppercase' }}>Actions</th>
               </tr>
@@ -1055,7 +1078,7 @@ const ClientDirectory = () => {
             <tbody>
               {filteredClients.length === 0 ? (
                 <tr>
-                  <td colSpan="11" style={{ padding: '40px 10px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                  <td colSpan={categoryFilter === 'hosting' ? 12 : 11} style={{ padding: '40px 10px', textAlign: 'center', color: 'var(--text-muted)' }}>
                     No client projects found matching current filter.
                   </td>
                 </tr>
@@ -1181,6 +1204,42 @@ const ClientDirectory = () => {
                           </span>
                         )}
                       </td>
+
+                      {categoryFilter === 'hosting' && (
+                        <td style={{ padding: '7px 6px', textAlign: 'center' }}>
+                          <select
+                            value={c.domain_with_us || ''}
+                            onChange={(e) => handleDomainWithUsChange(c.id, e.target.value)}
+                            style={{
+                              padding: '3px 8px',
+                              borderRadius: '6px',
+                              fontSize: '0.72rem',
+                              fontWeight: '700',
+                              background: c.domain_with_us === 'Yes'
+                                ? 'rgba(16, 185, 129, 0.14)'
+                                : c.domain_with_us === 'No'
+                                  ? 'rgba(239, 68, 68, 0.14)'
+                                  : 'rgba(255, 255, 255, 0.06)',
+                              color: c.domain_with_us === 'Yes'
+                                ? '#34d399'
+                                : c.domain_with_us === 'No'
+                                  ? '#f87171'
+                                  : 'var(--text-muted)',
+                              border: c.domain_with_us === 'Yes'
+                                ? '1px solid rgba(16, 185, 129, 0.3)'
+                                : c.domain_with_us === 'No'
+                                  ? '1px solid rgba(239, 68, 68, 0.3)'
+                                  : '1px solid rgba(255, 255, 255, 0.12)',
+                              cursor: 'pointer',
+                              outline: 'none'
+                            }}
+                          >
+                            <option value="" style={{ background: '#0f172a', color: '#94a3b8' }}>Not Set</option>
+                            <option value="Yes" style={{ background: '#0f172a', color: '#34d399' }}>Yes</option>
+                            <option value="No" style={{ background: '#0f172a', color: '#f87171' }}>No</option>
+                          </select>
+                        </td>
+                      )}
 
                       {/* Interactive Status Selector */}
                       <td style={{ padding: '7px 6px', textAlign: 'center' }}>
@@ -1577,6 +1636,21 @@ const ClientDirectory = () => {
                     <option value="left">Left Us / Inactive</option>
                   </select>
                 </div>
+
+                {projectForm.client_type === 'hosting' && (
+                  <div>
+                    <label className="form-label" style={{ fontSize: '0.78rem', fontWeight: '700' }}>Is the domain with us?</label>
+                    <select
+                      value={projectForm.domain_with_us || ''}
+                      onChange={e => setProjectForm({ ...projectForm, domain_with_us: e.target.value })}
+                      className="form-input"
+                    >
+                      <option value="">Not Set</option>
+                      <option value="Yes">Yes</option>
+                      <option value="No">No</option>
+                    </select>
+                  </div>
+                )}
 
                 <div>
                   <label className="form-label" style={{ fontSize: '0.78rem', fontWeight: '700' }}>Status</label>
