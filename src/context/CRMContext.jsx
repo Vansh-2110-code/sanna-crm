@@ -21,6 +21,22 @@ const CRMContext = createContext();
 
 export const SANNA_DEMO_ACCOUNTS = [
   {
+    id: "CLIENT-ALIS-001",
+    username: "alis",
+    email: "client@alis.com",
+    name: "Alis Technology",
+    role: "Customer / Portal User",
+    roleId: "role-customer",
+    designation: "Authorized Client Representative",
+    tenantId: "client-sanna",
+    company: "Alis",
+    password: "alis",
+    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80",
+    badge: "Client Portal",
+    color: "#10b981",
+    description: "Real-time client view for marketing deliverables, reach, reels, and ongoing campaign results."
+  },
+  {
     id: "EMP-SANNA-001",
     username: "admin",
     email: "admin@sannainnovations.com",
@@ -1921,7 +1937,9 @@ export const CRMProvider = ({ children }) => {
       
       const enrichedUser = {
         ...user,
-        company: user.company || 'Sanna Innovations Pvt Ltd',
+        company: user.company && user.company !== 'Sanna Innovations Pvt Ltd'
+          ? user.company
+          : (user.roleId === 'role-customer' || user.role === 'Customer / Portal User' ? (user.company || user.name) : (user.company || 'Sanna Innovations Pvt Ltd')),
         tenantId: user.tenantId || user.clientId || 'client-sanna'
       };
 

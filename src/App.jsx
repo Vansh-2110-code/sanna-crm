@@ -241,14 +241,11 @@ const MainLayout = () => {
   if (
     currentUser?.role === 'Customer' ||
     currentUser?.role === 'Customer / Portal User' ||
-    currentUser?.roleId === 'role-customer' ||
-    currentUser?.role === 'Customer / Portal User' ||
-    currentUser?.role === 'Customer'
+    currentUser?.roleId === 'role-customer'
   ) {
     return (
-      <div className="app-container">
-        <Header onOpenQuickCreate={() => setShowQuickCreate(true)} />
-        <main className="main-content" style={{ marginLeft: 0, width: '100%' }}>
+      <div className="app-container" style={{ display: 'block', minHeight: '100vh', background: 'var(--bg-primary)' }}>
+        <main className="main-content" style={{ marginLeft: 0, width: '100%', maxWidth: '100%', padding: 0 }}>
           <ErrorBoundary>
             <CustomerDashboard />
           </ErrorBoundary>
@@ -298,6 +295,8 @@ const MainLayout = () => {
         return <TicketManager />;
       case 'customers':
         return <CustomerManager />;
+      case 'customer-portal':
+        return <CustomerDashboard onNavigate={setActiveTab} />;
       case 'marketing':
         return <CampaignManager />;
       case 'documents':

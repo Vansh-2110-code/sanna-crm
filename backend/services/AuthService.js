@@ -92,7 +92,7 @@ function findUserFromUsersTable(identifier) {
         id: row.id,
         clientId: 'client-sanna',
         tenantId: 'client-sanna',
-        company: 'Sanna Innovations Pvt Ltd',
+        company: row.company || (row.role_id === 'role-customer' ? (row.full_name || row.name) : 'Sanna Innovations Pvt Ltd'),
         name: row.full_name || row.name || row.username,
         username: row.username,
         email: row.email,
@@ -186,6 +186,28 @@ class AuthService {
       try {
         employee = await EmployeeRepository.findByUsernameOrEmail(identifier);
       } catch (e) {}
+    }
+
+    if (!employee) {
+      const cleanIdent = (identifier || '').trim().toLowerCase();
+      if (cleanIdent === 'alis' || cleanIdent === 'alistechnology' || cleanIdent === 'client@alis.com') {
+        employee = {
+          id: 'client-alis-001',
+          clientId: 'client-sanna',
+          tenantId: 'client-sanna',
+          company: 'Alis',
+          name: 'Alis Technology',
+          username: 'alis',
+          email: 'client@alis.com',
+          designation: 'Client Representative',
+          role: 'Customer / Portal User',
+          roleId: 'role-customer',
+          plainPassword: 'alis',
+          avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80',
+          mustChangePassword: false,
+          baseSalary: 0
+        };
+      }
     }
 
     if (!employee) {
@@ -341,7 +363,7 @@ class AuthService {
         role: roleName,
         roleId: employee.roleId,
         tenantId: employee.clientId || 'client-sanna',
-        company: employee.company || 'Sanna Innovations Pvt Ltd',
+        company: employee.company || (employee.roleId === 'role-customer' ? employee.name : 'Sanna Innovations Pvt Ltd'),
         mustChangePassword: employee.mustChangePassword !== false,
         baseSalary: employee.baseSalary,
         kycStatus
