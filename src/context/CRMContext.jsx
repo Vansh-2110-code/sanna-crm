@@ -3216,7 +3216,14 @@ export const CRMProvider = ({ children }) => {
 
   let resolvedLeads = [];
   if (Array.isArray(leadsQuery.data) && leadsQuery.data.length > 0) {
-    resolvedLeads = leadsQuery.data;
+    const apiIds = new Set(leadsQuery.data.map(l => String(l.id).toLowerCase()));
+    const apiNames = new Set(leadsQuery.data.map(l => `${(l.name || '').trim().toLowerCase()}-${(l.company || '').trim().toLowerCase()}`));
+    const extraLocals = (tenantLocalLeads || []).filter(ll => {
+      const idKey = String(ll.id || '').toLowerCase();
+      const nameKey = `${(ll.name || '').trim().toLowerCase()}-${(ll.company || '').trim().toLowerCase()}`;
+      return !apiIds.has(idKey) && !apiNames.has(nameKey);
+    });
+    resolvedLeads = [...leadsQuery.data, ...extraLocals];
   } else {
     resolvedLeads = (tenantLocalLeads && tenantLocalLeads.length > 0) ? tenantLocalLeads : (REAL_CRM_DATA.leads || []);
   }
@@ -3800,6 +3807,7 @@ export const CRMProvider = ({ children }) => {
     if (!Array.isArray(leadsList) || leadsList.length === 0) return [];
     try {
       const res = await api.post('/mis/leads/batch', { leads: leadsList });
+      setLocalLeads(prev => [...leadsList, ...prev]);
       await queryClient.invalidateQueries({ queryKey: ['leads'] });
       await leadsQuery.refetch();
       await queryClient.invalidateQueries({ queryKey: ['deals'] });
@@ -3819,6 +3827,7 @@ export const CRMProvider = ({ children }) => {
       // Fallback
       try {
         await api.post('/leads/batch', { leads: leadsList });
+        setLocalLeads(prev => [...leadsList, ...prev]);
         await queryClient.invalidateQueries({ queryKey: ['leads'] });
         await leadsQuery.refetch();
       } catch (e) {

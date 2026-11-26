@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useCRM } from '../../context/CRMContext';
 import exportToCSV from '../../utils/csvExporter';
 import BulkImportWorkLogsModal from './BulkImportWorkLogsModal';
+import ExportPersonLogsModal from './ExportPersonLogsModal';
 import {
   BookOpen,
   Plus,
@@ -147,6 +148,7 @@ const DailyWorkLogsManager = () => {
   // Modals
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
+  const [showExportPersonModal, setShowExportPersonModal] = useState(false);
   const [reviewModalTask, setReviewModalTask] = useState(null);
   const [reviewNote, setReviewNote] = useState('');
   const [reviewRating, setReviewRating] = useState(5);
@@ -344,7 +346,24 @@ const DailyWorkLogsManager = () => {
             style={{ padding: '10px 16px', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem' }}
           >
             <FileSpreadsheet style={{ width: '16px', height: '16px' }} />
-            <span>Export Logs (.CSV)</span>
+            <span>Export Filtered (.CSV)</span>
+          </button>
+
+          <button
+            onClick={() => setShowExportPersonModal(true)}
+            className="btn btn-secondary"
+            style={{
+              padding: '10px 16px',
+              borderRadius: '10px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontSize: '0.82rem',
+              borderColor: 'rgba(99, 102, 241, 0.4)'
+            }}
+          >
+            <User style={{ width: '16px', height: '16px', color: '#60a5fa' }} />
+            <span>Export Person Logs</span>
           </button>
 
           <button
@@ -1150,6 +1169,15 @@ const DailyWorkLogsManager = () => {
         onSuccess={(count) => {
           alert(`Successfully imported ${count} work logs into the database.`);
         }}
+      />
+
+      {/* Export Person Logs Modal */}
+      <ExportPersonLogsModal
+        isOpen={showExportPersonModal}
+        onClose={() => setShowExportPersonModal(false)}
+        allStaff={allStaff}
+        dailyTasks={dailyTasks}
+        currentUser={currentUser}
       />
 
     </div>
