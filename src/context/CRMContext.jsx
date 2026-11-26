@@ -2524,14 +2524,29 @@ export const CRMProvider = ({ children }) => {
   const updateProjectDeliverables = async (id, deliverableUpdates) => {
     setLocalDeliverables(prev => {
       const updated = prev.map(d => {
-        if (String(d.id) === String(id) || (d.projectId && id && String(d.projectId) === String(id))) {
+        if (String(d.id) === String(id) || (d.projectId && id && String(d.projectId) === String(id)) ||
+            (deliverableUpdates.projectName && (d.projectName === deliverableUpdates.projectName || d.clientName === deliverableUpdates.projectName) && String(d.month) === String(deliverableUpdates.month))) {
           return { ...d, ...deliverableUpdates };
         }
         return d;
       });
+      const key = isSannaCRM() ? 'sanna_deliverables_v6' : 'astra_clean_deliverables_v6';
+      try { localStorage.setItem(key, JSON.stringify(updated)); } catch (e) {}
       try { localStorage.setItem('astra_deliverables', JSON.stringify(updated)); } catch (e) {}
       return updated;
     });
+
+    queryClient.setQueryData(['mis_deliverables'], old => {
+      if (!Array.isArray(old)) return old;
+      return old.map(d => {
+        if (String(d.id) === String(id) || (d.projectId && id && String(d.projectId) === String(id)) ||
+            (deliverableUpdates.projectName && (d.projectName === deliverableUpdates.projectName || d.clientName === deliverableUpdates.projectName) && String(d.month) === String(deliverableUpdates.month))) {
+          return { ...d, ...deliverableUpdates };
+        }
+        return d;
+      });
+    });
+
     try {
       const res = await api.put(`/mis/deliverables/${id}`, deliverableUpdates);
       if (res.data && res.data.id) {
@@ -2542,6 +2557,8 @@ export const CRMProvider = ({ children }) => {
             }
             return d;
           });
+          const key = isSannaCRM() ? 'sanna_deliverables_v6' : 'astra_clean_deliverables_v6';
+          try { localStorage.setItem(key, JSON.stringify(updated)); } catch (e) {}
           try { localStorage.setItem('astra_deliverables', JSON.stringify(updated)); } catch (e) {}
           return updated;
         });
@@ -2809,6 +2826,43 @@ export const CRMProvider = ({ children }) => {
       console.warn('Sync daily task notice:', e.message);
     }
     return newTask;
+  };
+
+  const batchAddDailyTasks = async (tasksArray) => {
+    if (!Array.isArray(tasksArray) || !tasksArray.length) return [];
+    const formatted = tasksArray.map((t, idx) => ({
+      id: t.id || `DT-${new Date().getFullYear()}-${Date.now()}-${idx}`,
+      date: t.date || new Date().toISOString().split('T')[0],
+      staffId: t.staffId || currentUser?.id || 'EMP-SANNA-001',
+      staffName: t.staffName || currentUser?.name || 'Staff Member',
+      staffEmail: t.staffEmail || currentUser?.email || '',
+      staffType: t.staffType || 'Employee',
+      workMode: t.workMode || 'Office Campus',
+      hoursSpent: parseFloat(t.hoursSpent) || 8.0,
+      project: t.project || 'Astra Core CRM',
+      taskTitle: t.taskTitle || 'Daily Activity & Task Deliverables',
+      deliverableNotes: t.deliverableNotes || '',
+      learnings: t.learnings || '',
+      blockers: t.blockers || '',
+      tomorrowPlan: t.tomorrowPlan || '',
+      proofUrl: t.proofUrl || '',
+      priority: t.priority || 'Medium',
+      status: t.status || 'Completed',
+      approvalStatus: t.approvalStatus || 'Pending',
+      managerFeedback: t.managerFeedback || '',
+      managerRating: parseFloat(t.managerRating) || 5,
+      ...t
+    }));
+
+    setLocalDailyTasks(prev => [...formatted, ...prev]);
+
+    try {
+      await api.post('/mis/daily-tasks/batch', { tasks: formatted });
+      queryClient.invalidateQueries(['mis_daily_tasks']);
+    } catch (e) {
+      console.warn('Batch daily task sync notice:', e.message);
+    }
+    return formatted;
   };
 
   const updateDailyTask = async (id, updates) => {
@@ -3989,12 +4043,12 @@ export const CRMProvider = ({ children }) => {
   };
 
   const handleUpdateLeadStatus = async (id, status) => {
-    setLocalLeads(prev => prev.map(l => (l.id === id || `lead-${l.id}` === id) ? { ...l, status } : l));
+    setLocalLeads(prev => prev.map(l => (l.id === id || `lead-${l.id}` === id || l.id === `lead-${id}`) ? { ...l, status } : l));
     setLocalDeals(prev => prev.map(d => (d.id === id || d.leadId === id || d.id === `deal-${id}`) ? { ...d, stage: status } : d));
 
     queryClient.setQueryData(['leads', activeTenantId], old => {
       if (!Array.isArray(old)) return old;
-      return old.map(l => (l.id === id || `lead-${l.id}` === id) ? { ...l, status } : l);
+      return old.map(l => (l.id === id || `lead-${l.id}` === id || l.id === `lead-${id}`) ? { ...l, status } : l);
     });
 
     queryClient.setQueryData(['deals', activeTenantId], old => {
@@ -4002,16 +4056,65 @@ export const CRMProvider = ({ children }) => {
       return old.map(d => (d.id === id || d.leadId === id || d.id === `deal-${id}`) ? { ...d, stage: status } : d);
     });
 
+    // If status is Won / Closed Won, auto-populate deal into Ongoing Projects if not already present
+    const isWon = status && (status.toLowerCase() === 'won' || status.toLowerCase() === 'closed won' || status.toLowerCase().includes('won'));
+    if (isWon) {
+      const targetLead = (resolvedLeads || []).find(l => l.id === id || `lead-${l.id}` === id || l.id === `lead-${id}`);
+      if (targetLead) {
+        const dealId = String(id).startsWith('deal-') ? id : `deal-${id}`;
+        const existingDeal = (localDeals || []).find(d => d.id === dealId || d.leadId === id || d.id === id);
+        if (!existingDeal) {
+          const wonDeal = {
+            id: dealId,
+            leadId: id,
+            clientId: activeTenantId || 'client-sanna',
+            title: `${targetLead.company || targetLead.name || 'Client'} - Project`,
+            company: targetLead.company || targetLead.name || 'Client',
+            contactName: targetLead.name || 'Client Contact',
+            email: targetLead.email || '',
+            phone: targetLead.phone || '',
+            dealValue: parseFloat(targetLead.potentialValue || 50000),
+            value: parseFloat(targetLead.potentialValue || 50000),
+            stage: 'Won',
+            projectStatus: 'In Progress',
+            status: 'In Progress',
+            owner: targetLead.assignedTo || currentUser?.name || 'Nikki',
+            probability: 100,
+            pipelineId: 'pipe-enterprise',
+            expectedCloseDate: new Date().toISOString().split('T')[0]
+          };
+          setLocalDeals(prev => {
+            const updated = [wonDeal, ...prev];
+            try { localStorage.setItem('astra_deals', JSON.stringify(updated)); } catch (e) {}
+            return updated;
+          });
+          queryClient.setQueryData(['deals', activeTenantId], old => {
+            if (!Array.isArray(old)) return [wonDeal];
+            return [wonDeal, ...old.filter(d => d.id !== dealId)];
+          });
+          api.post('/deals', wonDeal).catch(() => {});
+        }
+      }
+    }
+
+    try {
+      await api.put(`/mis/leads/${id}`, { status });
+    } catch (err) {
+      console.warn('API update mis lead status notice:', err.message);
+    }
     try {
       await api.put(`/leads/${id}`, { status });
     } catch (err) {
-      console.warn('API update lead status failed:', err.message);
+      console.warn('API update lead status notice:', err.message);
     }
+
+    queryClient.invalidateQueries({ queryKey: ['leads'] });
+    queryClient.invalidateQueries({ queryKey: ['deals'] });
   };
 
   const handleUpdateDealStage = async (id, stage) => {
     setLocalDeals(prev => prev.map(d => (d.id === id || d.leadId === id || d.id === `deal-${id}`) ? { ...d, stage } : d));
-    setLocalLeads(prev => prev.map(l => (l.id === id || `lead-${l.id}` === id || `deal-${l.id}` === id) ? { ...l, status: stage } : l));
+    setLocalLeads(prev => prev.map(l => (l.id === id || `lead-${l.id}` === id || `deal-${l.id}` === id || l.id === `lead-${id}`) ? { ...l, status: stage } : l));
 
     queryClient.setQueryData(['deals', activeTenantId], old => {
       if (!Array.isArray(old)) return old;
@@ -4020,14 +4123,20 @@ export const CRMProvider = ({ children }) => {
 
     queryClient.setQueryData(['leads', activeTenantId], old => {
       if (!Array.isArray(old)) return old;
-      return old.map(l => (l.id === id || `lead-${l.id}` === id || `deal-${l.id}` === id) ? { ...l, status: stage } : l);
+      return old.map(l => (l.id === id || `lead-${l.id}` === id || `deal-${l.id}` === id || l.id === `lead-${id}`) ? { ...l, status: stage } : l);
     });
 
+    try {
+      await api.put(`/mis/leads/${id}`, { status: stage });
+    } catch (e) {}
     try {
       await api.put(`/deals/${id}`, { stage });
     } catch (err) {
       console.warn('API update deal stage failed:', err.message);
     }
+
+    queryClient.invalidateQueries({ queryKey: ['leads'] });
+    queryClient.invalidateQueries({ queryKey: ['deals'] });
   };
 
   const handleDeleteLead = async (id) => {
@@ -4045,6 +4154,9 @@ export const CRMProvider = ({ children }) => {
     });
 
     try {
+      await api.delete(`/mis/leads/${id}`);
+    } catch (e) {}
+    try {
       await api.delete(`/leads/${id}`);
     } catch (err) {
       console.warn('API delete lead offline:', err.message);
@@ -4052,13 +4164,16 @@ export const CRMProvider = ({ children }) => {
   };
 
   const handleUpdateLeadNotes = async (id, notes) => {
-    setLocalLeads(prev => prev.map(l => (l.id === id || `lead-${l.id}` === id) ? { ...l, notes } : l));
+    setLocalLeads(prev => prev.map(l => (l.id === id || `lead-${l.id}` === id || l.id === `lead-${id}`) ? { ...l, notes } : l));
 
     queryClient.setQueryData(['leads', activeTenantId], old => {
       if (!Array.isArray(old)) return old;
-      return old.map(l => (l.id === id || `lead-${l.id}` === id) ? { ...l, notes } : l);
+      return old.map(l => (l.id === id || `lead-${l.id}` === id || l.id === `lead-${id}`) ? { ...l, notes } : l);
     });
 
+    try {
+      await api.put(`/mis/leads/${id}`, { notes });
+    } catch (e) {}
     try {
       await api.put(`/leads/${id}`, { notes });
     } catch (err) {
@@ -4075,10 +4190,16 @@ export const CRMProvider = ({ children }) => {
     });
 
     try {
+      await api.put(`/mis/leads/${id}`, updateData);
+    } catch (err) {
+      console.warn('API update mis lead offline:', err.message);
+    }
+    try {
       await api.put(`/leads/${id}`, updateData);
     } catch (err) {
       console.warn('API update lead offline:', err.message);
     }
+    queryClient.invalidateQueries({ queryKey: ['leads'] });
   };
 
   const handleUpdateProduct = async (id, updateData) => {
@@ -4220,7 +4341,7 @@ export const CRMProvider = ({ children }) => {
       serverCredentials: resolvedServerCredentials, addServerCredential, updateServerCredential, deleteServerCredential,
       projectCredentials: resolvedProjectCredentials, addProjectCredential, updateProjectCredential, deleteProjectCredential,
       performanceReviews: localPerformanceReviews, addPerformanceReview, updatePerformanceReview,
-      dailyTasks: resolvedDailyTasks, addDailyTask, updateDailyTask, deleteDailyTask, approveDailyTask,
+      dailyTasks: resolvedDailyTasks, addDailyTask, batchAddDailyTasks, updateDailyTask, deleteDailyTask, approveDailyTask,
       loginSessions: resolvedLoginSessions, recordLoginSession, revokeLoginSession, punchInSession, punchOutSession, updateLoginSession, addLoginSession, deleteLoginSession, clubLoginSessions,
       salarySlips: resolvedSalarySlips,
       generateSalarySlip: generateSalarySlipMutation.mutateAsync,

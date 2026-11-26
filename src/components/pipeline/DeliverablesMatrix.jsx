@@ -159,7 +159,14 @@ const DeliverablesMatrix = () => {
   // Auto-save cell updates on blur
   const handleCellBlur = (id, field, value) => {
     if (updateProjectDeliverables) {
-      updateProjectDeliverables(id, { [field]: value });
+      const targetRow = (filteredDeliverables || []).find(r => r.id === id);
+      updateProjectDeliverables(id, {
+        [field]: value,
+        projectName: targetRow?.projectName || targetRow?.clientName,
+        clientName: targetRow?.clientName || targetRow?.projectName,
+        month: targetRow?.month,
+        year: targetRow?.year
+      });
     }
   };
 

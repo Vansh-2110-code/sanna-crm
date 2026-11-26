@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useCRM } from '../../context/CRMContext';
 import exportToCSV from '../../utils/csvExporter';
+import BulkImportWorkLogsModal from './BulkImportWorkLogsModal';
 import {
   BookOpen,
   Plus,
@@ -16,6 +17,7 @@ import {
   GitPullRequest,
   ExternalLink,
   FileSpreadsheet,
+  UploadCloud,
   Trash2,
   Edit2,
   Check,
@@ -50,6 +52,7 @@ const DailyWorkLogsManager = () => {
     dailyTasks = [],
     loginSessions = [],
     addDailyTask,
+    batchAddDailyTasks,
     updateDailyTask,
     deleteDailyTask,
     approveDailyTask,
@@ -143,6 +146,7 @@ const DailyWorkLogsManager = () => {
 
   // Modals
   const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
   const [reviewModalTask, setReviewModalTask] = useState(null);
   const [reviewNote, setReviewNote] = useState('');
   const [reviewRating, setReviewRating] = useState(5);
@@ -341,6 +345,23 @@ const DailyWorkLogsManager = () => {
           >
             <FileSpreadsheet style={{ width: '16px', height: '16px' }} />
             <span>Export Logs (.CSV)</span>
+          </button>
+
+          <button
+            onClick={() => setShowImportModal(true)}
+            className="btn btn-secondary"
+            style={{
+              padding: '10px 16px',
+              borderRadius: '10px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontSize: '0.82rem',
+              borderColor: 'rgba(99, 102, 241, 0.4)'
+            }}
+          >
+            <UploadCloud style={{ width: '16px', height: '16px', color: '#818cf8' }} />
+            <span>Import Logs (Excel / CSV)</span>
           </button>
 
           <button
@@ -1118,6 +1139,18 @@ const DailyWorkLogsManager = () => {
           </div>
         </div>
       )}
+
+      {/* Bulk Import Work Logs Modal */}
+      <BulkImportWorkLogsModal
+        isOpen={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        allStaff={allStaff}
+        batchAddDailyTasks={batchAddDailyTasks}
+        currentUser={currentUser}
+        onSuccess={(count) => {
+          alert(`Successfully imported ${count} work logs into the database.`);
+        }}
+      />
 
     </div>
   );

@@ -90,6 +90,7 @@ export const BulkImportLeadsModal = ({ isOpen, onClose, onImportSuccess }) => {
           const email = findValue(row, 'businessemail', 'emailaddress', 'emailid', 'email', 'mail', 'corporateemail') || '';
           const phone = findValue(row, 'phonenumber', 'contactnumber', 'mobilenumber', 'mobile', 'phone', 'phoneno', 'tel', 'whatsappnumber') || '';
           const source = findValue(row, 'leadcapturesource', 'leadsource', 'source', 'channel', 'platform') || 'Excel Import';
+          const referredBy = findValue(row, 'referredby', 'reference', 'referral', 'refby', 'referred') || '';
           const status = findValue(row, 'stagestatus', 'leadstatus', 'lifecyclestage', 'stage', 'status') || 'Lead Intake';
           const projectCategory = findValue(row, 'projectcategory', 'service', 'servicesneeded', 'category', 'requirement', 'domain', 'industry') || 'Software Development';
           const projectType = findValue(row, 'projecttype', 'type') || 'One Time';
@@ -108,6 +109,7 @@ export const BulkImportLeadsModal = ({ isOpen, onClose, onImportSuccess }) => {
             email: email, // Optional
             phone: phone,
             source: source,
+            referredBy: referredBy,
             status: status,
             projectCategory: projectCategory,
             projectType: projectType,

@@ -6,7 +6,7 @@ class LeadService {
   }
 
   async createLead(tenantId, leadData) {
-    const { name, company, email, phone, source, assignedTo, notes, tags, status, score, potentialValue, projectCategory, projectType } = leadData;
+    const { name, company, email, phone, source, referredBy, assignedTo, notes, tags, status, score, potentialValue, projectCategory, projectType } = leadData;
 
     // Check duplicate email warning within the same tenant partition
     if (email) {
@@ -39,6 +39,7 @@ class LeadService {
       email,
       phone,
       source: source || 'Website Forms',
+      referredBy: referredBy || '',
       assignedTo,
       notes,
       tags: tags || [],
@@ -53,7 +54,7 @@ class LeadService {
   }
 
   async updateLead(tenantId, id, updateData) {
-    const { status, name, company, email, phone, source, assignedTo, notes, tags, potentialValue, projectCategory, projectType } = updateData;
+    const { status, name, company, email, phone, source, referredBy, assignedTo, notes, tags, potentialValue, projectCategory, projectType } = updateData;
 
     let lead = await LeadRepository.findOne({ where: { id, clientId: tenantId } });
     if (!lead) {
@@ -74,6 +75,7 @@ class LeadService {
     if (email !== undefined) updates.email = email;
     if (phone !== undefined) updates.phone = phone;
     if (source !== undefined) updates.source = source;
+    if (referredBy !== undefined) updates.referredBy = referredBy;
     if (assignedTo !== undefined) updates.assignedTo = assignedTo;
     if (notes !== undefined) updates.notes = notes;
     if (tags !== undefined) updates.tags = tags;

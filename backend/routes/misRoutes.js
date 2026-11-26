@@ -41,6 +41,7 @@ db.run("ALTER TABLE users ADD COLUMN status TEXT DEFAULT 'Active'", () => {});
 db.run("ALTER TABLE clients_projects ADD COLUMN brochure_pdf TEXT DEFAULT ''", () => {});
 db.run("ALTER TABLE clients_projects ADD COLUMN requirement_doc_name TEXT DEFAULT ''", () => {});
 db.run("ALTER TABLE clients_projects ADD COLUMN domain_with_us TEXT DEFAULT ''", () => {});
+db.run("ALTER TABLE leads ADD COLUMN referred_by TEXT DEFAULT ''", () => {});
 
 // Creative One-Time Projects Table for Graphic Designer (Riya Biswas)
 db.run(`
@@ -1020,7 +1021,7 @@ router.post('/deliverables', async (req, res) => {
 
 router.put('/deliverables/:id', async (req, res) => {
   try {
-    const rawId = parseInt(String(req.params.id).replace('deliv-', ''), 10) || req.params.id;
+    let rawId = parseInt(String(req.params.id).replace('deliv-', ''), 10) || req.params.id;
     let existing = await get('SELECT * FROM project_deliverables WHERE id = ?', [rawId]);
 
     const {
@@ -1056,6 +1057,18 @@ router.put('/deliverables/:id', async (req, res) => {
     const srv = service !== undefined ? service : (existing ? existing.service : 'Social Media Management');
     const m = month !== undefined ? (parseInt(month, 10) || (existing ? existing.month : 8)) : (existing ? existing.month : 8);
     const y = year !== undefined ? (parseInt(year, 10) || (existing ? existing.year : 2026)) : (existing ? existing.year : 2026);
+
+    // If not found by primary key id, fallback match by project name and month/year
+    if (!existing && pName) {
+      existing = await get(
+        'SELECT * FROM project_deliverables WHERE LOWER(TRIM(project_name)) = LOWER(TRIM(?)) AND month = ? AND year = ?',
+        [pName, m, y]
+      );
+      if (existing) {
+        rawId = existing.id;
+      }
+    }
+
     const delDate = deliveryDate !== undefined ? deliveryDate : (delivery_date !== undefined ? delivery_date : (existing ? existing.delivery_date : ''));
     const rPlanned = reelsPlanned !== undefined ? parseInt(reelsPlanned, 10) : (existing ? existing.reels_planned : 0);
     const pPlanned = postsPlanned !== undefined ? parseInt(postsPlanned, 10) : (existing ? existing.posts_planned : 0);
@@ -1068,7 +1081,7 @@ router.put('/deliverables/:id', async (req, res) => {
     const bCreated = backlinksCreated !== undefined ? String(backlinksCreated) : (existing ? existing.backlinks_created : '0');
     const kInjected = keywordsInjected !== undefined ? parseInt(keywordsInjected, 10) : (existing ? existing.keywords_injected : 0);
     const gmbPos = gmbPosition !== undefined ? gmbPosition : (existing ? existing.gmb_position : '');
-    const aSpend = adsSpend !== undefined ? parseFloat(adsSpend) || 0 : (existing ? existing.amount_spend_ads : 0);
+    const aSpend = adsSpend !== undefined ? (parseFloat(String(adsSpend).replace(/[^0-9.]/g, '')) || 0) : (existing ? existing.amount_spend_ads : 0);
     const tLeads = leads !== undefined ? parseInt(leads, 10) || 0 : (existing ? existing.total_leads_generated : 0);
     const lTicket = leadTicketSize !== undefined ? parseFloat(leadTicketSize) || 0 : (existing ? existing.lead_ticket_size : 0);
     const ach = achievement !== undefined ? achievement : (existing ? existing.achievement : '');
@@ -2125,6 +2138,87 @@ router.post('/daily-tasks', async (req, res) => {
   }
 });
 
+// Batch Insert Work Logs from CSV / Excel Importer
+const handleBatchWorkLogs = async (req, res) => {
+  try {
+    const rawList = Array.isArray(req.body.tasks) ? req.body.tasks : (Array.isArray(req.body.logs) ? req.body.logs : (Array.isArray(req.body) ? req.body : []));
+    if (!rawList.length) return res.json({ success: true, count: 0, tasks: [] });
+
+    const now = new Date().toISOString();
+    const inserted = [];
+
+    for (let i = 0; i < rawList.length; i++) {
+      const t = rawList[i];
+      const taskId = t.id || `DT-${new Date().getFullYear()}-${Date.now()}-${i}`;
+      const taskDate = t.date || now.split('T')[0];
+
+      await run(
+        `INSERT OR REPLACE INTO daily_work_logs (
+          id, staff_id, staff_name, staff_email, staff_type, date, work_mode,
+          hours_spent, project, task_title, deliverable_notes, learnings,
+          blockers, tomorrow_plan, proof_url, priority, status, approval_status,
+          manager_feedback, manager_rating, reviewed_by, created_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`,
+        [
+          taskId,
+          t.staffId || 'EMP-SANNA-001',
+          t.staffName || 'Staff Member',
+          t.staffEmail || '',
+          t.staffType || 'Employee',
+          taskDate,
+          t.workMode || 'Office Campus',
+          parseFloat(t.hoursSpent) || 8.0,
+          t.project || 'Astra Core CRM',
+          t.taskTitle || 'Daily Activity & Task Deliverables',
+          t.deliverableNotes || '',
+          t.learnings || '',
+          t.blockers || '',
+          t.tomorrowPlan || '',
+          t.proofUrl || '',
+          t.priority || 'Medium',
+          t.status || 'Completed',
+          t.approvalStatus || 'Pending',
+          t.managerFeedback || '',
+          parseFloat(t.managerRating) || 5,
+          t.reviewedBy || ''
+        ]
+      );
+
+      inserted.push({
+        id: taskId,
+        staffId: t.staffId || 'EMP-SANNA-001',
+        staffName: t.staffName || 'Staff Member',
+        staffEmail: t.staffEmail || '',
+        staffType: t.staffType || 'Employee',
+        date: taskDate,
+        workMode: t.workMode || 'Office Campus',
+        hoursSpent: parseFloat(t.hoursSpent) || 8.0,
+        project: t.project || 'Astra Core CRM',
+        taskTitle: t.taskTitle || 'Daily Activity & Task Deliverables',
+        deliverableNotes: t.deliverableNotes || '',
+        learnings: t.learnings || '',
+        blockers: t.blockers || '',
+        tomorrowPlan: t.tomorrowPlan || '',
+        proofUrl: t.proofUrl || '',
+        priority: t.priority || 'Medium',
+        status: t.status || 'Completed',
+        approvalStatus: t.approvalStatus || 'Pending',
+        managerFeedback: t.managerFeedback || '',
+        managerRating: parseFloat(t.managerRating) || 5,
+        reviewedBy: t.reviewedBy || ''
+      });
+    }
+
+    res.status(201).json({ success: true, count: inserted.length, tasks: inserted });
+  } catch (e) {
+    console.error('Batch daily tasks insert error:', e);
+    res.status(500).json({ error: e.message });
+  }
+};
+
+router.post('/daily-tasks/batch', handleBatchWorkLogs);
+router.post('/work-logs/batch', handleBatchWorkLogs);
+
 router.put('/daily-tasks/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -2471,6 +2565,7 @@ router.get('/leads', async (req, res) => {
         email,
         phone,
         source,
+        referred_by as referredBy,
         assigned_to as assignedTo,
         notes,
         tags,
@@ -2499,6 +2594,7 @@ router.get('/leads', async (req, res) => {
       }
       return {
         ...r,
+        referredBy: r.referredBy || '',
         tags: parsedTags,
         potentialValue: parseFloat(r.potentialValue) || 0,
         score: parseInt(r.score, 10) || 50
@@ -2522,6 +2618,7 @@ router.post('/leads', async (req, res) => {
     const email = l.email ? String(l.email).trim() : '';
     const phone = l.phone ? String(l.phone).trim() : '';
     const source = l.source || 'Website Forms';
+    const referredBy = l.referredBy || l.referred_by || '';
     const assignedTo = l.assignedTo || 'Srinivas (Admin)';
     const notes = l.notes || '';
     const tags = JSON.stringify(Array.isArray(l.tags) ? l.tags : (l.tags ? [l.tags] : []));
@@ -2533,16 +2630,17 @@ router.post('/leads', async (req, res) => {
 
     await run(`
       INSERT INTO leads (
-        id, client_id, name, company, email, phone, source, assigned_to,
+        id, client_id, name, company, email, phone, source, referred_by, assigned_to,
         notes, tags, status, score, potential_value, project_category, project_type,
         createdAt, updatedAt
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(id) DO UPDATE SET
         name = excluded.name,
         company = excluded.company,
         email = excluded.email,
         phone = excluded.phone,
         source = excluded.source,
+        referred_by = excluded.referred_by,
         assigned_to = excluded.assigned_to,
         notes = excluded.notes,
         tags = excluded.tags,
@@ -2553,13 +2651,13 @@ router.post('/leads', async (req, res) => {
         project_type = excluded.project_type,
         updatedAt = excluded.updatedAt
     `, [
-      leadId, clientId, name, company, email, phone, source, assignedTo,
+      leadId, clientId, name, company, email, phone, source, referredBy, assignedTo,
       notes, tags, status, score, potentialValue, projectCategory, projectType,
       now, now
     ]);
 
     res.status(201).json({
-      id: leadId, clientId, name, company, email, phone, source,
+      id: leadId, clientId, name, company, email, phone, source, referredBy,
       assignedTo, notes, tags: JSON.parse(tags), status, score,
       potentialValue, projectCategory, projectType, createdAt: now, updatedAt: now
     });
@@ -2580,52 +2678,54 @@ router.post('/leads/batch', async (req, res) => {
     await run('BEGIN IMMEDIATE TRANSACTION');
     try {
       for (let i = 0; i < leadsList.length; i++) {
-      const l = leadsList[i];
-      if (!l.name && !l.company) continue;
+        const l = leadsList[i];
+        if (!l.name && !l.company) continue;
 
-      const leadId = l.id || `lead-${Date.now()}-${i}-${Math.random().toString(36).substr(2, 5)}`;
-      const clientId = l.clientId || 'client-sanna';
-      const name = l.name || l.company || `Lead #${i + 1}`;
-      const company = l.company || l.name || 'Enterprise Client';
-      const email = l.email ? String(l.email).trim() : '';
-      const phone = l.phone ? String(l.phone).trim() : '';
-      const source = l.source || 'Excel Import';
-      const assignedTo = l.assignedTo || 'Srinivas (Admin)';
-      const notes = l.notes || '';
-      const tags = JSON.stringify(Array.isArray(l.tags) ? l.tags : (l.tags ? [l.tags] : ['Imported']));
-      const status = l.status || 'Lead Intake';
-      const score = parseInt(l.score, 10) || 50;
-      const potentialValue = parseFloat(l.potentialValue || l.value || 0) || 0;
-      const projectCategory = l.projectCategory || 'Software Development';
-      const projectType = l.projectType || 'One Time';
+        const leadId = l.id || `lead-${Date.now()}-${i}-${Math.random().toString(36).substr(2, 5)}`;
+        const clientId = l.clientId || 'client-sanna';
+        const name = l.name || l.company || `Lead #${i + 1}`;
+        const company = l.company || l.name || 'Enterprise Client';
+        const email = l.email ? String(l.email).trim() : '';
+        const phone = l.phone ? String(l.phone).trim() : '';
+        const source = l.source || 'Excel Import';
+        const referredBy = l.referredBy || l.referred_by || '';
+        const assignedTo = l.assignedTo || 'Srinivas (Admin)';
+        const notes = l.notes || '';
+        const tags = JSON.stringify(Array.isArray(l.tags) ? l.tags : (l.tags ? [l.tags] : ['Imported']));
+        const status = l.status || 'Lead Intake';
+        const score = parseInt(l.score, 10) || 50;
+        const potentialValue = parseFloat(l.potentialValue || l.value || 0) || 0;
+        const projectCategory = l.projectCategory || 'Software Development';
+        const projectType = l.projectType || 'One Time';
 
-      await run(`
-        INSERT INTO leads (
-          id, client_id, name, company, email, phone, source, assigned_to,
-          notes, tags, status, score, potential_value, project_category, project_type,
-          createdAt, updatedAt
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ON CONFLICT(id) DO UPDATE SET
-          name = excluded.name,
-          company = excluded.company,
-          email = excluded.email,
-          phone = excluded.phone,
-          source = excluded.source,
-          assigned_to = excluded.assigned_to,
-          notes = excluded.notes,
-          tags = excluded.tags,
-          status = excluded.status,
-          score = excluded.score,
-          potential_value = excluded.potential_value,
-          project_category = excluded.project_category,
-          project_type = excluded.project_type,
-          updatedAt = excluded.updatedAt
-      `, [
-        leadId, clientId, name, company, email, phone, source, assignedTo,
-        notes, tags, status, score, potentialValue, projectCategory, projectType,
-        now, now
-      ]);
-      insertedCount++;
+        await run(`
+          INSERT INTO leads (
+            id, client_id, name, company, email, phone, source, referred_by, assigned_to,
+            notes, tags, status, score, potential_value, project_category, project_type,
+            createdAt, updatedAt
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          ON CONFLICT(id) DO UPDATE SET
+            name = excluded.name,
+            company = excluded.company,
+            email = excluded.email,
+            phone = excluded.phone,
+            source = excluded.source,
+            referred_by = excluded.referred_by,
+            assigned_to = excluded.assigned_to,
+            notes = excluded.notes,
+            tags = excluded.tags,
+            status = excluded.status,
+            score = excluded.score,
+            potential_value = excluded.potential_value,
+            project_category = excluded.project_category,
+            project_type = excluded.project_type,
+            updatedAt = excluded.updatedAt
+        `, [
+          leadId, clientId, name, company, email, phone, source, referredBy, assignedTo,
+          notes, tags, status, score, potentialValue, projectCategory, projectType,
+          now, now
+        ]);
+        insertedCount++;
       }
       await run('COMMIT');
     } catch (txErr) {
@@ -2654,6 +2754,10 @@ router.put('/leads/:id', async (req, res) => {
     if (l.email !== undefined) { updates.push('email = ?'); params.push(l.email); }
     if (l.phone !== undefined) { updates.push('phone = ?'); params.push(l.phone); }
     if (l.source !== undefined) { updates.push('source = ?'); params.push(l.source); }
+    if (l.referredBy !== undefined || l.referred_by !== undefined) {
+      updates.push('referred_by = ?');
+      params.push(l.referredBy !== undefined ? l.referredBy : l.referred_by);
+    }
     if (l.assignedTo !== undefined) { updates.push('assigned_to = ?'); params.push(l.assignedTo); }
     if (l.notes !== undefined) { updates.push('notes = ?'); params.push(l.notes); }
     if (l.tags !== undefined) { updates.push('tags = ?'); params.push(JSON.stringify(l.tags)); }
@@ -2665,10 +2769,44 @@ router.put('/leads/:id', async (req, res) => {
 
     updates.push('updatedAt = ?');
     params.push(now);
-    params.push(id);
 
-    await run(`UPDATE leads SET ${updates.join(', ')} WHERE id = ?`, params);
-    res.json({ success: true, id });
+    const cleanId = String(id).replace(/^lead-/, '');
+    params.push(id, 'lead-' + cleanId, cleanId);
+
+    const result = await run(`UPDATE leads SET ${updates.join(', ')} WHERE id = ? OR id = ? OR id = ?`, params);
+
+    // If row was not present in SQLite, auto-insert it so it persists permanently across reloads
+    if (result && result.changes === 0 && (l.status || l.name || l.company)) {
+      const leadId = id.startsWith('lead-') ? id : `lead-${id}`;
+      const name = l.name || l.company || 'Lead';
+      const company = l.company || l.name || 'Client';
+      const email = l.email || '';
+      const phone = l.phone || '';
+      const source = l.source || 'Direct';
+      const refBy = l.referredBy || l.referred_by || '';
+      const assignedTo = l.assignedTo || 'Srinivas (Admin)';
+      const notes = l.notes || '';
+      const tags = JSON.stringify(Array.isArray(l.tags) ? l.tags : []);
+      const status = l.status || 'Lead Intake';
+      const score = parseInt(l.score, 10) || 50;
+      const potentialValue = parseFloat(l.potentialValue) || 0;
+      const projectCategory = l.projectCategory || 'Software Development';
+      const projectType = l.projectType || 'One Time';
+
+      await run(`
+        INSERT INTO leads (
+          id, client_id, name, company, email, phone, source, referred_by, assigned_to,
+          notes, tags, status, score, potential_value, project_category, project_type,
+          createdAt, updatedAt
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `, [
+        leadId, 'client-sanna', name, company, email, phone, source, refBy, assignedTo,
+        notes, tags, status, score, potentialValue, projectCategory, projectType,
+        now, now
+      ]);
+    }
+
+    res.json({ success: true, id, status: l.status });
   } catch (err) {
     console.error('Error updating lead in DB:', err);
     res.status(500).json({ error: err.message });

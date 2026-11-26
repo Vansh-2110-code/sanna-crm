@@ -45,6 +45,7 @@ const LeadList = () => {
   const [showBulkImportModal, setShowBulkImportModal] = useState(false);
   const [selectedSource, setSelectedSource] = useState('ALL');
   const [selectedStatus, setSelectedStatus] = useState('ALL');
+  const [selectedReference, setSelectedReference] = useState('ALL');
   
   // Selection & Bulk Action state
   const [selectedLeadIds, setSelectedLeadIds] = useState([]);
@@ -85,6 +86,12 @@ const LeadList = () => {
     const normStatus = (!l.status || l.status === 'Lead') ? 'Lead Intake' : l.status;
     const matchesSource = selectedSource === 'ALL' || l.source === selectedSource;
     const matchesStatus = selectedStatus === 'ALL' || normStatus === selectedStatus;
+    const refVal = (l.referredBy || l.referred_by || '').trim();
+    const matchesReference = selectedReference === 'ALL' || (
+      selectedReference === 'Other'
+        ? (refVal && !['digital marketing team', 'narasimha', 'srinivasa', 'direct / self', 'direct'].includes(refVal.toLowerCase()))
+        : refVal.toLowerCase() === selectedReference.toLowerCase()
+    );
     const sTerm = (searchTerm || globalSearch || '').trim().toLowerCase();
     const matchesSearch = !sTerm ||
                           (l.name || '').toLowerCase().includes(sTerm) ||
@@ -94,8 +101,9 @@ const LeadList = () => {
                           (l.assignedTo || '').toLowerCase().includes(sTerm) ||
                           (l.notes || '').toLowerCase().includes(sTerm) ||
                           (l.productNeeded || '').toLowerCase().includes(sTerm) ||
-                          (l.projectCategory || '').toLowerCase().includes(sTerm);
-    return matchesSource && matchesStatus && matchesSearch;
+                          (l.projectCategory || '').toLowerCase().includes(sTerm) ||
+                          refVal.toLowerCase().includes(sTerm);
+    return matchesSource && matchesStatus && matchesReference && matchesSearch;
   });
 
   const duplicateCount = safeLeadsList.filter(l => l && l.duplicateFlag).length;
@@ -332,6 +340,23 @@ const LeadList = () => {
               <option value="Not Interested">Not Interested</option>
             </select>
           </div>
+
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <span style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-muted)' }}>Reference:</span>
+            <select
+              value={selectedReference}
+              onChange={(e) => setSelectedReference(e.target.value)}
+              className="form-select"
+              style={{ fontSize: '0.8rem', padding: '6px 12px', height: '34px' }}
+            >
+              <option value="ALL">All References</option>
+              <option value="Digital Marketing Team">Digital Marketing Team</option>
+              <option value="Narasimha">Narasimha</option>
+              <option value="Srinivasa">Srinivasa</option>
+              <option value="Direct / Self">Direct / Self</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
         </div>
 
         <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
@@ -420,11 +445,18 @@ const LeadList = () => {
                         </div>
                       </td>
 
-                      {/* Source */}
+                      {/* Source & Reference */}
                       <td>
-                        <span className="status-pill status-pill-indigo">
-                          {lead.source || 'Direct'}
-                        </span>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', alignItems: 'flex-start' }}>
+                          <span className="status-pill status-pill-indigo">
+                            {lead.source || 'Direct'}
+                          </span>
+                          {(lead.referredBy || lead.referred_by) && (
+                            <span style={{ fontSize: '0.68rem', padding: '1px 6px', borderRadius: '4px', background: 'rgba(99, 102, 241, 0.15)', color: '#a5b4fc', border: '1px solid rgba(99, 102, 241, 0.3)', whiteSpace: 'nowrap' }}>
+                              Ref: {lead.referredBy || lead.referred_by}
+                            </span>
+                          )}
+                        </div>
                       </td>
 
                       {/* Potential Value */}
@@ -670,6 +702,12 @@ const LeadList = () => {
                     <UserCheck style={{ width: '16px', height: '16px', color: '#fbbf24' }} />
                     <span style={{ color: 'var(--text-primary)' }}>Assigned to: <strong>{inspectedLead.assignedTo || 'Unassigned'}</strong></span>
                   </div>
+                  {(inspectedLead.referredBy || inspectedLead.referred_by) && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <UserCheck style={{ width: '16px', height: '16px', color: '#818cf8' }} />
+                      <span style={{ color: 'var(--text-primary)' }}>Reference: <strong style={{ color: '#a5b4fc' }}>{inspectedLead.referredBy || inspectedLead.referred_by}</strong></span>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -798,7 +836,7 @@ const LeadList = () => {
         isOpen={showBulkImportModal}
         onClose={() => setShowBulkImportModal(false)}
         onImportSuccess={(count) => {
-          alert(`🎉 Successfully imported ${count} leads into the pipeline!`);
+          alert(`Successfully imported ${count} leads into the pipeline!`);
         }}
       />
 

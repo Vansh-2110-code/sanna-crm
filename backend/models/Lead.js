@@ -32,6 +32,11 @@ const Lead = sequelize.define('Lead', {
     type: DataTypes.STRING,
     defaultValue: 'Website Forms'
   },
+  referredBy: {
+    type: DataTypes.STRING,
+    field: 'referred_by',
+    defaultValue: ''
+  },
   assignedTo: {
     type: DataTypes.STRING,
     field: 'assigned_to'

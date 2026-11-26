@@ -49,6 +49,7 @@ const LeadFormModal = ({ onClose }) => {
     email: '',
     phone: '',
     source: 'Website Forms',
+    referredBy: '',
     status: 'Lead Intake',
     projectCategory: 'Software Development',
     projectType: 'One Time', // 'One Time' | 'Recurring'
@@ -98,6 +99,7 @@ const LeadFormModal = ({ onClose }) => {
       email: formData.email ? formData.email.trim() : '',
       phone: formData.phone || '',
       source: formData.source || 'Website Forms',
+      referredBy: formData.referredBy || '',
       status: formData.status || 'Lead Intake',
       projectCategory: formData.projectCategory || 'Software Development',
       projectType: formData.projectType || 'One Time',
@@ -192,6 +194,23 @@ const LeadFormModal = ({ onClose }) => {
               >
                 <option value="One Time">One Time</option>
                 <option value="Recurring">Recurring</option>
+              </select>
+            </div>
+
+            {/* Reference / Attribution */}
+            <div className="form-group">
+              <label className="form-label">Reference / Referred By</label>
+              <select
+                value={formData.referredBy}
+                onChange={(e) => setFormData({ ...formData, referredBy: e.target.value })}
+                className="form-select"
+              >
+                <option value="">Direct / None</option>
+                <option value="Digital Marketing Team">Digital Marketing Team</option>
+                <option value="Narasimha">Narasimha</option>
+                <option value="Srinivasa">Srinivasa</option>
+                <option value="Direct / Self">Direct / Self</option>
+                <option value="Other">Other</option>
               </select>
             </div>
 
