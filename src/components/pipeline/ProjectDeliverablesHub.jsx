@@ -473,23 +473,34 @@ const ProjectDeliverablesHub = () => {
     setEditingAdSpend(null);
   };
 
-  const handleSaveEditEditor = (e) => {
+  const handleSaveEditEditor = async (e) => {
     e.preventDefault();
     if (!editingEditor) return;
     const status = editingEditor.status || 'Editing in Progress';
     const isCompleted = status === 'Approved & Completed';
-    const completedDate = isCompleted ? (editingEditor.completedDate || new Date().toISOString().split('T')[0]) : (editingEditor.completedDate || '');
-    const pName = editingEditor.projectName || editingEditor.clientProject || 'General Project';
-    const assigned = editingEditor.taskAssignedDate || editingEditor.assignedDate || '';
+    const completedDate = isCompleted ? (editingEditor.completedDate || editingEditor.completed_date || new Date().toISOString().split('T')[0]) : (editingEditor.completedDate || editingEditor.completed_date || '');
+    const pName = editingEditor.projectName || editingEditor.clientProject || editingEditor.client_project || 'General Project';
+    const assigned = editingEditor.taskAssignedDate || editingEditor.assignedDate || editingEditor.assignment_date || '';
+    const desc = editingEditor.taskDescription || editingEditor.task_description || '';
+    const editorName = editingEditor.editorName || editingEditor.editor_name || '';
+    const submissionDate = editingEditor.submissionDate || editingEditor.submission_date || '';
+    const paymentStatus = editingEditor.paymentStatus || editingEditor.payment_status || 'Pending';
+    const deliverableUrl = editingEditor.deliverableUrl || editingEditor.deliverable_url || '';
 
-    updateEditorAssignment(editingEditor.id, {
+    await updateEditorAssignment(editingEditor.id, {
       ...editingEditor,
+      editorName,
+      email: editingEditor.email || '',
       projectName: pName,
       clientProject: pName,
+      taskDescription: desc,
       taskAssignedDate: assigned,
       assignedDate: assigned,
+      submissionDate,
       status,
       completedDate,
+      paymentStatus,
+      deliverableUrl,
       amount: parseFloat(editingEditor.amount) || 0
     });
     setEditingEditor(null);
@@ -1888,9 +1899,16 @@ const ProjectDeliverablesHub = () => {
                 ) : (
                   filteredEditors.map(ed => {
                     const stage = getStageStyle(ed.status);
-                    const assignedDate = ed.taskAssignedDate || ed.assignedDate || '—';
-                    const completedDate = ed.completedDate || ((ed.status?.includes('Approved') || ed.status?.includes('Complete')) ? (ed.submissionDate || 'Completed') : '');
-                    const projectName = ed.projectName || ed.clientProject || 'General Project';
+                    const assignedDate = ed.taskAssignedDate || ed.assignedDate || ed.assignment_date || '—';
+                    const completedDate = ed.completedDate || ed.completed_date || ((ed.status?.includes('Approved') || ed.status?.includes('Complete')) ? (ed.submissionDate || ed.submission_date || 'Completed') : '');
+                    const projectName = ed.projectName || ed.clientProject || ed.client_project || 'General Project';
+                    const taskDesc = ed.taskDescription || ed.task_description || '';
+                    const editorName = ed.editorName || ed.editor_name || '';
+                    const editorEmail = ed.email || '';
+                    const deadline = ed.submissionDate || ed.submission_date || '—';
+                    const payout = parseFloat(ed.amount) || 0;
+                    const paymentStatus = ed.paymentStatus || ed.payment_status || 'Pending';
+                    const deliverableUrl = ed.deliverableUrl || ed.deliverable_url || '';
 
                     return (
                       <div key={ed.id} className="glass-card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px', borderTop: `3px solid ${stage.color}` }}>
@@ -1906,7 +1924,7 @@ const ProjectDeliverablesHub = () => {
                               </h4>
                             </div>
                             <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                              Editor: <strong style={{ color: 'var(--text-primary)' }}>{ed.editorName}</strong> {ed.email && `· ${ed.email}`}
+                              Editor: <strong style={{ color: 'var(--text-primary)' }}>{editorName}</strong> {editorEmail && `· ${editorEmail}`}
                             </div>
                           </div>
 
@@ -1923,7 +1941,7 @@ const ProjectDeliverablesHub = () => {
                             <button
                               type="button"
                               onClick={() => {
-                                if (window.confirm(`Delete editor task for ${ed.editorName}?`)) {
+                                if (window.confirm(`Delete editor task for ${editorName}?`)) {
                                   deleteEditorAssignment(ed.id);
                                 }
                               }}
@@ -1937,8 +1955,8 @@ const ProjectDeliverablesHub = () => {
                         </div>
 
                         {/* Task Description */}
-                        <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5, background: 'rgba(255,255,255,0.02)', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
-                          {ed.taskDescription}
+                        <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5, background: 'rgba(255,255,255,0.02)', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-color)', minHeight: '44px' }}>
+                          {taskDesc || <span style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>No task description specified. Click edit to add instructions.</span>}
                         </p>
 
                         {/* Key Dates Badge Grid */}
@@ -1949,7 +1967,7 @@ const ProjectDeliverablesHub = () => {
                           </div>
                           <div style={{ background: 'rgba(255,255,255,0.02)', padding: '6px 8px', borderRadius: '6px' }}>
                             <span style={{ color: 'var(--text-muted)' }}>⏱ Deadline: </span>
-                            <strong style={{ color: '#818cf8' }}>{ed.submissionDate || '—'}</strong>
+                            <strong style={{ color: '#818cf8' }}>{deadline}</strong>
                           </div>
                           {completedDate && (
                             <div style={{ gridColumn: '1 / -1', background: 'rgba(16, 185, 129, 0.08)', padding: '6px 8px', borderRadius: '6px', border: '1px solid rgba(16, 185, 129, 0.25)' }}>
@@ -1963,10 +1981,10 @@ const ProjectDeliverablesHub = () => {
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '8px', borderTop: '1px solid var(--border-color)', fontSize: '0.78rem' }}>
                           <div>
                             <span style={{ color: 'var(--text-muted)' }}>Payout: </span>
-                            <strong style={{ color: '#34d399' }}>₹{(ed.amount || 0).toLocaleString('en-IN')}</strong> ({ed.paymentStatus || 'Pending'})
+                            <strong style={{ color: '#34d399' }}>₹{payout.toLocaleString('en-IN')}</strong> ({paymentStatus})
                           </div>
-                          {ed.deliverableUrl && (
-                            <a href={ed.deliverableUrl} target="_blank" rel="noreferrer" style={{ fontSize: '0.72rem', color: '#818cf8', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                          {deliverableUrl && (
+                            <a href={deliverableUrl} target="_blank" rel="noreferrer" style={{ fontSize: '0.72rem', color: '#818cf8', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
                               <Link2 style={{ width: '12px', height: '12px' }} /> Drive / Asset
                             </a>
                           )}
@@ -3466,89 +3484,7 @@ const ProjectDeliverablesHub = () => {
         </div>
       )}
 
-      {/* ========================================================================= */}
-      {/* MODAL: EDIT EDITOR WORK ORDER                                             */}
-      {/* ========================================================================= */}
-      {editingEditor && (
-        <div className="modal-overlay" style={{ zIndex: 1000, padding: '16px' }}>
-          <div className="modal-content" style={{ maxWidth: '540px', padding: '24px', background: '#0f172a', borderRadius: '16px', border: '1px solid rgba(255, 255, 255, 0.15)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', paddingBottom: '12px', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-              <h3 style={{ fontSize: '1.2rem', fontWeight: '800', margin: 0 }}>Edit Editor Work Order</h3>
-              <button onClick={() => setEditingEditor(null)} className="btn btn-secondary" style={{ padding: '6px 8px' }}>
-                <X style={{ width: '16px', height: '16px' }} />
-              </button>
-            </div>
 
-            <form onSubmit={handleSaveEditEditor} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                <div className="form-group">
-                  <label className="form-label">Editor Name *</label>
-                  <input
-                    type="text"
-                    required
-                    value={editingEditor.editorName}
-                    onChange={(e) => setEditingEditor({ ...editingEditor, editorName: e.target.value })}
-                    className="form-input"
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Client Project *</label>
-                  <input
-                    type="text"
-                    required
-                    value={editingEditor.clientProject}
-                    onChange={(e) => setEditingEditor({ ...editingEditor, clientProject: e.target.value })}
-                    className="form-input"
-                  />
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Task Description</label>
-                <textarea
-                  rows={2}
-                  value={editingEditor.taskDescription}
-                  onChange={(e) => setEditingEditor({ ...editingEditor, taskDescription: e.target.value })}
-                  className="form-input"
-                />
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                <div className="form-group">
-                  <label className="form-label">Amount (₹)</label>
-                  <input
-                    type="number"
-                    value={editingEditor.amount}
-                    onChange={(e) => setEditingEditor({ ...editingEditor, amount: e.target.value })}
-                    className="form-input"
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Status</label>
-                  <select
-                    value={editingEditor.status}
-                    onChange={(e) => setEditingEditor({ ...editingEditor, status: e.target.value })}
-                    className="form-input"
-                  >
-                    <option value="In Progress">In Progress</option>
-                    <option value="Completed">Completed</option>
-                    <option value="Under Review">Under Review</option>
-                  </select>
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
-                <button type="button" onClick={() => setEditingEditor(null)} className="btn btn-secondary">
-                  Cancel
-                </button>
-                <button type="submit" className="btn gradient-btn-primary">
-                  Save Changes
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
       {/* ========================================================================= */}
       {/* MODAL: EDIT SERVER CREDENTIAL                                             */}
@@ -4180,8 +4116,8 @@ const ProjectDeliverablesHub = () => {
                   <input
                     type="text"
                     required
-                    value={editingEditor.projectName || editingEditor.clientProject || ''}
-                    onChange={(e) => setEditingEditor({ ...editingEditor, projectName: e.target.value, clientProject: e.target.value })}
+                    value={editingEditor.projectName || editingEditor.clientProject || editingEditor.client_project || ''}
+                    onChange={(e) => setEditingEditor({ ...editingEditor, projectName: e.target.value, clientProject: e.target.value, client_project: e.target.value })}
                     className="form-input"
                   />
                 </div>
@@ -4190,8 +4126,8 @@ const ProjectDeliverablesHub = () => {
                   <input
                     type="date"
                     required
-                    value={editingEditor.taskAssignedDate || editingEditor.assignedDate || ''}
-                    onChange={(e) => setEditingEditor({ ...editingEditor, taskAssignedDate: e.target.value, assignedDate: e.target.value })}
+                    value={editingEditor.taskAssignedDate || editingEditor.assignedDate || editingEditor.assignment_date || ''}
+                    onChange={(e) => setEditingEditor({ ...editingEditor, taskAssignedDate: e.target.value, assignedDate: e.target.value, assignment_date: e.target.value })}
                     className="form-input"
                   />
                 </div>
@@ -4203,8 +4139,8 @@ const ProjectDeliverablesHub = () => {
                   <input
                     type="text"
                     required
-                    value={editingEditor.editorName || ''}
-                    onChange={(e) => setEditingEditor({ ...editingEditor, editorName: e.target.value })}
+                    value={editingEditor.editorName || editingEditor.editor_name || ''}
+                    onChange={(e) => setEditingEditor({ ...editingEditor, editorName: e.target.value, editor_name: e.target.value })}
                     className="form-input"
                   />
                 </div>
@@ -4224,8 +4160,8 @@ const ProjectDeliverablesHub = () => {
                 <textarea
                   required
                   rows={2}
-                  value={editingEditor.taskDescription || ''}
-                  onChange={(e) => setEditingEditor({ ...editingEditor, taskDescription: e.target.value })}
+                  value={editingEditor.taskDescription || editingEditor.task_description || ''}
+                  onChange={(e) => setEditingEditor({ ...editingEditor, taskDescription: e.target.value, task_description: e.target.value })}
                   className="form-input"
                 />
               </div>
@@ -4238,8 +4174,10 @@ const ProjectDeliverablesHub = () => {
                     onChange={(e) => {
                       const newStatus = e.target.value;
                       const updates = { ...editingEditor, status: newStatus };
-                      if (newStatus === 'Approved & Completed' && !editingEditor.completedDate) {
-                        updates.completedDate = new Date().toISOString().split('T')[0];
+                      if (newStatus === 'Approved & Completed' && !editingEditor.completedDate && !editingEditor.completed_date) {
+                        const today = new Date().toISOString().split('T')[0];
+                        updates.completedDate = today;
+                        updates.completed_date = today;
                       }
                       setEditingEditor(updates);
                     }}
@@ -4255,8 +4193,8 @@ const ProjectDeliverablesHub = () => {
                   <label className="form-label">Completed Date</label>
                   <input
                     type="date"
-                    value={editingEditor.completedDate || ''}
-                    onChange={(e) => setEditingEditor({ ...editingEditor, completedDate: e.target.value })}
+                    value={editingEditor.completedDate || editingEditor.completed_date || ''}
+                    onChange={(e) => setEditingEditor({ ...editingEditor, completedDate: e.target.value, completed_date: e.target.value })}
                     className="form-input"
                   />
                 </div>
@@ -4268,7 +4206,7 @@ const ProjectDeliverablesHub = () => {
                   <input
                     type="number"
                     required
-                    value={editingEditor.amount || ''}
+                    value={editingEditor.amount !== undefined && editingEditor.amount !== null ? editingEditor.amount : ''}
                     onChange={(e) => setEditingEditor({ ...editingEditor, amount: e.target.value })}
                     className="form-input"
                   />
@@ -4277,16 +4215,16 @@ const ProjectDeliverablesHub = () => {
                   <label className="form-label">Deadline</label>
                   <input
                     type="date"
-                    value={editingEditor.submissionDate || ''}
-                    onChange={(e) => setEditingEditor({ ...editingEditor, submissionDate: e.target.value })}
+                    value={editingEditor.submissionDate || editingEditor.submission_date || ''}
+                    onChange={(e) => setEditingEditor({ ...editingEditor, submissionDate: e.target.value, submission_date: e.target.value })}
                     className="form-input"
                   />
                 </div>
                 <div className="form-group">
                   <label className="form-label">Payment Status</label>
                   <select
-                    value={editingEditor.paymentStatus || 'Pending'}
-                    onChange={(e) => setEditingEditor({ ...editingEditor, paymentStatus: e.target.value })}
+                    value={editingEditor.paymentStatus || editingEditor.payment_status || 'Pending'}
+                    onChange={(e) => setEditingEditor({ ...editingEditor, paymentStatus: e.target.value, payment_status: e.target.value })}
                     className="form-select"
                   >
                     <option value="Pending">Pending</option>
@@ -4301,8 +4239,8 @@ const ProjectDeliverablesHub = () => {
                 <input
                   type="url"
                   placeholder="https://drive.google.com/..."
-                  value={editingEditor.deliverableUrl || ''}
-                  onChange={(e) => setEditingEditor({ ...editingEditor, deliverableUrl: e.target.value })}
+                  value={editingEditor.deliverableUrl || editingEditor.deliverable_url || ''}
+                  onChange={(e) => setEditingEditor({ ...editingEditor, deliverableUrl: e.target.value, deliverable_url: e.target.value })}
                   className="form-input"
                 />
               </div>

@@ -1273,7 +1273,33 @@ router.delete('/holidays/:id', async (req, res) => {
 router.get('/editors', async (req, res) => {
   try {
     const editors = await query('SELECT * FROM editor_assignments ORDER BY id ASC');
-    res.json(editors);
+    res.json(editors.map(e => ({
+      id: String(e.id),
+      rawId: e.id,
+      editorName: e.editor_name || '',
+      email: e.email || '',
+      clientProject: e.client_project || 'General Project',
+      projectName: e.client_project || 'General Project',
+      taskDescription: e.task_description || '',
+      taskAssignedDate: e.assignment_date || '',
+      assignedDate: e.assignment_date || '',
+      submissionDate: e.submission_date || '',
+      status: e.status || 'Editing in Progress',
+      amount: parseFloat(e.amount) || 0,
+      paymentStatus: e.payment_status || 'Pending',
+      deliverableUrl: e.deliverable_url || '',
+      adminFeedback: e.admin_feedback || '',
+      completedDate: e.completed_date || '',
+      editor_name: e.editor_name || '',
+      client_project: e.client_project || 'General Project',
+      task_description: e.task_description || '',
+      assignment_date: e.assignment_date || '',
+      submission_date: e.submission_date || '',
+      payment_status: e.payment_status || 'Pending',
+      deliverable_url: e.deliverable_url || '',
+      admin_feedback: e.admin_feedback || '',
+      completed_date: e.completed_date || ''
+    })));
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -1281,49 +1307,160 @@ router.get('/editors', async (req, res) => {
 
 router.post('/editors', async (req, res) => {
   try {
-    const { editorName, email, clientProject, taskDescription, assignedDate, submissionDate, status, amount, paymentStatus, deliverableUrl, adminFeedback, completedDate } = req.body;
+    const editorName = req.body.editorName || req.body.editor_name || '';
+    const email = req.body.email || '';
+    const clientProject = req.body.projectName || req.body.clientProject || req.body.client_project || 'General Project';
+    const taskDescription = req.body.taskDescription || req.body.task_description || '';
+    const assignedDate = req.body.taskAssignedDate || req.body.assignedDate || req.body.assignment_date || new Date().toISOString().split('T')[0];
+    const submissionDate = req.body.submissionDate || req.body.submission_date || '';
+    const status = req.body.status || 'Editing in Progress';
+    const amount = parseFloat(req.body.amount) || 0;
+    const paymentStatus = req.body.paymentStatus || req.body.payment_status || 'Pending';
+    const deliverableUrl = req.body.deliverableUrl || req.body.deliverable_url || '';
+    const adminFeedback = req.body.adminFeedback || req.body.admin_feedback || '';
+    const completedDate = req.body.completedDate || req.body.completed_date || '';
+
     const insert = await run(
       `INSERT INTO editor_assignments (editor_name, email, client_project, task_description, assignment_date, submission_date, status, amount, payment_status, deliverable_url, admin_feedback, completed_date)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [editorName, email, clientProject, taskDescription, assignedDate, submissionDate, status || 'In Progress', amount || 0, paymentStatus || 'Pending', deliverableUrl || '', adminFeedback || '', completedDate || '']
+      [editorName, email, clientProject, taskDescription, assignedDate, submissionDate, status, amount, paymentStatus, deliverableUrl, adminFeedback, completedDate]
     );
-    res.status(201).json({ id: String(insert.id), ...req.body });
+    const newId = String(insert.id);
+    res.status(201).json({
+      id: newId,
+      rawId: insert.id,
+      editorName,
+      email,
+      clientProject,
+      projectName: clientProject,
+      taskDescription,
+      taskAssignedDate: assignedDate,
+      assignedDate,
+      submissionDate,
+      status,
+      amount,
+      paymentStatus,
+      deliverableUrl,
+      adminFeedback,
+      completedDate,
+      editor_name: editorName,
+      client_project: clientProject,
+      task_description: taskDescription,
+      assignment_date: assignedDate,
+      submission_date: submissionDate,
+      payment_status: paymentStatus,
+      deliverable_url: deliverableUrl,
+      admin_feedback: adminFeedback,
+      completed_date: completedDate
+    });
   } catch (e) {
+    console.error('Error adding editor assignment to DB:', e);
     res.status(500).json({ error: e.message });
   }
 });
 
 router.put('/editors/:id', async (req, res) => {
   try {
-    const rawId = parseInt(String(req.params.id).replace('edit-', ''), 10) || req.params.id;
-    const { editorName, email, clientProject, taskDescription, assignedDate, submissionDate, status, amount, paymentStatus, deliverableUrl, adminFeedback, completedDate } = req.body;
-    await run(
-      `UPDATE editor_assignments SET
-        editor_name = COALESCE(?, editor_name),
-        email = COALESCE(?, email),
-        client_project = COALESCE(?, client_project),
-        task_description = COALESCE(?, task_description),
-        assignment_date = COALESCE(?, assignment_date),
-        submission_date = COALESCE(?, submission_date),
-        status = COALESCE(?, status),
-        amount = COALESCE(?, amount),
-        payment_status = COALESCE(?, payment_status),
-        deliverable_url = COALESCE(?, deliverable_url),
-        admin_feedback = COALESCE(?, admin_feedback),
-        completed_date = COALESCE(?, completed_date)
-      WHERE id = ?`,
-      [editorName, email, clientProject, taskDescription, assignedDate, submissionDate, status, amount, paymentStatus, deliverableUrl, adminFeedback, completedDate, rawId]
-    );
-    res.json({ id: String(rawId), ...req.body });
+    const rawIdStr = String(req.params.id || '');
+    const numericId = parseInt(rawIdStr.replace(/[^0-9]/g, ''), 10);
+    const editorName = req.body.editorName || req.body.editor_name || '';
+    const email = req.body.email || '';
+    const clientProject = req.body.projectName || req.body.clientProject || req.body.client_project || 'General Project';
+    const taskDescription = req.body.taskDescription || req.body.task_description || '';
+    const assignedDate = req.body.taskAssignedDate || req.body.assignedDate || req.body.assignment_date || '';
+    const submissionDate = req.body.submissionDate || req.body.submission_date || '';
+    const status = req.body.status || 'Editing in Progress';
+    const amount = parseFloat(req.body.amount) || 0;
+    const paymentStatus = req.body.paymentStatus || req.body.payment_status || 'Pending';
+    const deliverableUrl = req.body.deliverableUrl || req.body.deliverable_url || '';
+    const adminFeedback = req.body.adminFeedback || req.body.admin_feedback || '';
+    const completedDate = req.body.completedDate || req.body.completed_date || '';
+
+    let existing = null;
+    if (numericId && !isNaN(numericId)) {
+      existing = await get('SELECT id FROM editor_assignments WHERE id = ?', [numericId]);
+    }
+    if (!existing && email && clientProject) {
+      existing = await get('SELECT id FROM editor_assignments WHERE email = ? AND client_project = ?', [email, clientProject]);
+    }
+    if (!existing && email) {
+      existing = await get('SELECT id FROM editor_assignments WHERE email = ? ORDER BY id DESC LIMIT 1', [email]);
+    }
+
+    if (existing) {
+      await run(
+        `UPDATE editor_assignments SET
+          editor_name = COALESCE(?, editor_name),
+          email = COALESCE(?, email),
+          client_project = COALESCE(?, client_project),
+          task_description = COALESCE(?, task_description),
+          assignment_date = COALESCE(?, assignment_date),
+          submission_date = COALESCE(?, submission_date),
+          status = COALESCE(?, status),
+          amount = COALESCE(?, amount),
+          payment_status = COALESCE(?, payment_status),
+          deliverable_url = COALESCE(?, deliverable_url),
+          admin_feedback = COALESCE(?, admin_feedback),
+          completed_date = COALESCE(?, completed_date)
+        WHERE id = ?`,
+        [editorName, email, clientProject, taskDescription, assignedDate, submissionDate, status, amount, paymentStatus, deliverableUrl, adminFeedback, completedDate, existing.id]
+      );
+      res.json({
+        id: String(existing.id),
+        rawId: existing.id,
+        editorName,
+        email,
+        clientProject,
+        projectName: clientProject,
+        taskDescription,
+        taskAssignedDate: assignedDate,
+        assignedDate,
+        submissionDate,
+        status,
+        amount,
+        paymentStatus,
+        deliverableUrl,
+        adminFeedback,
+        completedDate
+      });
+    } else {
+      const insert = await run(
+        `INSERT INTO editor_assignments (editor_name, email, client_project, task_description, assignment_date, submission_date, status, amount, payment_status, deliverable_url, admin_feedback, completed_date)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [editorName, email, clientProject, taskDescription, assignedDate, submissionDate, status, amount, paymentStatus, deliverableUrl, adminFeedback, completedDate]
+      );
+      res.json({
+        id: String(insert.id),
+        rawId: insert.id,
+        editorName,
+        email,
+        clientProject,
+        projectName: clientProject,
+        taskDescription,
+        taskAssignedDate: assignedDate,
+        assignedDate,
+        submissionDate,
+        status,
+        amount,
+        paymentStatus,
+        deliverableUrl,
+        adminFeedback,
+        completedDate
+      });
+    }
   } catch (e) {
+    console.error('Error updating editor assignment in DB:', e);
     res.status(500).json({ error: e.message });
   }
 });
 
 router.delete('/editors/:id', async (req, res) => {
   try {
-    const rawId = parseInt(String(req.params.id).replace('edit-', ''), 10) || req.params.id;
-    await run('DELETE FROM editor_assignments WHERE id = ?', [rawId]);
+    const rawIdStr = String(req.params.id || '');
+    const numericId = parseInt(rawIdStr.replace(/[^0-9]/g, ''), 10);
+    if (numericId && !isNaN(numericId)) {
+      await run('DELETE FROM editor_assignments WHERE id = ?', [numericId]);
+    }
     res.json({ status: 'deleted' });
   } catch (e) {
     res.status(500).json({ error: e.message });

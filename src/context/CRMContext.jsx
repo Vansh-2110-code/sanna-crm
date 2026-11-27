@@ -342,7 +342,7 @@ export const CRMProvider = ({ children }) => {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && (!isSanna || parsed.length >= 38)) return parsed;
-      } catch (e) {}
+      } catch (e) { }
     }
     return isSanna ? ((REAL_CRM_DATA.leads && REAL_CRM_DATA.leads.length > 0) ? REAL_CRM_DATA.leads : []) : [];
   });
@@ -403,9 +403,9 @@ export const CRMProvider = ({ children }) => {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed)) {
-          const cleaned = parsed.filter(i => 
-            i.name !== 'Aarav Sharma' && 
-            i.name !== 'Priya Sundaram' && 
+          const cleaned = parsed.filter(i =>
+            i.name !== 'Aarav Sharma' &&
+            i.name !== 'Priya Sundaram' &&
             i.name !== 'Rohan Varma' &&
             i.id !== 'INT-2026-01' &&
             i.id !== 'INT-2026-02' &&
@@ -413,11 +413,11 @@ export const CRMProvider = ({ children }) => {
           );
           return cleaned;
         }
-      } catch (e) {}
+      } catch (e) { }
     }
-    return (INITIAL_INTERNS || []).filter(i => 
-      i.name !== 'Aarav Sharma' && 
-      i.name !== 'Priya Sundaram' && 
+    return (INITIAL_INTERNS || []).filter(i =>
+      i.name !== 'Aarav Sharma' &&
+      i.name !== 'Priya Sundaram' &&
       i.name !== 'Rohan Varma' &&
       i.id !== 'INT-2026-01' &&
       i.id !== 'INT-2026-02' &&
@@ -437,7 +437,7 @@ export const CRMProvider = ({ children }) => {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && (!isSanna || parsed.length >= 50)) return parsed;
-      } catch (e) {}
+      } catch (e) { }
     }
     return isSanna ? ((REAL_CRM_DATA.deliverables && REAL_CRM_DATA.deliverables.length > 0) ? REAL_CRM_DATA.deliverables : INITIAL_CLIENT_DELIVERABLES) : [];
   });
@@ -454,7 +454,7 @@ export const CRMProvider = ({ children }) => {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed)) return parsed;
-      } catch (e) {}
+      } catch (e) { }
     }
     return isSanna ? ((REAL_CRM_DATA.holidayPosts && REAL_CRM_DATA.holidayPosts.length > 0) ? REAL_CRM_DATA.holidayPosts : INITIAL_HOLIDAY_POSTS) : [];
   });
@@ -471,7 +471,7 @@ export const CRMProvider = ({ children }) => {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed)) return parsed;
-      } catch (e) {}
+      } catch (e) { }
     }
     return isSanna ? ((REAL_CRM_DATA.adSpendLedger && REAL_CRM_DATA.adSpendLedger.length > 0) ? REAL_CRM_DATA.adSpendLedger : INITIAL_AD_SPEND_LEDGER) : [];
   });
@@ -486,7 +486,7 @@ export const CRMProvider = ({ children }) => {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      } catch (e) {}
+      } catch (e) { }
     }
     return REAL_CRM_DATA.adSpendTransactions || [];
   });
@@ -529,7 +529,7 @@ export const CRMProvider = ({ children }) => {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      } catch (e) {}
+      } catch (e) { }
     }
     return (REAL_CRM_DATA.editorAssignments && REAL_CRM_DATA.editorAssignments.length > 0) ? REAL_CRM_DATA.editorAssignments : INITIAL_EDITOR_ASSIGNMENTS;
   });
@@ -543,7 +543,7 @@ export const CRMProvider = ({ children }) => {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      } catch (e) {}
+      } catch (e) { }
     }
     return (REAL_CRM_DATA.servers && REAL_CRM_DATA.servers.length > 0) ? REAL_CRM_DATA.servers : INITIAL_SERVER_CREDENTIALS;
   });
@@ -557,7 +557,7 @@ export const CRMProvider = ({ children }) => {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      } catch (e) {}
+      } catch (e) { }
     }
     return REAL_CRM_DATA.credentials || [];
   });
@@ -605,7 +605,7 @@ export const CRMProvider = ({ children }) => {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      } catch (e) {}
+      } catch (e) { }
     }
     return (REAL_CRM_DATA.employeePerformances && REAL_CRM_DATA.employeePerformances.length > 0) ? REAL_CRM_DATA.employeePerformances : INITIAL_PERFORMANCE_REVIEWS;
   });
@@ -619,7 +619,7 @@ export const CRMProvider = ({ children }) => {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        const cleaned = (parsed || []).filter(t => 
+        const cleaned = (parsed || []).filter(t =>
           t.staffName !== 'Sarah Jenkins' &&
           t.staffName !== 'Aarav Sharma' &&
           t.staffName !== 'Marcus Vance' &&
@@ -630,7 +630,7 @@ export const CRMProvider = ({ children }) => {
           t.staffId !== 'INT-2026-02'
         );
         if (cleaned.length >= 2) return cleaned;
-      } catch (e) {}
+      } catch (e) { }
     }
     return INITIAL_DAILY_TASKS;
   });
@@ -638,7 +638,7 @@ export const CRMProvider = ({ children }) => {
     try {
       localStorage.setItem('astra_daily_tasks_v2', JSON.stringify(localDailyTasks));
       localStorage.setItem('astra_daily_tasks', JSON.stringify(localDailyTasks));
-    } catch (e) {}
+    } catch (e) { }
   }, [localDailyTasks]);
 
   // Live Daily Tasks Query from SQLite Backend (Auto syncs across staff and admin portal)
@@ -756,7 +756,7 @@ export const CRMProvider = ({ children }) => {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
       }
-    } catch (e) {}
+    } catch (e) { }
     return DEFAULT_DEV_PROJECTS_CONTEXT;
   });
 
@@ -783,7 +783,7 @@ export const CRMProvider = ({ children }) => {
 
   const saveDevProjects = async (newProjects) => {
     setLocalDevProjects(newProjects);
-    try { localStorage.setItem('sanna_dev_deliverables_projects_v2', JSON.stringify(newProjects)); } catch (e) {}
+    try { localStorage.setItem('sanna_dev_deliverables_projects_v2', JSON.stringify(newProjects)); } catch (e) { }
     queryClient.setQueryData(['mis_dev_projects'], newProjects);
     try {
       await api.post('/mis/dev-projects', { projects: newProjects });
@@ -865,7 +865,7 @@ export const CRMProvider = ({ children }) => {
         if (parsed.length >= 14) {
           list = parsed;
         }
-      } catch (e) {}
+      } catch (e) { }
     }
     return list.map(s => {
       const sDate = s.date || (s.loginTime ? s.loginTime.split('T')[0] : '');
@@ -884,7 +884,7 @@ export const CRMProvider = ({ children }) => {
       localStorage.setItem('astra_login_sessions_v14', JSON.stringify(localLoginSessions));
       localStorage.setItem('astra_login_sessions_v12', JSON.stringify(localLoginSessions));
       localStorage.setItem('astra_login_sessions', JSON.stringify(localLoginSessions));
-    } catch (e) {}
+    } catch (e) { }
   }, [localLoginSessions]);
 
   const resolvedLoginSessions = useMemo(() => {
@@ -980,12 +980,38 @@ export const CRMProvider = ({ children }) => {
   });
 
   const resolvedEditorAssignments = useMemo(() => {
+    const normalizeEditor = (e) => ({
+      ...e,
+      id: String(e.id),
+      editorName: e.editorName || e.editor_name || '',
+      email: e.email || '',
+      projectName: e.projectName || e.clientProject || e.client_project || 'General Project',
+      clientProject: e.projectName || e.clientProject || e.client_project || 'General Project',
+      taskDescription: e.taskDescription || e.task_description || '',
+      taskAssignedDate: e.taskAssignedDate || e.assignedDate || e.assignment_date || '',
+      assignedDate: e.taskAssignedDate || e.assignedDate || e.assignment_date || '',
+      submissionDate: e.submissionDate || e.submission_date || '',
+      completedDate: e.completedDate || e.completed_date || '',
+      status: e.status || 'Editing in Progress',
+      amount: parseFloat(e.amount) || 0,
+      paymentStatus: e.paymentStatus || e.payment_status || 'Pending',
+      deliverableUrl: e.deliverableUrl || e.deliverable_url || '',
+      adminFeedback: e.adminFeedback || e.admin_feedback || '',
+      editor_name: e.editorName || e.editor_name || '',
+      client_project: e.projectName || e.clientProject || e.client_project || 'General Project',
+      task_description: e.taskDescription || e.task_description || '',
+      assignment_date: e.taskAssignedDate || e.assignedDate || e.assignment_date || '',
+      submission_date: e.submissionDate || e.submission_date || '',
+      payment_status: e.paymentStatus || e.payment_status || 'Pending',
+      deliverable_url: e.deliverableUrl || e.deliverable_url || ''
+    });
+
     if (Array.isArray(editorsQuery.data) && editorsQuery.data.length > 0) {
       const apiIds = new Set(editorsQuery.data.map(e => String(e.id)));
       const extraLocals = (localEditorAssignments || []).filter(e => !apiIds.has(String(e.id)));
-      return [...editorsQuery.data, ...extraLocals];
+      return [...editorsQuery.data.map(normalizeEditor), ...extraLocals.map(normalizeEditor)];
     }
-    return localEditorAssignments || [];
+    return (localEditorAssignments || []).map(normalizeEditor);
   }, [editorsQuery.data, localEditorAssignments]);
 
   // Live Servers & Credentials Query
@@ -1085,7 +1111,7 @@ export const CRMProvider = ({ children }) => {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed)) return parsed;
-      } catch (e) {}
+      } catch (e) { }
     }
     if (!isSanna) return [];
     return [
@@ -1129,9 +1155,9 @@ export const CRMProvider = ({ children }) => {
       }
     ];
   });
-  useEffect(() => { 
+  useEffect(() => {
     const key = isSannaCRM() ? 'sanna_gst_invoices_v5' : 'astra_clean_gst_invoices_v5';
-    localStorage.setItem(key, JSON.stringify(localGSTInvoices)); 
+    localStorage.setItem(key, JSON.stringify(localGSTInvoices));
   }, [localGSTInvoices]);
 
   // Financial Ledger (Fresh start from 0)
@@ -1141,7 +1167,7 @@ export const CRMProvider = ({ children }) => {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed)) return parsed;
-      } catch (e) {}
+      } catch (e) { }
     }
     return [];
   });
@@ -1154,7 +1180,7 @@ export const CRMProvider = ({ children }) => {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      } catch (e) {}
+      } catch (e) { }
     }
     return [
       { id: 'svc-001', serviceName: 'Social Media Retainer (12 Reels + 20 Posts)', category: 'Social Media Management', priceType: 'Monthly Retainer', basePrice: 25000, deliveryTimeframe: 'Ongoing', description: 'Full-service social media management including reel production, static creatives, copywriting, and monthly performance reports.', status: 'Active' },
@@ -1176,7 +1202,7 @@ export const CRMProvider = ({ children }) => {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      } catch (e) {}
+      } catch (e) { }
     }
     return REAL_CRM_DATA.contentCalendar || [];
   });
@@ -1189,7 +1215,7 @@ export const CRMProvider = ({ children }) => {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      } catch (e) {}
+      } catch (e) { }
     }
     return REAL_CRM_DATA.employeePerformances || [];
   });
@@ -1218,7 +1244,7 @@ export const CRMProvider = ({ children }) => {
         } else if (e.key === 'astra_server_credentials') {
           setLocalServerCredentials(parsed);
         }
-      } catch (err) {}
+      } catch (err) { }
     };
     window.addEventListener('storage', handleStorageSync);
     return () => window.removeEventListener('storage', handleStorageSync);
@@ -1295,7 +1321,7 @@ export const CRMProvider = ({ children }) => {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      } catch (e) {}
+      } catch (e) { }
     }
     return INITIAL_KYC_DOCUMENTS || [];
   });
@@ -1303,7 +1329,7 @@ export const CRMProvider = ({ children }) => {
   useEffect(() => {
     try {
       localStorage.setItem('astra_kyc_documents', JSON.stringify(localKYCDocuments));
-    } catch (e) {}
+    } catch (e) { }
   }, [localKYCDocuments]);
 
   const addKYCDocument = async (docData) => {
@@ -1329,8 +1355,8 @@ export const CRMProvider = ({ children }) => {
     try {
       api.put(`/kyc/${id}`, updates).then(() => {
         queryClient.invalidateQueries(['kycDocuments']);
-      }).catch(() => {});
-    } catch (e) {}
+      }).catch(() => { });
+    } catch (e) { }
   };
 
   const deleteKYCDocument = (id) => {
@@ -1338,8 +1364,8 @@ export const CRMProvider = ({ children }) => {
     try {
       api.delete(`/kyc/${id}`).then(() => {
         queryClient.invalidateQueries(['kycDocuments']);
-      }).catch(() => {});
-    } catch (e) {}
+      }).catch(() => { });
+    } catch (e) { }
   };
 
   const verifyKYCDocument = (id, verifiedBy = 'Compliance Team', notes = '') => {
@@ -1353,8 +1379,8 @@ export const CRMProvider = ({ children }) => {
     try {
       api.put(`/kyc/${id}/verify`, { status: 'Verified', verifiedBy: verifiedBy || currentUser?.name, notes }).then(() => {
         queryClient.invalidateQueries(['kycDocuments']);
-      }).catch(() => {});
-    } catch (e) {}
+      }).catch(() => { });
+    } catch (e) { }
   };
 
   // 31-Day Attendance Matrix State (Keyed by `${staffId}-${year}-${month}`)
@@ -1387,7 +1413,7 @@ export const CRMProvider = ({ children }) => {
       try {
         const parsed = JSON.parse(savedUser);
         if (parsed?.tenantId) return parsed.tenantId;
-      } catch (e) {}
+      } catch (e) { }
     }
     return sessionStorage.getItem('crm_active_tenant') || localStorage.getItem('crm_active_tenant') || null;
   });
@@ -1425,7 +1451,7 @@ export const CRMProvider = ({ children }) => {
     };
     setCustomNotifications(prev => {
       const updated = [item, ...prev].slice(0, 40);
-      try { localStorage.setItem('astra_custom_notifications', JSON.stringify(updated)); } catch (e) {}
+      try { localStorage.setItem('astra_custom_notifications', JSON.stringify(updated)); } catch (e) { }
       return updated;
     });
   };
@@ -1445,7 +1471,7 @@ export const CRMProvider = ({ children }) => {
     let isPunchedOut = false;
     try {
       isPunchedOut = localStorage.getItem(`crm_punched_out_${currentUser.id}_${todayKey}`) === 'true';
-    } catch (e) {}
+    } catch (e) { }
     if (isPunchedOut) return;
 
     const syncHeartbeat = async () => {
@@ -1457,7 +1483,7 @@ export const CRMProvider = ({ children }) => {
           role: currentUser.role || currentUser.designation
         });
         queryClient.invalidateQueries(['mis_sessions']);
-      } catch (e) {}
+      } catch (e) { }
     };
 
     syncHeartbeat();
@@ -1500,31 +1526,31 @@ export const CRMProvider = ({ children }) => {
     retry: false
   });
 
-  const allClientsList = (tenantsQuery.data && tenantsQuery.data.length > 0) 
-    ? [...tenantsQuery.data, ...localClients] 
-    : localClients;  const fallbackTenant = isSannaCRM() ? {
-    id: currentUser?.tenantId || activeTenantId || 'client-sanna',
-    name: currentUser?.company || 'Sanna Innovations Pvt Ltd',
-    subdomain: 'sanna',
-    logo: '/logo.png',
-    industry: 'Digital Marketing & Enterprise Operations',
-    plan: 'Enterprise Elite',
-    status: 'Active',
-    maxSeats: 100,
-    seats: 14,
-    currency: 'INR (₹)'
-  } : {
-    id: currentUser?.tenantId || activeTenantId || 'client-astra',
-    name: currentUser?.company || 'Astra CRM',
-    subdomain: 'astra',
-    logo: '/logo.png',
-    industry: 'Enterprise AI & Cloud SaaS',
-    plan: 'Enterprise Suite',
-    status: 'Active',
-    maxSeats: 500,
-    seats: 1,
-    currency: 'USD ($)'
-  };
+  const allClientsList = (tenantsQuery.data && tenantsQuery.data.length > 0)
+    ? [...tenantsQuery.data, ...localClients]
+    : localClients; const fallbackTenant = isSannaCRM() ? {
+      id: currentUser?.tenantId || activeTenantId || 'client-sanna',
+      name: currentUser?.company || 'Sanna Innovations Pvt Ltd',
+      subdomain: 'sanna',
+      logo: '/logo.png',
+      industry: 'Digital Marketing & Enterprise Operations',
+      plan: 'Enterprise Elite',
+      status: 'Active',
+      maxSeats: 100,
+      seats: 14,
+      currency: 'INR (₹)'
+    } : {
+      id: currentUser?.tenantId || activeTenantId || 'client-astra',
+      name: currentUser?.company || 'Astra CRM',
+      subdomain: 'astra',
+      logo: '/logo.png',
+      industry: 'Enterprise AI & Cloud SaaS',
+      plan: 'Enterprise Suite',
+      status: 'Active',
+      maxSeats: 500,
+      seats: 1,
+      currency: 'USD ($)'
+    };
 
   const defaultTenantId = isSannaCRM() ? 'client-sanna' : 'client-astra';
   const activeTenant = allClientsList.find(c => c.id === activeTenantId || (c.id === defaultTenantId && (!activeTenantId || activeTenantId === defaultTenantId || activeTenantId === 'client-primary'))) || fallbackTenant;
@@ -1536,7 +1562,7 @@ export const CRMProvider = ({ children }) => {
       try {
         const res = await api.get('/mis/leads');
         if (Array.isArray(res.data) && res.data.length > 0) return res.data;
-      } catch (e) {}
+      } catch (e) { }
       const res = await api.get('/leads');
       return res.data;
     },
@@ -1558,9 +1584,9 @@ export const CRMProvider = ({ children }) => {
           api.post('/mis/leads/batch', { leads: parsed }).then(() => {
             queryClient.invalidateQueries({ queryKey: ['leads'] });
             localStorage.removeItem(key);
-          }).catch(() => {});
+          }).catch(() => { });
         }
-      } catch (e) {}
+      } catch (e) { }
     }
   }, [isAuthenticated]);
 
@@ -1645,7 +1671,7 @@ export const CRMProvider = ({ children }) => {
         const apiIds = new Set(employeesQuery.data.map(e => String(e.id)));
         const extraLocals = (prev || []).filter(le => !apiIds.has(String(le.id)));
         const merged = [...employeesQuery.data, ...extraLocals];
-        try { localStorage.setItem('astra_local_employees', JSON.stringify(merged)); } catch (e) {}
+        try { localStorage.setItem('astra_local_employees', JSON.stringify(merged)); } catch (e) { }
         return merged;
       });
     }
@@ -1655,11 +1681,11 @@ export const CRMProvider = ({ children }) => {
     if (serversQuery.data) {
       if (Array.isArray(serversQuery.data.servers) && serversQuery.data.servers.length > 0) {
         setLocalServerCredentials(serversQuery.data.servers);
-        try { localStorage.setItem('astra_server_credentials', JSON.stringify(serversQuery.data.servers)); } catch (e) {}
+        try { localStorage.setItem('astra_server_credentials', JSON.stringify(serversQuery.data.servers)); } catch (e) { }
       }
       if (Array.isArray(serversQuery.data.credentials) && serversQuery.data.credentials.length > 0) {
         setLocalProjectCredentials(serversQuery.data.credentials);
-        try { localStorage.setItem('astra_project_credentials', JSON.stringify(serversQuery.data.credentials)); } catch (e) {}
+        try { localStorage.setItem('astra_project_credentials', JSON.stringify(serversQuery.data.credentials)); } catch (e) { }
       }
     }
   }, [serversQuery.data]);
@@ -1775,7 +1801,7 @@ export const CRMProvider = ({ children }) => {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      } catch (e) {}
+      } catch (e) { }
     }
     return [
       {
@@ -1871,7 +1897,7 @@ export const CRMProvider = ({ children }) => {
   useEffect(() => {
     try {
       localStorage.setItem('sanna_crm_roles', JSON.stringify(roles));
-    } catch (e) {}
+    } catch (e) { }
   }, [roles]);
 
   const updateRolePermissions = async (roleId, permission) => {
@@ -1908,7 +1934,7 @@ export const CRMProvider = ({ children }) => {
 
       try {
         localStorage.setItem('sanna_crm_roles', JSON.stringify(updated));
-      } catch (e) {}
+      } catch (e) { }
       return updated;
     });
 
@@ -1925,16 +1951,16 @@ export const CRMProvider = ({ children }) => {
     }
   };
 
-  const activeRole = resolvedRoles.find(r => r.id === (activeRoleId || currentUser?.roleId)) || 
-                     resolvedRoles.find(r => r.name === currentUser?.role) || 
-                     resolvedRoles[0];
+  const activeRole = resolvedRoles.find(r => r.id === (activeRoleId || currentUser?.roleId)) ||
+    resolvedRoles.find(r => r.name === currentUser?.role) ||
+    resolvedRoles[0];
 
   // AUTH ACTIONS
   const login = async (identifier, password) => {
     try {
       const response = await api.post('/auth/login', { identifier, email: identifier, username: identifier, password });
       const { token, user } = response.data;
-      
+
       const enrichedUser = {
         ...user,
         company: user.company && user.company !== 'Sanna Innovations Pvt Ltd'
@@ -1978,14 +2004,14 @@ export const CRMProvider = ({ children }) => {
       };
       const resolvedTarget = USER_ALIASES_MAP[cleanIdent] || cleanIdent;
 
-      const matchedUser = (localEmployees || []).find(d => 
+      const matchedUser = (localEmployees || []).find(d =>
         (d.username && d.username.toLowerCase() === cleanIdent) ||
         (d.username && d.username.toLowerCase() === resolvedTarget) ||
         (d.email && d.email.toLowerCase() === cleanIdent) ||
         (d.email && d.email.toLowerCase().startsWith(cleanIdent)) ||
         (d.id && d.id.toLowerCase() === cleanIdent) ||
         (d.name && d.name.toLowerCase().includes(cleanIdent))
-      ) || DEMO_ACCOUNTS.find(d => 
+      ) || DEMO_ACCOUNTS.find(d =>
         (d.username && d.username.toLowerCase() === cleanIdent) ||
         (d.username && d.username.toLowerCase() === resolvedTarget) ||
         (d.email && d.email.toLowerCase() === cleanIdent)
@@ -2137,14 +2163,14 @@ export const CRMProvider = ({ children }) => {
           throw new Error('Please enter your Company Name or Organization ID to join.');
         }
 
-        const existingClient = (localClients || []).find(c => 
+        const existingClient = (localClients || []).find(c =>
           c.name.toLowerCase() === searchName.toLowerCase() ||
           c.id.toLowerCase() === searchName.toLowerCase() ||
           (c.subdomain && c.subdomain.toLowerCase() === searchName.toLowerCase())
         );
 
         let targetTenantId = existingClient ? existingClient.id : `client-${searchName.toLowerCase().replace(/[^a-z0-9]/g, '') || Date.now()}`;
-        
+
         if (!existingClient) {
           const newCompanyObj = {
             id: targetTenantId,
@@ -2259,8 +2285,8 @@ export const CRMProvider = ({ children }) => {
     // Initialize default balances for all known employees
     const defaults = {};
     const year = new Date().getFullYear();
-    const allIds = ['EMP-001','EMP-002','EMP-003','EMP-008','EMP-009','EMP-010','EMP-SANNA-001',
-                    'INT-2026-01','INT-2026-02','INT-2025-01'];
+    const allIds = ['EMP-001', 'EMP-002', 'EMP-003', 'EMP-008', 'EMP-009', 'EMP-010', 'EMP-SANNA-001',
+      'INT-2026-01', 'INT-2026-02', 'INT-2025-01'];
     allIds.forEach(id => {
       defaults[`${id}-${year}`] = { ML: 12, CL: 12, ML_used: 0, CL_used: 0 };
     });
@@ -2473,7 +2499,7 @@ export const CRMProvider = ({ children }) => {
   const updateWeeklyProgressLog = (internId, weekNumber, logUpdates) => {
     setLocalInterns(prev => prev.map(intern => {
       if (intern.id === internId) {
-        const updatedLogs = (intern.weeklyLogs || []).map(log => 
+        const updatedLogs = (intern.weeklyLogs || []).map(log =>
           log.weekNumber === weekNumber ? { ...log, ...logUpdates } : log
         );
         return { ...intern, weeklyLogs: updatedLogs };
@@ -2525,14 +2551,14 @@ export const CRMProvider = ({ children }) => {
     setLocalDeliverables(prev => {
       const updated = prev.map(d => {
         if (String(d.id) === String(id) || (d.projectId && id && String(d.projectId) === String(id)) ||
-            (deliverableUpdates.projectName && (d.projectName === deliverableUpdates.projectName || d.clientName === deliverableUpdates.projectName) && String(d.month) === String(deliverableUpdates.month))) {
+          (deliverableUpdates.projectName && (d.projectName === deliverableUpdates.projectName || d.clientName === deliverableUpdates.projectName) && String(d.month) === String(deliverableUpdates.month))) {
           return { ...d, ...deliverableUpdates };
         }
         return d;
       });
       const key = isSannaCRM() ? 'sanna_deliverables_v6' : 'astra_clean_deliverables_v6';
-      try { localStorage.setItem(key, JSON.stringify(updated)); } catch (e) {}
-      try { localStorage.setItem('astra_deliverables', JSON.stringify(updated)); } catch (e) {}
+      try { localStorage.setItem(key, JSON.stringify(updated)); } catch (e) { }
+      try { localStorage.setItem('astra_deliverables', JSON.stringify(updated)); } catch (e) { }
       return updated;
     });
 
@@ -2540,7 +2566,7 @@ export const CRMProvider = ({ children }) => {
       if (!Array.isArray(old)) return old;
       return old.map(d => {
         if (String(d.id) === String(id) || (d.projectId && id && String(d.projectId) === String(id)) ||
-            (deliverableUpdates.projectName && (d.projectName === deliverableUpdates.projectName || d.clientName === deliverableUpdates.projectName) && String(d.month) === String(deliverableUpdates.month))) {
+          (deliverableUpdates.projectName && (d.projectName === deliverableUpdates.projectName || d.clientName === deliverableUpdates.projectName) && String(d.month) === String(deliverableUpdates.month))) {
           return { ...d, ...deliverableUpdates };
         }
         return d;
@@ -2558,8 +2584,8 @@ export const CRMProvider = ({ children }) => {
             return d;
           });
           const key = isSannaCRM() ? 'sanna_deliverables_v6' : 'astra_clean_deliverables_v6';
-          try { localStorage.setItem(key, JSON.stringify(updated)); } catch (e) {}
-          try { localStorage.setItem('astra_deliverables', JSON.stringify(updated)); } catch (e) {}
+          try { localStorage.setItem(key, JSON.stringify(updated)); } catch (e) { }
+          try { localStorage.setItem('astra_deliverables', JSON.stringify(updated)); } catch (e) { }
           return updated;
         });
       }
@@ -2574,7 +2600,7 @@ export const CRMProvider = ({ children }) => {
     const newEntry = { id: newId, ...record };
     setLocalDeliverables(prev => {
       const updated = [newEntry, ...prev];
-      try { localStorage.setItem('astra_deliverables', JSON.stringify(updated)); } catch (e) {}
+      try { localStorage.setItem('astra_deliverables', JSON.stringify(updated)); } catch (e) { }
       return updated;
     });
     try {
@@ -2582,7 +2608,7 @@ export const CRMProvider = ({ children }) => {
       if (res.data && res.data.id) {
         setLocalDeliverables(prev => {
           const updated = prev.map(d => d.id === newId ? { ...d, id: String(res.data.id), projectId: String(res.data.id) } : d);
-          try { localStorage.setItem('astra_deliverables', JSON.stringify(updated)); } catch (e) {}
+          try { localStorage.setItem('astra_deliverables', JSON.stringify(updated)); } catch (e) { }
           return updated;
         });
         queryClient.invalidateQueries({ queryKey: ['mis_deliverables'] });
@@ -2595,7 +2621,7 @@ export const CRMProvider = ({ children }) => {
   const deleteDeliverableRecord = async (id) => {
     setLocalDeliverables(prev => {
       const updated = prev.filter(d => String(d.id) !== String(id) && String(d.projectId) !== String(id));
-      try { localStorage.setItem('astra_deliverables', JSON.stringify(updated)); } catch (e) {}
+      try { localStorage.setItem('astra_deliverables', JSON.stringify(updated)); } catch (e) { }
       return updated;
     });
     try {
@@ -2611,7 +2637,7 @@ export const CRMProvider = ({ children }) => {
     const newEntry = { id: newId, ...post };
     setLocalHolidayPosts(prev => {
       const updated = [newEntry, ...prev];
-      try { localStorage.setItem('astra_holiday_posts', JSON.stringify(updated)); } catch (e) {}
+      try { localStorage.setItem('astra_holiday_posts', JSON.stringify(updated)); } catch (e) { }
       return updated;
     });
     try {
@@ -2619,7 +2645,7 @@ export const CRMProvider = ({ children }) => {
       if (res.data && res.data.id) {
         setLocalHolidayPosts(prev => {
           const updated = prev.map(h => h.id === newId ? { ...h, id: String(res.data.id) } : h);
-          try { localStorage.setItem('astra_holiday_posts', JSON.stringify(updated)); } catch (e) {}
+          try { localStorage.setItem('astra_holiday_posts', JSON.stringify(updated)); } catch (e) { }
           return updated;
         });
         queryClient.invalidateQueries({ queryKey: ['mis_holidays'] });
@@ -2632,7 +2658,7 @@ export const CRMProvider = ({ children }) => {
   const updateHolidayPost = async (id, updates) => {
     setLocalHolidayPosts(prev => {
       const updated = prev.map(h => h.id === id ? { ...h, ...updates } : h);
-      try { localStorage.setItem('astra_holiday_posts', JSON.stringify(updated)); } catch (e) {}
+      try { localStorage.setItem('astra_holiday_posts', JSON.stringify(updated)); } catch (e) { }
       return updated;
     });
     try {
@@ -2646,7 +2672,7 @@ export const CRMProvider = ({ children }) => {
   const deleteHolidayPost = async (id) => {
     setLocalHolidayPosts(prev => {
       const updated = prev.filter(h => h.id !== id);
-      try { localStorage.setItem('astra_holiday_posts', JSON.stringify(updated)); } catch (e) {}
+      try { localStorage.setItem('astra_holiday_posts', JSON.stringify(updated)); } catch (e) { }
       return updated;
     });
     try {
@@ -2660,7 +2686,7 @@ export const CRMProvider = ({ children }) => {
   const addAdSpendTransaction = (txn) => {
     setLocalAdSpend(prev => {
       const updated = [{ id: `ad-${Date.now()}`, ...txn }, ...prev];
-      try { localStorage.setItem('astra_ad_spend', JSON.stringify(updated)); } catch (e) {}
+      try { localStorage.setItem('astra_ad_spend', JSON.stringify(updated)); } catch (e) { }
       return updated;
     });
   };
@@ -2668,7 +2694,7 @@ export const CRMProvider = ({ children }) => {
   const updateAdSpendTransaction = (id, updates) => {
     setLocalAdSpend(prev => {
       const updated = prev.map(a => a.id === id ? { ...a, ...updates } : a);
-      try { localStorage.setItem('astra_ad_spend', JSON.stringify(updated)); } catch (e) {}
+      try { localStorage.setItem('astra_ad_spend', JSON.stringify(updated)); } catch (e) { }
       return updated;
     });
   };
@@ -2676,7 +2702,7 @@ export const CRMProvider = ({ children }) => {
   const deleteAdSpendTransaction = (id) => {
     setLocalAdSpend(prev => {
       const updated = prev.filter(a => a.id !== id);
-      try { localStorage.setItem('astra_ad_spend', JSON.stringify(updated)); } catch (e) {}
+      try { localStorage.setItem('astra_ad_spend', JSON.stringify(updated)); } catch (e) { }
       return updated;
     });
   };
@@ -2686,18 +2712,20 @@ export const CRMProvider = ({ children }) => {
     const newEntry = { id: newId, ...assignment };
     setLocalEditorAssignments(prev => {
       const updated = [newEntry, ...prev];
-      try { localStorage.setItem('astra_editor_assignments', JSON.stringify(updated)); } catch (e) {}
+      try { localStorage.setItem('astra_editor_assignments', JSON.stringify(updated)); } catch (e) { }
       return updated;
     });
     try {
       const res = await api.post('/mis/editors', assignment);
-      if (res.data && res.data.id) {
+      if (res.data) {
         setLocalEditorAssignments(prev => {
-          const updated = prev.map(e => e.id === newId ? { ...e, id: String(res.data.id) } : e);
-          try { localStorage.setItem('astra_editor_assignments', JSON.stringify(updated)); } catch (e) {}
+          const updated = prev.map(e => e.id === newId ? { ...e, ...res.data, id: String(res.data.id) } : e);
+          try { localStorage.setItem('astra_editor_assignments', JSON.stringify(updated)); } catch (e) { }
           return updated;
         });
         queryClient.invalidateQueries({ queryKey: ['mis_editors'] });
+        await editorsQuery.refetch();
+        return res.data;
       }
     } catch (err) {
       console.warn('API add editor fallback:', err.message);
@@ -2706,13 +2734,24 @@ export const CRMProvider = ({ children }) => {
 
   const updateEditorAssignment = async (id, updates) => {
     setLocalEditorAssignments(prev => {
-      const updated = prev.map(e => e.id === id ? { ...e, ...updates } : e);
-      try { localStorage.setItem('astra_editor_assignments', JSON.stringify(updated)); } catch (e) {}
+      const updated = prev.map(e => (String(e.id) === String(id) || e.id === id) ? { ...e, ...updates } : e);
+      try { localStorage.setItem('astra_editor_assignments', JSON.stringify(updated)); } catch (e) { }
       return updated;
     });
+    queryClient.setQueryData(['mis_editors'], old => {
+      if (!Array.isArray(old)) return old;
+      return old.map(e => (String(e.id) === String(id) || e.id === id) ? { ...e, ...updates } : e);
+    });
     try {
-      await api.put(`/mis/editors/${id}`, updates);
+      const res = await api.put(`/mis/editors/${id}`, updates);
+      if (res.data) {
+        queryClient.setQueryData(['mis_editors'], old => {
+          if (!Array.isArray(old)) return [res.data];
+          return old.map(e => (String(e.id) === String(id) || e.id === id || String(e.id) === String(res.data.id)) ? { ...e, ...res.data } : e);
+        });
+      }
       queryClient.invalidateQueries({ queryKey: ['mis_editors'] });
+      await editorsQuery.refetch();
     } catch (err) {
       console.warn('API update editor notice:', err.message);
     }
@@ -2720,13 +2759,18 @@ export const CRMProvider = ({ children }) => {
 
   const deleteEditorAssignment = async (id) => {
     setLocalEditorAssignments(prev => {
-      const updated = prev.filter(e => e.id !== id);
-      try { localStorage.setItem('astra_editor_assignments', JSON.stringify(updated)); } catch (e) {}
+      const updated = prev.filter(e => String(e.id) !== String(id) && e.id !== id);
+      try { localStorage.setItem('astra_editor_assignments', JSON.stringify(updated)); } catch (e) { }
       return updated;
+    });
+    queryClient.setQueryData(['mis_editors'], old => {
+      if (!Array.isArray(old)) return old;
+      return old.filter(e => String(e.id) !== String(id) && e.id !== id);
     });
     try {
       await api.delete(`/mis/editors/${id}`);
       queryClient.invalidateQueries({ queryKey: ['mis_editors'] });
+      await editorsQuery.refetch();
     } catch (err) {
       console.warn('API delete editor fallback:', err.message);
     }
@@ -2737,7 +2781,7 @@ export const CRMProvider = ({ children }) => {
     const newEntry = { id: newId, ...cred };
     setLocalServerCredentials(prev => {
       const updated = [newEntry, ...prev];
-      try { localStorage.setItem('astra_server_credentials', JSON.stringify(updated)); } catch (e) {}
+      try { localStorage.setItem('astra_server_credentials', JSON.stringify(updated)); } catch (e) { }
       return updated;
     });
     try {
@@ -2745,7 +2789,7 @@ export const CRMProvider = ({ children }) => {
       if (res.data && res.data.id) {
         setLocalServerCredentials(prev => {
           const updated = prev.map(s => s.id === newId ? { ...s, id: String(res.data.id) } : s);
-          try { localStorage.setItem('astra_server_credentials', JSON.stringify(updated)); } catch (e) {}
+          try { localStorage.setItem('astra_server_credentials', JSON.stringify(updated)); } catch (e) { }
           return updated;
         });
         queryClient.invalidateQueries({ queryKey: ['mis_servers'] });
@@ -2758,7 +2802,7 @@ export const CRMProvider = ({ children }) => {
   const updateServerCredential = async (id, updates) => {
     setLocalServerCredentials(prev => {
       const updated = prev.map(s => s.id === id ? { ...s, ...updates } : s);
-      try { localStorage.setItem('astra_server_credentials', JSON.stringify(updated)); } catch (e) {}
+      try { localStorage.setItem('astra_server_credentials', JSON.stringify(updated)); } catch (e) { }
       return updated;
     });
     try {
@@ -2772,7 +2816,7 @@ export const CRMProvider = ({ children }) => {
   const deleteServerCredential = async (id) => {
     setLocalServerCredentials(prev => {
       const updated = prev.filter(s => s.id !== id);
-      try { localStorage.setItem('astra_server_credentials', JSON.stringify(updated)); } catch (e) {}
+      try { localStorage.setItem('astra_server_credentials', JSON.stringify(updated)); } catch (e) { }
       return updated;
     });
     try {
@@ -2786,7 +2830,7 @@ export const CRMProvider = ({ children }) => {
   const addPerformanceReview = (review) => {
     setLocalPerformanceReviews(prev => {
       const updated = [{ id: `perf-${Date.now()}`, ...review }, ...prev];
-      try { localStorage.setItem('astra_perf_reviews', JSON.stringify(updated)); } catch (e) {}
+      try { localStorage.setItem('astra_perf_reviews', JSON.stringify(updated)); } catch (e) { }
       return updated;
     });
   };
@@ -2794,7 +2838,7 @@ export const CRMProvider = ({ children }) => {
   const updatePerformanceReview = (id, updates) => {
     setLocalPerformanceReviews(prev => {
       const updated = prev.map(p => p.id === id ? { ...p, ...updates } : p);
-      try { localStorage.setItem('astra_perf_reviews', JSON.stringify(updated)); } catch (e) {}
+      try { localStorage.setItem('astra_perf_reviews', JSON.stringify(updated)); } catch (e) { }
       return updated;
     });
   };
@@ -2908,10 +2952,10 @@ export const CRMProvider = ({ children }) => {
     const deviceStr = navigator.userAgent.includes('Windows')
       ? 'Windows 11 · Chrome (Desktop)'
       : navigator.userAgent.includes('Mac')
-      ? 'macOS Sonoma · Safari (Desktop)'
-      : navigator.userAgent.includes('Android') || navigator.userAgent.includes('iPhone')
-      ? 'Mobile Device (Chrome/Safari)'
-      : 'Workstation / Web App';
+        ? 'macOS Sonoma · Safari (Desktop)'
+        : navigator.userAgent.includes('Android') || navigator.userAgent.includes('iPhone')
+          ? 'Mobile Device (Chrome/Safari)'
+          : 'Workstation / Web App';
 
     const now = new Date();
     const punchInTime = getCurrentISTTimeString(now);
@@ -2940,7 +2984,7 @@ export const CRMProvider = ({ children }) => {
 
     // Clear any manual punch-out lock for today so live heartbeat keeps user active
     const todayKey = now.toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
-    try { localStorage.removeItem(`crm_punched_out_${targetUser.id}_${todayKey}`); } catch (e) {}
+    try { localStorage.removeItem(`crm_punched_out_${targetUser.id}_${todayKey}`); } catch (e) { }
 
     // Persist to backend database
     try {
@@ -2982,7 +3026,7 @@ export const CRMProvider = ({ children }) => {
     const nowStr = getCurrentISTTimeString(new Date());
     setLocalLoginSessions(prev => {
       const updated = prev.map(s => s.id === sessionId ? { ...s, status: 'Terminated', punchOutTime: nowStr } : s);
-      try { localStorage.setItem('astra_login_sessions_v11', JSON.stringify(updated)); } catch (e) {}
+      try { localStorage.setItem('astra_login_sessions_v11', JSON.stringify(updated)); } catch (e) { }
       return updated;
     });
 
@@ -3078,7 +3122,7 @@ export const CRMProvider = ({ children }) => {
         localStorage.setItem('astra_login_sessions_v14', JSON.stringify(updated));
         localStorage.setItem('astra_login_sessions_v12', JSON.stringify(updated));
         localStorage.setItem('astra_login_sessions', JSON.stringify(updated));
-      } catch (e) {}
+      } catch (e) { }
       return updated;
     });
 
@@ -3115,13 +3159,13 @@ export const CRMProvider = ({ children }) => {
     // Mark manual punch-out lock for today so heartbeat does not override user's intentional punch out
     try {
       localStorage.setItem(`crm_punched_out_${currentUser.id}_${todayKey}`, 'true');
-    } catch (e) {}
+    } catch (e) { }
 
     setLocalLoginSessions(prev => {
       const updated = prev.map(s => (s.userId === currentUser.id || s.userEmail === currentUser.email) && s.status === 'Active' ? { ...s, status: 'Logged Out', punchOutTime: nowStr } : s);
       try {
         localStorage.setItem('astra_login_sessions_v14', JSON.stringify(updated));
-      } catch (e) {}
+      } catch (e) { }
       if (autoMarkAttendanceFromSessions) {
         autoMarkAttendanceFromSessions(currentUser.id, todayKey, updated);
       }
@@ -3167,7 +3211,7 @@ export const CRMProvider = ({ children }) => {
 
     // Earliest punch in
     const earliestIn = s1InM <= s2InM ? (s1.punchInTime || '09:00 AM') : (s2.punchInTime || '09:00 AM');
-    
+
     // Latest punch out: If either log is active, merged session stays Active Online (punchOutTime: null)
     const latestOut = isEitherActive ? null : ((s1.punchOutTime && s2.punchOutTime)
       ? (s1OutM >= s2OutM ? s1.punchOutTime : s2.punchOutTime)
@@ -3187,7 +3231,7 @@ export const CRMProvider = ({ children }) => {
       const updated = [mergedSession, ...filtered];
       try {
         localStorage.setItem('astra_login_sessions_v12', JSON.stringify(updated));
-      } catch (e) {}
+      } catch (e) { }
       return updated;
     });
 
@@ -3238,14 +3282,14 @@ export const CRMProvider = ({ children }) => {
   });
   const rawTenantDeals = Array.isArray(dealsQuery.data) && dealsQuery.data.length > 0
     ? (() => {
-        const apiDeals = dealsQuery.data.map(d => {
-          const localMatch = (localDeals || []).find(ld => ld.id === d.id);
-          return localMatch ? { ...d, ...localMatch } : d;
-        });
-        const apiIds = new Set(apiDeals.map(d => d.id));
-        const extraLocals = (localDeals || []).filter(ld => (ld.clientId === activeTenantId || activeTenantId === 'all') && !apiIds.has(ld.id));
-        return [...apiDeals, ...extraLocals];
-      })()
+      const apiDeals = dealsQuery.data.map(d => {
+        const localMatch = (localDeals || []).find(ld => ld.id === d.id);
+        return localMatch ? { ...d, ...localMatch } : d;
+      });
+      const apiIds = new Set(apiDeals.map(d => d.id));
+      const extraLocals = (localDeals || []).filter(ld => (ld.clientId === activeTenantId || activeTenantId === 'all') && !apiIds.has(ld.id));
+      return [...apiDeals, ...extraLocals];
+    })()
     : (localDeals || []).filter(d => d.clientId === activeTenantId || activeTenantId === 'all');
 
   // Convert active leads directly into unified Kanban pipeline deals
@@ -3253,12 +3297,12 @@ export const CRMProvider = ({ children }) => {
     const normStatus = (!l.status || l.status === 'Lead') ? 'Lead Intake' : l.status;
     const val = parseFloat(l.potentialValue || l.dealValue || l.value || 50000);
 
-    const dealMatch = (rawTenantDeals || []).find(d => 
+    const dealMatch = (rawTenantDeals || []).find(d =>
       String(d.id).toLowerCase() === String(l.id).toLowerCase() ||
       String(d.id).toLowerCase() === `deal-${String(l.id).toLowerCase()}` ||
       String(d.leadId || '').toLowerCase() === String(l.id).toLowerCase() ||
       (d.company && l.company && String(d.company).trim().toLowerCase() === String(l.company).trim().toLowerCase())
-    ) || (localDeals || []).find(ld => 
+    ) || (localDeals || []).find(ld =>
       String(ld.id).toLowerCase() === String(l.id).toLowerCase() ||
       String(ld.id).toLowerCase() === `deal-${String(l.id).toLowerCase()}` ||
       (ld.company && l.company && String(ld.company).trim().toLowerCase() === String(l.company).trim().toLowerCase())
@@ -3279,11 +3323,11 @@ export const CRMProvider = ({ children }) => {
       phone: l.phone,
       dealValue: val,
       probability: normStatus === 'Won' ? 100 :
-                   normStatus === 'Negotiation' ? 85 :
-                   normStatus === 'Proposal Sent' ? 70 :
-                   normStatus === 'Need Analysis' ? 55 :
-                   normStatus === 'Qualified' ? 40 :
-                   normStatus === 'Lost' || normStatus === 'Not Interested' ? 0 : 25,
+        normStatus === 'Negotiation' ? 85 :
+          normStatus === 'Proposal Sent' ? 70 :
+            normStatus === 'Need Analysis' ? 55 :
+              normStatus === 'Qualified' ? 40 :
+                normStatus === 'Lost' || normStatus === 'Not Interested' ? 0 : 25,
       stage: normStatus,
       pipelineId: 'pipe-enterprise',
       owner: l.assignedTo || currentUser?.name || 'Nikki',
@@ -3298,8 +3342,8 @@ export const CRMProvider = ({ children }) => {
 
   // Combine leadDeals with any extra custom created deals
   const leadDealIds = new Set(leadDeals.map(d => String(d.id).toLowerCase()));
-  const extraCustomDeals = rawTenantDeals.filter(d => 
-    !leadDealIds.has(String(d.id).toLowerCase()) && 
+  const extraCustomDeals = rawTenantDeals.filter(d =>
+    !leadDealIds.has(String(d.id).toLowerCase()) &&
     !leadDealIds.has(String(d.leadId || '').toLowerCase()) &&
     !leadDealIds.has(String(d.title || '').toLowerCase())
   );
@@ -3330,7 +3374,7 @@ export const CRMProvider = ({ children }) => {
     const extraLocals = tenantLocalProducts.filter(lp => !apiIds.has(lp.id));
     resolvedProducts = [...apiProds, ...extraLocals];
   } else {
-  resolvedProducts = tenantLocalProducts;
+    resolvedProducts = tenantLocalProducts;
   }
 
   const resolvedIntegrations = Array.isArray(integrationsQuery.data) && integrationsQuery.data.length > 0
@@ -3348,11 +3392,11 @@ export const CRMProvider = ({ children }) => {
   }, [kycDocumentsQuery.data, localKYCDocuments]);
 
   const [deletedEmpIds, setDeletedEmpIds] = useState(() => {
-    try { localStorage.removeItem('astra_deleted_emp_ids'); } catch (e) {}
+    try { localStorage.removeItem('astra_deleted_emp_ids'); } catch (e) { }
     return [];
   });
   useEffect(() => {
-    try { localStorage.setItem('astra_deleted_emp_ids', JSON.stringify(deletedEmpIds)); } catch (e) {}
+    try { localStorage.setItem('astra_deleted_emp_ids', JSON.stringify(deletedEmpIds)); } catch (e) { }
   }, [deletedEmpIds]);
 
   const [localEmployees, setLocalEmployees] = useState(() => {
@@ -3370,13 +3414,13 @@ export const CRMProvider = ({ children }) => {
             return p;
           });
         }
-      } catch (e) {}
+      } catch (e) { }
     }
     return (REAL_CRM_DATA.employees && REAL_CRM_DATA.employees.length > 0) ? REAL_CRM_DATA.employees : PRE_SEEDED_EMPLOYEES;
   });
 
   useEffect(() => {
-    try { localStorage.setItem('astra_local_employees', JSON.stringify(localEmployees)); } catch (e) {}
+    try { localStorage.setItem('astra_local_employees', JSON.stringify(localEmployees)); } catch (e) { }
   }, [localEmployees]);
 
   const createEmployeeMutation = useMutation({
@@ -3409,7 +3453,7 @@ export const CRMProvider = ({ children }) => {
       // 2. Update local state
       setLocalEmployees(prev => {
         const updated = [...prev.filter(e => e.id !== newEntry.id && e.email !== newEntry.email), newEntry];
-        try { localStorage.setItem('astra_local_employees', JSON.stringify(updated)); } catch (e) {}
+        try { localStorage.setItem('astra_local_employees', JSON.stringify(updated)); } catch (e) { }
         return updated;
       });
 
@@ -3441,14 +3485,14 @@ export const CRMProvider = ({ children }) => {
 
       setLocalEmployees(prev => {
         const updated = [...prev.filter(e => e.id !== newEntry.id && e.email !== newEntry.email), newEntry];
-        try { localStorage.setItem('astra_local_employees', JSON.stringify(updated)); } catch (e) {}
+        try { localStorage.setItem('astra_local_employees', JSON.stringify(updated)); } catch (e) { }
         return updated;
       });
     }
   });
 
   const updateEmployeeMutation = useMutation({
-    mutationFn: ({ id, designation, roleId, role, baseSalary, salary, birthday, dob, status }) => 
+    mutationFn: ({ id, designation, roleId, role, baseSalary, salary, birthday, dob, status }) =>
       api.put(`/employees/${id}`, { designation, roleId, role, baseSalary: baseSalary || salary, birthday: birthday || dob, status, requesterRole: activeRole?.name }),
     onSuccess: (resData, { id, designation, roleId, role, baseSalary, salary, birthday, dob, status }) => {
       const ROLE_MAP = {
@@ -3498,7 +3542,7 @@ export const CRMProvider = ({ children }) => {
           }
           return e;
         });
-        try { localStorage.setItem('astra_local_employees', JSON.stringify(updated)); } catch (e) {}
+        try { localStorage.setItem('astra_local_employees', JSON.stringify(updated)); } catch (e) { }
         return updated;
       });
     },
@@ -3549,7 +3593,7 @@ export const CRMProvider = ({ children }) => {
           }
           return e;
         });
-        try { localStorage.setItem('astra_local_employees', JSON.stringify(updated)); } catch (e) {}
+        try { localStorage.setItem('astra_local_employees', JSON.stringify(updated)); } catch (e) { }
         return updated;
       });
     }
@@ -3562,7 +3606,7 @@ export const CRMProvider = ({ children }) => {
     // 2. Immediately remove from local state and localStorage
     setLocalEmployees(prev => {
       const updated = prev.filter(e => e.id !== id && e.email !== id && e.username !== id);
-      try { localStorage.setItem('astra_local_employees', JSON.stringify(updated)); } catch (e) {}
+      try { localStorage.setItem('astra_local_employees', JSON.stringify(updated)); } catch (e) { }
       return updated;
     });
 
@@ -3612,8 +3656,8 @@ export const CRMProvider = ({ children }) => {
   } else {
     const fallbackList = (localEmployees && localEmployees.length > 0)
       ? localEmployees
-      : ((REAL_CRM_DATA.employees && REAL_CRM_DATA.employees.length > 0) 
-        ? REAL_CRM_DATA.employees 
+      : ((REAL_CRM_DATA.employees && REAL_CRM_DATA.employees.length > 0)
+        ? REAL_CRM_DATA.employees
         : PRE_SEEDED_EMPLOYEES);
     resolvedEmployees = (fallbackList || []).filter(e => !deletedEmpIds.includes(e.id) && !deletedEmpIds.includes(e.email));
   }
@@ -3784,7 +3828,7 @@ export const CRMProvider = ({ children }) => {
       };
       setLocalDeals(prev => {
         const updated = [dealEntry, ...prev.filter(d => d.id !== dealEntry.id)];
-        try { localStorage.setItem('astra_deals', JSON.stringify(updated)); } catch (e) {}
+        try { localStorage.setItem('astra_deals', JSON.stringify(updated)); } catch (e) { }
         return updated;
       });
       if (typeof addNotification === 'function') {
@@ -3844,7 +3888,7 @@ export const CRMProvider = ({ children }) => {
       const dealEntry = { id: dealId, clientId: activeTenantId, stage: newDeal.stage || 'Qualified', probability: 40, ...newDeal };
       setLocalDeals(prev => {
         const updated = [dealEntry, ...prev.filter(d => d.id !== dealId)];
-        try { localStorage.setItem('astra_deals', JSON.stringify(updated)); } catch (e) {}
+        try { localStorage.setItem('astra_deals', JSON.stringify(updated)); } catch (e) { }
         return updated;
       });
     },
@@ -3852,7 +3896,7 @@ export const CRMProvider = ({ children }) => {
       const dealEntry = { id: `deal-${Date.now()}`, clientId: activeTenantId, stage: newDeal.stage || 'Qualified', probability: 40, ...newDeal };
       setLocalDeals(prev => {
         const updated = [dealEntry, ...prev];
-        try { localStorage.setItem('astra_deals', JSON.stringify(updated)); } catch (e) {}
+        try { localStorage.setItem('astra_deals', JSON.stringify(updated)); } catch (e) { }
         return updated;
       });
     }
@@ -3864,24 +3908,24 @@ export const CRMProvider = ({ children }) => {
       queryClient.invalidateQueries({ queryKey: ['deals', activeTenantId] });
       setLocalDeals(prev => {
         const updated = prev.map(d => (d.id === id || `deal-${d.id}` === id || d.id === `deal-${id}` || (d.company && dealData.company && d.company.toLowerCase() === dealData.company.toLowerCase())) ? { ...d, ...dealData } : d);
-        try { localStorage.setItem(isSannaCRM() ? 'sanna_deals_v6' : 'astra_clean_deals_v6', JSON.stringify(updated)); } catch (e) {}
+        try { localStorage.setItem(isSannaCRM() ? 'sanna_deals_v6' : 'astra_clean_deals_v6', JSON.stringify(updated)); } catch (e) { }
         return updated;
       });
       setLocalLeads(prev => {
         const updated = prev.map(l => (l.id === id || `lead-${l.id}` === id || l.id === `lead-${id}` || (l.company && dealData.company && l.company.toLowerCase() === dealData.company.toLowerCase())) ? { ...l, ...dealData } : l);
-        try { localStorage.setItem(isSannaCRM() ? 'sanna_leads_v6' : 'astra_clean_leads_v6', JSON.stringify(updated)); } catch (e) {}
+        try { localStorage.setItem(isSannaCRM() ? 'sanna_leads_v6' : 'astra_clean_leads_v6', JSON.stringify(updated)); } catch (e) { }
         return updated;
       });
     },
     onError: (err, { id, ...dealData }) => {
       setLocalDeals(prev => {
         const updated = prev.map(d => (d.id === id || `deal-${d.id}` === id || d.id === `deal-${id}` || (d.company && dealData.company && d.company.toLowerCase() === dealData.company.toLowerCase())) ? { ...d, ...dealData } : d);
-        try { localStorage.setItem(isSannaCRM() ? 'sanna_deals_v6' : 'astra_clean_deals_v6', JSON.stringify(updated)); } catch (e) {}
+        try { localStorage.setItem(isSannaCRM() ? 'sanna_deals_v6' : 'astra_clean_deals_v6', JSON.stringify(updated)); } catch (e) { }
         return updated;
       });
       setLocalLeads(prev => {
         const updated = prev.map(l => (l.id === id || `lead-${l.id}` === id || l.id === `lead-${id}` || (l.company && dealData.company && l.company.toLowerCase() === dealData.company.toLowerCase())) ? { ...l, ...dealData } : l);
-        try { localStorage.setItem(isSannaCRM() ? 'sanna_leads_v6' : 'astra_clean_leads_v6', JSON.stringify(updated)); } catch (e) {}
+        try { localStorage.setItem(isSannaCRM() ? 'sanna_leads_v6' : 'astra_clean_leads_v6', JSON.stringify(updated)); } catch (e) { }
         return updated;
       });
     }
@@ -3895,16 +3939,16 @@ export const CRMProvider = ({ children }) => {
     }
   });
 
-    const handleDeleteDeal = async (id) => {
+  const handleDeleteDeal = async (id) => {
     const cleanId = String(id).replace('deal-', '');
     setLocalDeals(prev => prev.filter(d => d.id !== id && d.id !== `deal-${id}` && `deal-${d.id}` !== id && String(d.id) !== cleanId));
     setLocalLeads(prev => prev.filter(l => l.id !== id && l.id !== cleanId && `deal-${l.id}` !== id));
     queryClient.setQueryData(['deals', activeTenantId], old => (old || []).filter(d => d.id !== id && d.id !== `deal-${id}` && `deal-${d.id}` !== id && String(d.id) !== cleanId));
     queryClient.setQueryData(['leads', activeTenantId], old => (old || []).filter(l => l.id !== id && l.id !== cleanId && `deal-${l.id}` !== id));
     try {
-      await api.delete(`/deals/${id}`).catch(() => {});
-      await api.delete(`/deals/${cleanId}`).catch(() => {});
-      await api.delete(`/leads/${cleanId}`).catch(() => {});
+      await api.delete(`/deals/${id}`).catch(() => { });
+      await api.delete(`/deals/${cleanId}`).catch(() => { });
+      await api.delete(`/leads/${cleanId}`).catch(() => { });
     } catch (err) {
       console.warn("Delete deal backend sync completed or fallback:", err);
     }
@@ -3962,7 +4006,7 @@ export const CRMProvider = ({ children }) => {
       const serverSlip = resData?.data || resData || newSlip;
       setLocalSalarySlips(prev => {
         const updated = [serverSlip, ...prev.filter(s => s.id !== serverSlip.id && s.id !== newSlip.id)];
-        try { localStorage.setItem('astra_salary_slips', JSON.stringify(updated)); } catch (e) {}
+        try { localStorage.setItem('astra_salary_slips', JSON.stringify(updated)); } catch (e) { }
         return updated;
       });
       queryClient.invalidateQueries({ queryKey: ['salarySlips', activeTenantId] });
@@ -3971,7 +4015,7 @@ export const CRMProvider = ({ children }) => {
       console.warn('API generate salary slip fallback:', err);
       setLocalSalarySlips(prev => {
         const updated = [newSlip, ...prev.filter(s => s.id !== newSlip.id)];
-        try { localStorage.setItem('astra_salary_slips', JSON.stringify(updated)); } catch (e) {}
+        try { localStorage.setItem('astra_salary_slips', JSON.stringify(updated)); } catch (e) { }
         return updated;
       });
     }
@@ -3982,7 +4026,7 @@ export const CRMProvider = ({ children }) => {
     onSuccess: (resData, id) => {
       setLocalSalarySlips(prev => {
         const updated = prev.map(s => s.id === id ? { ...s, status: 'Paid', paidDate: new Date().toISOString().split('T')[0] } : s);
-        try { localStorage.setItem('astra_salary_slips', JSON.stringify(updated)); } catch (e) {}
+        try { localStorage.setItem('astra_salary_slips', JSON.stringify(updated)); } catch (e) { }
         return updated;
       });
       queryClient.invalidateQueries({ queryKey: ['salarySlips', activeTenantId] });
@@ -3991,7 +4035,7 @@ export const CRMProvider = ({ children }) => {
       console.warn('API mark salary paid fallback:', err);
       setLocalSalarySlips(prev => {
         const updated = prev.map(s => s.id === id ? { ...s, status: 'Paid', paidDate: new Date().toISOString().split('T')[0] } : s);
-        try { localStorage.setItem('astra_salary_slips', JSON.stringify(updated)); } catch (e) {}
+        try { localStorage.setItem('astra_salary_slips', JSON.stringify(updated)); } catch (e) { }
         return updated;
       });
     }
@@ -4094,14 +4138,14 @@ export const CRMProvider = ({ children }) => {
           };
           setLocalDeals(prev => {
             const updated = [wonDeal, ...prev];
-            try { localStorage.setItem('astra_deals', JSON.stringify(updated)); } catch (e) {}
+            try { localStorage.setItem('astra_deals', JSON.stringify(updated)); } catch (e) { }
             return updated;
           });
           queryClient.setQueryData(['deals', activeTenantId], old => {
             if (!Array.isArray(old)) return [wonDeal];
             return [wonDeal, ...old.filter(d => d.id !== dealId)];
           });
-          api.post('/deals', wonDeal).catch(() => {});
+          api.post('/deals', wonDeal).catch(() => { });
         }
       }
     }
@@ -4137,7 +4181,7 @@ export const CRMProvider = ({ children }) => {
 
     try {
       await api.put(`/mis/leads/${id}`, { status: stage });
-    } catch (e) {}
+    } catch (e) { }
     try {
       await api.put(`/deals/${id}`, { stage });
     } catch (err) {
@@ -4164,7 +4208,7 @@ export const CRMProvider = ({ children }) => {
 
     try {
       await api.delete(`/mis/leads/${id}`);
-    } catch (e) {}
+    } catch (e) { }
     try {
       await api.delete(`/leads/${id}`);
     } catch (err) {
@@ -4182,7 +4226,7 @@ export const CRMProvider = ({ children }) => {
 
     try {
       await api.put(`/mis/leads/${id}`, { notes });
-    } catch (e) {}
+    } catch (e) { }
     try {
       await api.put(`/leads/${id}`, { notes });
     } catch (err) {
@@ -4271,7 +4315,7 @@ export const CRMProvider = ({ children }) => {
         }
         return e;
       });
-      try { localStorage.setItem('astra_local_employees', JSON.stringify(updated)); } catch (e) {}
+      try { localStorage.setItem('astra_local_employees', JSON.stringify(updated)); } catch (e) { }
       return updated;
     });
 
@@ -4283,7 +4327,7 @@ export const CRMProvider = ({ children }) => {
         role: resolvedRole || currentUser.role
       };
       setCurrentUser(updatedUser);
-      try { localStorage.setItem('astra_user', JSON.stringify(updatedUser)); } catch (e) {}
+      try { localStorage.setItem('astra_user', JSON.stringify(updatedUser)); } catch (e) { }
     }
 
     try {
@@ -4324,9 +4368,9 @@ export const CRMProvider = ({ children }) => {
       quotes: resolvedQuotes, createQuote: createQuoteMutation.mutateAsync, approveQuote: (id) => {
         const target = resolvedQuotes.find(q => q.id === id);
         if (target) target.status = 'Accepted';
-      }, convertQuoteToOrder: (quoteId) => {},
+      }, convertQuoteToOrder: (quoteId) => { },
       orders: resolvedOrders, createOrder: createOrderMutation.mutateAsync, updateOrder: (id, orderData) => updateOrderMutation.mutateAsync({ id, ...orderData }), deleteOrder: deleteOrderMutation.mutateAsync,
-      tickets: resolvedTickets, createTicket: (tData) => {},
+      tickets: resolvedTickets, createTicket: (tData) => { },
       tasks, addTask: (tData) => setTasks(prev => [{ id: `tsk-${Date.now()}`, status: 'Pending', ...tData }, ...prev]), toggleTaskStatus: (id) => setTasks(prev => prev.map(t => t.id === id ? { ...t, status: t.status === 'Completed' ? 'Pending' : 'Completed' } : t)),
       campaigns, addCampaign: (cData) => setCampaigns(prev => [{ id: `cmp-${Date.now()}`, openRatePercent: 45.0, clickRatePercent: 20.0, convertedLeads: 5, estimatedROI: '250%', startDate: new Date().toISOString().split('T')[0], sentCount: 500, status: 'Active', ...cData }, ...prev]),
       documents, addDocument: (dData) => setDocuments(prev => [{ id: `doc-${Date.now()}`, ...dData }, ...prev]),
@@ -4338,7 +4382,7 @@ export const CRMProvider = ({ children }) => {
       setNotifications: setCustomNotifications,
       addNotification,
       createRazorpayOrder, verifyRazorpayPayment,
-      attendanceRecords: localAttendance, batchMarkAttendance, markAttendance: () => {},
+      attendanceRecords: localAttendance, batchMarkAttendance, markAttendance: () => { },
       attendanceMatrix, updateAttendanceDay, batchUpdateAttendanceMonth, markAllStaffDayAttendance, autoMarkAttendanceFromSessions, syncAllSessionsToAttendance,
       leaveBalances, initLeaveBalance, applyLeave, restoreLeave, setLeaveQuota,
       interns: localInterns, addIntern, updateIntern, deleteIntern, addWeeklyProgressLog, updateWeeklyProgressLog, addInternEvaluation, issueInternCertificate,
