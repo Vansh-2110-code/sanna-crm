@@ -46,16 +46,16 @@ const LeadList = () => {
   const [selectedSource, setSelectedSource] = useState('ALL');
   const [selectedStatus, setSelectedStatus] = useState('ALL');
   const [selectedReference, setSelectedReference] = useState('ALL');
-  
+
   // Selection & Bulk Action state
   const [selectedLeadIds, setSelectedLeadIds] = useState([]);
-  
+
   // Dropdown menu state
   const [activeDropdownLeadId, setActiveDropdownLeadId] = useState(null);
 
   // Slide-Over Drawer state
   const [inspectedLead, setInspectedLead] = useState(null);
-  
+
   // Notes Edit Modal state
   const [editingNotesLead, setEditingNotesLead] = useState(null);
   const [notesDraft, setNotesDraft] = useState('');
@@ -94,15 +94,15 @@ const LeadList = () => {
     );
     const sTerm = (searchTerm || globalSearch || '').trim().toLowerCase();
     const matchesSearch = !sTerm ||
-                          (l.name || '').toLowerCase().includes(sTerm) ||
-                          (l.company || '').toLowerCase().includes(sTerm) ||
-                          (l.email || '').toLowerCase().includes(sTerm) ||
-                          (l.phone || '').toLowerCase().includes(sTerm) ||
-                          (l.assignedTo || '').toLowerCase().includes(sTerm) ||
-                          (l.notes || '').toLowerCase().includes(sTerm) ||
-                          (l.productNeeded || '').toLowerCase().includes(sTerm) ||
-                          (l.projectCategory || '').toLowerCase().includes(sTerm) ||
-                          refVal.toLowerCase().includes(sTerm);
+      (l.name || '').toLowerCase().includes(sTerm) ||
+      (l.company || '').toLowerCase().includes(sTerm) ||
+      (l.email || '').toLowerCase().includes(sTerm) ||
+      (l.phone || '').toLowerCase().includes(sTerm) ||
+      (l.assignedTo || '').toLowerCase().includes(sTerm) ||
+      (l.notes || '').toLowerCase().includes(sTerm) ||
+      (l.productNeeded || '').toLowerCase().includes(sTerm) ||
+      (l.projectCategory || '').toLowerCase().includes(sTerm) ||
+      refVal.toLowerCase().includes(sTerm);
     return matchesSource && matchesStatus && matchesReference && matchesSearch;
   });
 
@@ -118,13 +118,13 @@ const LeadList = () => {
 
   const handleToggleSelectLead = (id, e) => {
     e.stopPropagation();
-    setSelectedLeadIds(prev => 
+    setSelectedLeadIds(prev =>
       prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
     );
   };
 
   const handleExportCSV = (exportSelectedOnly = false) => {
-    const listToExport = exportSelectedOnly 
+    const listToExport = exportSelectedOnly
       ? filteredLeads.filter(l => selectedLeadIds.includes(l.id))
       : filteredLeads;
 
@@ -186,7 +186,7 @@ const LeadList = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      
+
       {/* Header Banner */}
       <div className="glass-panel" style={{ padding: '24px 28px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
         <div>
@@ -485,11 +485,11 @@ const LeadList = () => {
                             fontWeight: '700',
                             borderRadius: '8px',
                             color: lead.status === 'Won' ? '#34d399' :
-                                   lead.status === 'Lost' ? '#fb7185' :
-                                   lead.status === 'Not Interested' ? '#94a3b8' :
-                                   lead.status === 'Proposal Sent' ? '#fbbf24' :
-                                   lead.status === 'Negotiation' ? '#f472b6' :
-                                   lead.status === 'Qualified' ? '#38bdf8' : '#818cf8',
+                              lead.status === 'Lost' ? '#fb7185' :
+                                lead.status === 'Not Interested' ? '#94a3b8' :
+                                  lead.status === 'Proposal Sent' ? '#fbbf24' :
+                                    lead.status === 'Negotiation' ? '#f472b6' :
+                                      lead.status === 'Qualified' ? '#38bdf8' : '#818cf8',
                             background: 'rgba(255, 255, 255, 0.04)'
                           }}
                         >
@@ -623,7 +623,7 @@ const LeadList = () => {
       {inspectedLead && (
         <div className="slide-over-backdrop" onClick={() => setInspectedLead(null)}>
           <div className="slide-over-panel" onClick={(e) => e.stopPropagation()}>
-            
+
             {/* Drawer Header */}
             <div style={{
               padding: '24px',
@@ -663,7 +663,7 @@ const LeadList = () => {
 
             {/* Drawer Body Content */}
             <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px', flex: 1 }}>
-              
+
               {/* Key Metrics Strip */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div className="saas-card" style={{ padding: '14px' }}>

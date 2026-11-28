@@ -61,7 +61,7 @@ class LeadService {
       // Try matching by id strip lead- prefix or email
       const cleanId = id.replace(/^lead-/, '');
       lead = await LeadRepository.findOne({ where: { id: cleanId, clientId: tenantId } }) ||
-             await LeadRepository.findOne({ where: { email: cleanId, clientId: tenantId } });
+        await LeadRepository.findOne({ where: { email: cleanId, clientId: tenantId } });
     }
 
     if (!lead) {
@@ -92,7 +92,7 @@ class LeadService {
     if (!lead) {
       const cleanId = id.replace(/^lead-/, '');
       lead = await LeadRepository.findOne({ where: { id: cleanId, clientId: tenantId } }) ||
-             await LeadRepository.findOne({ where: { email: cleanId, clientId: tenantId } });
+        await LeadRepository.findOne({ where: { email: cleanId, clientId: tenantId } });
     }
 
     if (!lead) {
@@ -102,6 +102,86 @@ class LeadService {
 
     await lead.destroy();
     return true;
+  }
+
+  async batchCreateOrUpdate(tenantId, leadsList) {
+    if (!Array.isArray(leadsList) || leadsList.length === 0) return { success: true, count: 0 };
+    const now = new Date();
+    const effectiveTenantId = tenantId || 'client-sanna';
+    let processedCount = 0;
+
+    for (let i = 0; i < leadsList.length; i++) {
+      const l = leadsList[i];
+      if (!l.name && !l.company) continue;
+
+      const leadId = l.id || `lead-${Date.now()}-${i}-${Math.random().toString(36).substr(2, 5)}`;
+      const name = l.name || l.company || `Lead #${i + 1}`;
+      const company = l.company || l.name || 'Enterprise Client';
+      const email = l.email ? String(l.email).trim() : '';
+      const phone = l.phone ? String(l.phone).trim() : '';
+      const source = l.source || 'Excel Import';
+      const referredBy = l.referredBy || l.referred_by || '';
+      const assignedTo = l.assignedTo || 'Srinivas (Admin)';
+      const notes = l.notes || '';
+      const tags = Array.isArray(l.tags) ? l.tags : (l.tags ? [l.tags] : ['Imported']);
+      const status = l.status || 'Lead Intake';
+      const score = parseInt(l.score, 10) || 50;
+      const potentialValue = parseFloat(l.potentialValue || l.value || 0) || 0;
+      const projectCategory = l.projectCategory || 'Software Development';
+      const projectType = l.projectType || 'One Time';
+
+      try {
+        const existing = await LeadRepository.findOne({
+          where: { id: leadId }
+        }) || (email ? await LeadRepository.findOne({ where: { clientId: effectiveTenantId, email } }) : null);
+
+        if (existing) {
+          await existing.update({
+            name,
+            company,
+            email,
+            phone,
+            source,
+            referredBy,
+            assignedTo,
+            notes,
+            tags,
+            status,
+            score,
+            potentialValue,
+            projectCategory,
+            projectType,
+            updatedAt: now
+          });
+        } else {
+          await LeadRepository.create({
+            id: leadId,
+            clientId: effectiveTenantId,
+            name,
+            company,
+            email,
+            phone,
+            source,
+            referredBy,
+            assignedTo,
+            notes,
+            tags,
+            status,
+            score,
+            potentialValue,
+            projectCategory,
+            projectType,
+            createdAt: now,
+            updatedAt: now
+          });
+        }
+        processedCount++;
+      } catch (err) {
+        console.warn(`[Lead batch item warning] ${name} (${company}):`, err.message);
+      }
+    }
+
+    return { success: true, count: processedCount };
   }
 }
 

@@ -2818,11 +2818,26 @@ router.post('/leads/batch', async (req, res) => {
         const l = leadsList[i];
         if (!l.name && !l.company) continue;
 
-        const leadId = l.id || `lead-${Date.now()}-${i}-${Math.random().toString(36).substr(2, 5)}`;
-        const clientId = l.clientId || 'client-sanna';
+        let leadId = l.id;
         const name = l.name || l.company || `Lead #${i + 1}`;
         const company = l.company || l.name || 'Enterprise Client';
         const email = l.email ? String(l.email).trim() : '';
+
+        if (!leadId) {
+          if (email) {
+            const existing = await get('SELECT id FROM leads WHERE email = ? LIMIT 1', [email]);
+            if (existing && existing.id) leadId = existing.id;
+          }
+          if (!leadId && name && company) {
+            const existing = await get('SELECT id FROM leads WHERE LOWER(TRIM(name)) = ? AND LOWER(TRIM(company)) = ? LIMIT 1', [name.trim().toLowerCase(), company.trim().toLowerCase()]);
+            if (existing && existing.id) leadId = existing.id;
+          }
+        }
+        if (!leadId) {
+          leadId = `lead-${Date.now()}-${i}-${Math.random().toString(36).substr(2, 5)}`;
+        }
+
+        const clientId = l.clientId || 'client-sanna';
         const phone = l.phone ? String(l.phone).trim() : '';
         const source = l.source || 'Excel Import';
         const referredBy = l.referredBy || l.referred_by || '';

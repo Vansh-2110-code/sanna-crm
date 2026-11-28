@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 
 export const BulkImportLeadsModal = ({ isOpen, onClose, onImportSuccess }) => {
-  const { batchAddLeads, addLead, currentUser } = useCRM();
+  const { batchAddLeads, addLead, currentUser, activeTenantId } = useCRM();
 
   const [file, setFile] = useState(null);
   const [fileName, setFileName] = useState('');
@@ -104,6 +104,7 @@ export const BulkImportLeadsModal = ({ isOpen, onClose, onImportSuccess }) => {
           const resolvedCompany = company || name || 'Corporate Client';
 
           return {
+            clientId: activeTenantId || currentUser?.tenantId || 'client-sanna',
             name: resolvedName,
             company: resolvedCompany,
             email: email, // Optional

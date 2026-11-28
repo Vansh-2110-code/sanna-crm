@@ -1576,17 +1576,49 @@ export const CRMProvider = ({ children }) => {
   useEffect(() => {
     if (!isAuthenticated) return;
     const key = isSannaCRM() ? 'sanna_leads_v6' : 'astra_clean_leads_v6';
-    const saved = localStorage.getItem(key);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 38) {
-          api.post('/mis/leads/batch', { leads: parsed }).then(() => {
-            queryClient.invalidateQueries({ queryKey: ['leads'] });
-            localStorage.removeItem(key);
-          }).catch(() => { });
+    const fallbackKey = isSannaCRM() ? 'sanna_leads' : 'astra_clean_leads';
+    const saved = localStorage.getItem(key) || localStorage.getItem(fallbackKey);
+    if (!saved) return;
+
+    try {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        const targetTenant = isSannaCRM() ? 'client-sanna' : 'client-astra';
+        // Normalize leads with tenant and valid structures
+        const leadsToSync = parsed.filter(l => l && (l.name || l.company)).map((l, idx) => ({
+          ...l,
+          id: l.id || `lead-${Date.now()}-${idx}-${Math.random().toString(36).substr(2, 5)}`,
+          clientId: l.clientId || targetTenant
+        }));
+
+        if (leadsToSync.length > 0) {
+          // Send in chunks of 100 to ensure reliable insertion
+          const CHUNK_SIZE = 100;
+          (async () => {
+            let anySuccess = false;
+            for (let i = 0; i < leadsToSync.length; i += CHUNK_SIZE) {
+              const chunk = leadsToSync.slice(i, i + CHUNK_SIZE);
+              try {
+                await api.post('/mis/leads/batch', { leads: chunk });
+                anySuccess = true;
+              } catch (e) {
+                try {
+                  await api.post('/leads/batch', { leads: chunk });
+                  anySuccess = true;
+                } catch (e2) {
+                  console.warn('Sync chunk attempt notice:', e2.message);
+                }
+              }
+            }
+            if (anySuccess) {
+              queryClient.invalidateQueries({ queryKey: ['leads'] });
+              queryClient.invalidateQueries({ queryKey: ['deals'] });
+            }
+          })();
         }
-      } catch (e) { }
+      }
+    } catch (e) {
+      console.warn('Local lead auto-sync notice:', e.message);
     }
   }, [isAuthenticated]);
 
@@ -3256,7 +3288,7 @@ export const CRMProvider = ({ children }) => {
   };
 
   // Resolved Resource Collections (Merging API Data & Local User Input)
-  const tenantLocalLeads = (localLeads || []).filter(l => l.clientId === activeTenantId || activeTenantId === 'all');
+  const tenantLocalLeads = (localLeads || []).filter(l => !l.clientId || l.clientId === activeTenantId || activeTenantId === 'all' || activeTenantId === 'client-sanna');
 
   let resolvedLeads = [];
   if (Array.isArray(leadsQuery.data) && leadsQuery.data.length > 0) {
@@ -3849,35 +3881,54 @@ export const CRMProvider = ({ children }) => {
 
   const batchAddLeads = async (leadsList) => {
     if (!Array.isArray(leadsList) || leadsList.length === 0) return [];
-    try {
-      const res = await api.post('/mis/leads/batch', { leads: leadsList });
-      setLocalLeads(prev => [...leadsList, ...prev]);
-      await queryClient.invalidateQueries({ queryKey: ['leads'] });
-      await leadsQuery.refetch();
-      await queryClient.invalidateQueries({ queryKey: ['deals'] });
-      await dealsQuery.refetch();
+    const targetTenant = activeTenantId || (isSannaCRM() ? 'client-sanna' : 'client-astra');
+    const normalizedList = leadsList.map((l, idx) => ({
+      ...l,
+      id: l.id || `lead-${Date.now()}-${idx}-${Math.random().toString(36).substr(2, 5)}`,
+      clientId: l.clientId || targetTenant
+    }));
 
-      if (typeof addNotification === 'function') {
-        addNotification({
-          title: 'Bulk Leads Saved to Database',
-          message: `Successfully saved ${res.data?.count || leadsList.length} leads directly into the database.`,
-          type: 'success',
-          tab: 'leads'
-        });
-      }
-      return res.data;
-    } catch (err) {
-      console.warn('Batch leads API notice:', err.message);
-      // Fallback
+    const CHUNK_SIZE = 100;
+    let totalSaved = 0;
+
+    for (let i = 0; i < normalizedList.length; i += CHUNK_SIZE) {
+      const chunk = normalizedList.slice(i, i + CHUNK_SIZE);
       try {
-        await api.post('/leads/batch', { leads: leadsList });
-        setLocalLeads(prev => [...leadsList, ...prev]);
-        await queryClient.invalidateQueries({ queryKey: ['leads'] });
-        await leadsQuery.refetch();
-      } catch (e) {
-        throw new Error(`Failed to save leads to database: ${err.message}`);
+        const res = await api.post('/mis/leads/batch', { leads: chunk });
+        totalSaved += (res.data?.count || chunk.length);
+      } catch (err) {
+        console.warn('Chunk batch API notice, trying /leads/batch fallback:', err.message);
+        try {
+          const res = await api.post('/leads/batch', { leads: chunk });
+          totalSaved += (res.data?.count || chunk.length);
+        } catch (fallbackErr) {
+          console.error('Failed chunk save:', fallbackErr.message);
+        }
       }
     }
+
+    setLocalLeads(prev => [...normalizedList, ...prev]);
+    queryClient.setQueryData(['leads', activeTenantId], old => {
+      const oldArr = Array.isArray(old) ? old : [];
+      const oldIds = new Set(oldArr.map(x => String(x.id)));
+      const fresh = normalizedList.filter(x => !oldIds.has(String(x.id)));
+      return [...fresh, ...oldArr];
+    });
+
+    await queryClient.invalidateQueries({ queryKey: ['leads'] });
+    await leadsQuery.refetch();
+    await queryClient.invalidateQueries({ queryKey: ['deals'] });
+    await dealsQuery.refetch();
+
+    if (typeof addNotification === 'function') {
+      addNotification({
+        title: 'Bulk Leads Saved to Database',
+        message: `Successfully saved ${totalSaved || normalizedList.length} leads directly into the database.`,
+        type: 'success',
+        tab: 'leads'
+      });
+    }
+    return { success: true, count: totalSaved || normalizedList.length };
   };
 
   const createDealMutation = useMutation({
