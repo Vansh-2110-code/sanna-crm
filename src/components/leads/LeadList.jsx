@@ -81,11 +81,23 @@ const LeadList = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [inspectedLead, activeDropdownLeadId]);
 
+  const availableStatuses = useMemo(() => {
+    const base = ['Lead Intake', 'Qualified', 'Need Analysis', 'Proposal Sent', 'Negotiation', 'Won', 'Lost', 'Not Interested'];
+    const custom = new Set();
+    safeLeadsList.forEach(l => {
+      const st = (l?.status || '').trim();
+      if (st && !base.includes(st) && st !== 'Lead') {
+        custom.add(st);
+      }
+    });
+    return { base, custom: Array.from(custom) };
+  }, [safeLeadsList]);
+
   const filteredLeads = safeLeadsList.filter(l => {
     if (!l) return false;
     const normStatus = (!l.status || l.status === 'Lead') ? 'Lead Intake' : l.status;
     const matchesSource = selectedSource === 'ALL' || l.source === selectedSource;
-    const matchesStatus = selectedStatus === 'ALL' || normStatus === selectedStatus;
+    const matchesStatus = selectedStatus === 'ALL' || normStatus === selectedStatus || l.status === selectedStatus;
     const refVal = (l.referredBy || l.referred_by || '').trim();
     const matchesReference = selectedReference === 'ALL' || (
       selectedReference === 'Other'
@@ -330,14 +342,18 @@ const LeadList = () => {
               style={{ fontSize: '0.8rem', padding: '6px 12px', height: '34px' }}
             >
               <option value="ALL">All Lifecycle Stages</option>
-              <option value="Lead Intake">Lead Intake</option>
-              <option value="Qualified">Qualified</option>
-              <option value="Need Analysis">Need Analysis</option>
-              <option value="Proposal Sent">Proposal Sent</option>
-              <option value="Negotiation">Negotiation</option>
-              <option value="Won">Won</option>
-              <option value="Lost">Lost</option>
-              <option value="Not Interested">Not Interested</option>
+              <optgroup label="Standard Stages">
+                {availableStatuses.base.map(st => (
+                  <option key={st} value={st}>{st}</option>
+                ))}
+              </optgroup>
+              {availableStatuses.custom.length > 0 && (
+                <optgroup label="Imported Remarks & Stages">
+                  {availableStatuses.custom.map(st => (
+                    <option key={st} value={st}>{st}</option>
+                  ))}
+                </optgroup>
+              )}
             </select>
           </div>
 
@@ -487,12 +503,15 @@ const LeadList = () => {
                             color: lead.status === 'Won' ? '#34d399' :
                               lead.status === 'Lost' ? '#fb7185' :
                                 lead.status === 'Not Interested' ? '#94a3b8' :
-                                  lead.status === 'Proposal Sent' ? '#fbbf24' :
+                                  (lead.status === 'Proposal Sent' || lead.status === 'Proposal sent') ? '#fbbf24' :
                                     lead.status === 'Negotiation' ? '#f472b6' :
                                       lead.status === 'Qualified' ? '#38bdf8' : '#818cf8',
                             background: 'rgba(255, 255, 255, 0.04)'
                           }}
                         >
+                          {lead.status && !['Lead Intake', 'Qualified', 'Need Analysis', 'Proposal Sent', 'Negotiation', 'Won', 'Lost', 'Not Interested', 'Lead'].includes(lead.status) && (
+                            <option value={lead.status}>{lead.status}</option>
+                          )}
                           <option value="Lead Intake">Lead Intake</option>
                           <option value="Qualified">Qualified</option>
                           <option value="Need Analysis">Need Analysis</option>
