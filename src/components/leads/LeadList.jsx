@@ -81,23 +81,26 @@ const LeadList = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [inspectedLead, activeDropdownLeadId]);
 
-  const availableStatuses = useMemo(() => {
-    const base = ['Lead Intake', 'Qualified', 'Need Analysis', 'Proposal Sent', 'Negotiation', 'Won', 'Lost', 'Not Interested'];
-    const custom = new Set();
-    safeLeadsList.forEach(l => {
-      const st = (l?.status || '').trim();
-      if (st && !base.includes(st) && st !== 'Lead') {
-        custom.add(st);
-      }
-    });
-    return { base, custom: Array.from(custom) };
-  }, [safeLeadsList]);
+  // Standard Stage Normalizer (Ensures Excel imports and all records map cleanly to standard stages)
+  const normalizeStage = (raw) => {
+    if (!raw) return 'Lead Intake';
+    const s = String(raw).trim().toLowerCase();
+    if (s === 'won' || s.includes('closed won') || s.includes('deal won')) return 'Won';
+    if (s === 'lost' || s.includes('closed lost')) return 'Lost';
+    if (s.includes('proposal') || s.includes('quotation')) return 'Proposal Sent';
+    if (s.includes('negotiat')) return 'Negotiation';
+    if (s.includes('qualif')) return 'Qualified';
+    if (s.includes('need') || s.includes('analysis') || s.includes('audit')) return 'Need Analysis';
+    if (s.includes('not interested') || s.includes('dnd') || s.includes('doesn\'t exist') || s.includes('invalid') || s.includes('not exist') || s.includes('not allowed')) return 'Not Interested';
+    if (s === 'lead' || s === 'lead intake' || s.includes('intake')) return 'Lead Intake';
+    return 'Lead Intake';
+  };
 
   const filteredLeads = safeLeadsList.filter(l => {
     if (!l) return false;
-    const normStatus = (!l.status || l.status === 'Lead') ? 'Lead Intake' : l.status;
+    const stage = normalizeStage(l.status);
     const matchesSource = selectedSource === 'ALL' || l.source === selectedSource;
-    const matchesStatus = selectedStatus === 'ALL' || normStatus === selectedStatus || l.status === selectedStatus;
+    const matchesStatus = selectedStatus === 'ALL' || stage === selectedStatus;
     const refVal = (l.referredBy || l.referred_by || '').trim();
     const matchesReference = selectedReference === 'ALL' || (
       selectedReference === 'Other'
@@ -342,18 +345,14 @@ const LeadList = () => {
               style={{ fontSize: '0.8rem', padding: '6px 12px', height: '34px' }}
             >
               <option value="ALL">All Lifecycle Stages</option>
-              <optgroup label="Standard Stages">
-                {availableStatuses.base.map(st => (
-                  <option key={st} value={st}>{st}</option>
-                ))}
-              </optgroup>
-              {availableStatuses.custom.length > 0 && (
-                <optgroup label="Imported Remarks & Stages">
-                  {availableStatuses.custom.map(st => (
-                    <option key={st} value={st}>{st}</option>
-                  ))}
-                </optgroup>
-              )}
+              <option value="Lead Intake">Lead Intake</option>
+              <option value="Qualified">Qualified</option>
+              <option value="Need Analysis">Need Analysis</option>
+              <option value="Proposal Sent">Proposal Sent</option>
+              <option value="Negotiation">Negotiation</option>
+              <option value="Won">Won</option>
+              <option value="Lost">Lost</option>
+              <option value="Not Interested">Not Interested</option>
             </select>
           </div>
 
@@ -492,7 +491,7 @@ const LeadList = () => {
                       {/* Stage Status */}
                       <td onClick={(e) => e.stopPropagation()}>
                         <select
-                          value={(!lead.status || lead.status === 'Lead') ? 'Lead Intake' : lead.status}
+                          value={normalizeStage(lead.status)}
                           onChange={(e) => updateLeadStatus && updateLeadStatus(lead.id, e.target.value)}
                           className="form-select"
                           style={{
@@ -500,18 +499,15 @@ const LeadList = () => {
                             padding: '4px 8px',
                             fontWeight: '700',
                             borderRadius: '8px',
-                            color: lead.status === 'Won' ? '#34d399' :
-                              lead.status === 'Lost' ? '#fb7185' :
-                                lead.status === 'Not Interested' ? '#94a3b8' :
-                                  (lead.status === 'Proposal Sent' || lead.status === 'Proposal sent') ? '#fbbf24' :
-                                    lead.status === 'Negotiation' ? '#f472b6' :
-                                      lead.status === 'Qualified' ? '#38bdf8' : '#818cf8',
+                            color: normalizeStage(lead.status) === 'Won' ? '#34d399' :
+                              normalizeStage(lead.status) === 'Lost' ? '#fb7185' :
+                                normalizeStage(lead.status) === 'Not Interested' ? '#94a3b8' :
+                                  normalizeStage(lead.status) === 'Proposal Sent' ? '#fbbf24' :
+                                    normalizeStage(lead.status) === 'Negotiation' ? '#f472b6' :
+                                      normalizeStage(lead.status) === 'Qualified' ? '#38bdf8' : '#818cf8',
                             background: 'rgba(255, 255, 255, 0.04)'
                           }}
                         >
-                          {lead.status && !['Lead Intake', 'Qualified', 'Need Analysis', 'Proposal Sent', 'Negotiation', 'Won', 'Lost', 'Not Interested', 'Lead'].includes(lead.status) && (
-                            <option value={lead.status}>{lead.status}</option>
-                          )}
                           <option value="Lead Intake">Lead Intake</option>
                           <option value="Qualified">Qualified</option>
                           <option value="Need Analysis">Need Analysis</option>

@@ -91,7 +91,18 @@ export const BulkImportLeadsModal = ({ isOpen, onClose, onImportSuccess }) => {
           const phone = findValue(row, 'phonenumber', 'contactnumber', 'mobilenumber', 'mobile', 'phone', 'phoneno', 'tel', 'whatsappnumber') || '';
           const source = findValue(row, 'leadcapturesource', 'leadsource', 'source', 'channel', 'platform') || 'Excel Import';
           const referredBy = findValue(row, 'referredby', 'reference', 'referral', 'refby', 'referred') || '';
-          const status = findValue(row, 'stagestatus', 'leadstatus', 'lifecyclestage', 'stage', 'status') || 'Lead Intake';
+          const rawStatus = findValue(row, 'stagestatus', 'leadstatus', 'lifecyclestage', 'stage', 'status') || 'Lead Intake';
+          let normalizedStatus = 'Lead Intake';
+          const lowerSt = rawStatus.toLowerCase();
+          if (lowerSt.includes('won')) normalizedStatus = 'Won';
+          else if (lowerSt.includes('lost')) normalizedStatus = 'Lost';
+          else if (lowerSt.includes('proposal') || lowerSt.includes('quotation')) normalizedStatus = 'Proposal Sent';
+          else if (lowerSt.includes('negotiat')) normalizedStatus = 'Negotiation';
+          else if (lowerSt.includes('qualif')) normalizedStatus = 'Qualified';
+          else if (lowerSt.includes('need') || lowerSt.includes('analysis')) normalizedStatus = 'Need Analysis';
+          else if (lowerSt.includes('not interested') || lowerSt.includes('no response') || lowerSt.includes('not reachable') || lowerSt.includes('invalid') || lowerSt.includes('doesn\'t exist') || lowerSt.includes('not allowed')) normalizedStatus = 'Not Interested';
+          else normalizedStatus = 'Lead Intake';
+
           const projectCategory = findValue(row, 'projectcategory', 'service', 'servicesneeded', 'category', 'requirement', 'domain', 'industry') || 'Software Development';
           const projectType = findValue(row, 'projecttype', 'type') || 'One Time';
           const productNeeded = findValue(row, 'productneeded', 'requirement', 'interest', 'interestedin', 'product') || '';
@@ -99,6 +110,11 @@ export const BulkImportLeadsModal = ({ isOpen, onClose, onImportSuccess }) => {
           const potentialValue = parseFloat(String(rawVal).replace(/[^0-9.]/g, '')) || 0;
           const assignedTo = findValue(row, 'assignedsalesexecutive', 'assignedrep', 'assignedto', 'salesrep', 'executive', 'owner', 'assigned') || currentUser?.name || 'Srinivas (Admin)';
           const notes = findValue(row, 'notes', 'remarks', 'comment', 'comments', 'description', 'auditnotes', 'details') || '';
+          
+          let combinedNotes = notes;
+          if (rawStatus && rawStatus !== normalizedStatus && !combinedNotes.includes(rawStatus)) {
+            combinedNotes = combinedNotes ? `${combinedNotes} | Status Note: ${rawStatus}` : `Status Note: ${rawStatus}`;
+          }
 
           const resolvedName = name || company || `Lead #${idx + 1}`;
           const resolvedCompany = company || name || 'Corporate Client';
@@ -111,13 +127,13 @@ export const BulkImportLeadsModal = ({ isOpen, onClose, onImportSuccess }) => {
             phone: phone,
             source: source,
             referredBy: referredBy,
-            status: status,
+            status: normalizedStatus,
             projectCategory: projectCategory,
             projectType: projectType,
             productNeeded: productNeeded,
             potentialValue: potentialValue,
             assignedTo: assignedTo,
-            notes: notes
+            notes: combinedNotes
           };
         }).filter(l => l.name || l.company);
 
